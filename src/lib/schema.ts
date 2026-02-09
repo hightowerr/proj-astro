@@ -1,4 +1,18 @@
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  uuid,
+  pgEnum,
+  uniqueIndex,
+  integer,
+  time,
+  check,
+  jsonb,
+} from "drizzle-orm/pg-core";
 
 // IMPORTANT! ID fields should ALWAYS use UUID types, EXCEPT the BetterAuth tables.
 
@@ -78,5 +92,352 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const shopStatusEnum = pgEnum("shop_status", [
+  "draft",
+  "active",
+  "paused",
+]);
+
+export const appointmentStatusEnum = pgEnum("appointment_status", [
+  "pending",
+  "booked",
+  "cancelled",
+]);
+
+export const paymentModeEnum = pgEnum("payment_mode", [
+  "deposit",
+  "full_prepay",
+  "none",
+]);
+
+export const appointmentPaymentStatusEnum = pgEnum(
+  "appointment_payment_status",
+  ["unpaid", "pending", "paid", "failed"]
+);
+
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "requires_payment_method",
+  "requires_action",
+  "processing",
+  "succeeded",
+  "failed",
+  "canceled",
+]);
+
+export const messageChannelEnum = pgEnum("message_channel", ["sms"]);
+
+export const messagePurposeEnum = pgEnum("message_purpose", [
+  "booking_confirmation",
+]);
+
+export const messageStatusEnum = pgEnum("message_status", [
+  "queued",
+  "sent",
+  "failed",
+]);
+
+export const shops = pgTable(
+  "shops",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    status: shopStatusEnum("status").default("draft").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("shops_owner_user_id_unique").on(table.ownerUserId),
+    uniqueIndex("shops_slug_unique").on(table.slug),
+    index("shops_status_idx").on(table.status),
+  ]
+);
+
+export const shopHours = pgTable(
+  "shop_hours",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    dayOfWeek: integer("day_of_week").notNull(),
+    openTime: time("open_time").notNull(),
+    closeTime: time("close_time").notNull(),
+  },
+  (table) => [
+    uniqueIndex("shop_hours_shop_day_unique").on(
+      table.shopId,
+      table.dayOfWeek
+    ),
+    index("shop_hours_shop_id_idx").on(table.shopId),
+    check(
+      "shop_hours_open_before_close",
+      sql`${table.openTime} < ${table.closeTime}`
+    ),
+  ]
+);
+
+export const bookingSettings = pgTable(
+  "booking_settings",
+  {
+    shopId: uuid("shop_id")
+      .primaryKey()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    slotMinutes: integer("slot_minutes").notNull(),
+    timezone: text("timezone").notNull(),
+  },
+  (table) => [
+    check(
+      "booking_settings_slot_minutes_valid",
+      sql`${table.slotMinutes} in (15, 30, 45, 60, 90, 120)`
+    ),
+  ]
+);
+
+export const shopPolicies = pgTable(
+  "shop_policies",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    currency: text("currency").notNull(),
+    paymentMode: paymentModeEnum("payment_mode").notNull(),
+    depositAmountCents: integer("deposit_amount_cents"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [uniqueIndex("shop_policies_shop_id_unique").on(table.shopId)]
+);
+
+export const policyVersions = pgTable(
+  "policy_versions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    currency: text("currency").notNull(),
+    paymentMode: paymentModeEnum("payment_mode").notNull(),
+    depositAmountCents: integer("deposit_amount_cents"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("policy_versions_shop_id_idx").on(table.shopId)]
+);
+
+export const customers = pgTable(
+  "customers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    fullName: text("full_name").notNull(),
+    phone: text("phone").notNull(),
+    email: text("email").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("customers_shop_phone_unique").on(table.shopId, table.phone),
+    uniqueIndex("customers_shop_email_unique").on(table.shopId, table.email),
+    index("customers_shop_id_idx").on(table.shopId),
+  ]
+);
+
+export const customerContactPrefs = pgTable(
+  "customer_contact_prefs",
+  {
+    customerId: uuid("customer_id")
+      .primaryKey()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    smsOptIn: boolean("sms_opt_in").default(false).notNull(),
+    preferredChannel: text("preferred_channel"),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("customer_contact_prefs_sms_opt_in_idx").on(table.smsOptIn)]
+);
+
+export const appointments = pgTable(
+  "appointments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    status: appointmentStatusEnum("status").default("booked").notNull(),
+    policyVersionId: uuid("policy_version_id").references(
+      () => policyVersions.id,
+      { onDelete: "set null" }
+    ),
+    paymentStatus: appointmentPaymentStatusEnum("payment_status")
+      .default("unpaid")
+      .notNull(),
+    paymentRequired: boolean("payment_required").default(false).notNull(),
+    bookingUrl: text("booking_url"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("appointments_shop_starts_unique").on(
+      table.shopId,
+      table.startsAt
+    ),
+    index("appointments_shop_id_idx").on(table.shopId),
+    index("appointments_customer_id_idx").on(table.customerId),
+  ]
+);
+
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .references(() => appointments.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull(),
+    status: paymentStatusEnum("status").notNull(),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    metadata: jsonb("metadata").$type<Record<string, string>>(),
+    attempts: integer("attempts").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("payments_appointment_id_unique").on(table.appointmentId),
+    uniqueIndex("payments_stripe_payment_intent_unique").on(
+      table.stripePaymentIntentId
+    ),
+    index("payments_shop_id_idx").on(table.shopId),
+  ]
+);
+
+export const messageTemplates = pgTable(
+  "message_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    key: text("key").notNull(),
+    version: integer("version").notNull(),
+    channel: messageChannelEnum("channel").notNull(),
+    bodyTemplate: text("body_template").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("message_templates_key_version_unique").on(
+      table.key,
+      table.version
+    ),
+    index("message_templates_key_idx").on(table.key),
+  ]
+);
+
+export const messageLog = pgTable(
+  "message_log",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .references(() => appointments.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    channel: messageChannelEnum("channel").notNull(),
+    purpose: messagePurposeEnum("purpose").notNull(),
+    toPhone: text("to_phone").notNull(),
+    provider: text("provider").notNull(),
+    providerMessageId: text("provider_message_id"),
+    status: messageStatusEnum("status").notNull(),
+    bodyHash: text("body_hash").notNull(),
+    templateId: uuid("template_id").references(() => messageTemplates.id, {
+      onDelete: "set null",
+    }),
+    templateKey: text("template_key").notNull(),
+    templateVersion: integer("template_version").notNull(),
+    renderedBody: text("rendered_body").notNull(),
+    retryCount: integer("retry_count").default(0).notNull(),
+    errorCode: text("error_code"),
+    errorMessage: text("error_message"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("message_log_shop_id_idx").on(table.shopId),
+    index("message_log_appointment_id_idx").on(table.appointmentId),
+    index("message_log_customer_id_idx").on(table.customerId),
+  ]
+);
+
+export const messageDedup = pgTable("message_dedup", {
+  dedupKey: text("dedup_key").primaryKey(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export const messageOptOuts = pgTable(
+  "message_opt_outs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    channel: messageChannelEnum("channel").notNull(),
+    optedOutAt: timestamp("opted_out_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    reason: text("reason"),
+  },
+  (table) => [index("message_opt_outs_customer_id_idx").on(table.customerId)]
+);
+
+export const processedStripeEvents = pgTable("processed_stripe_events", {
+  id: text("id").primaryKey(),
+  processedAt: timestamp("processed_at", { withTimezone: true })
+    .defaultNow()
     .notNull(),
 });

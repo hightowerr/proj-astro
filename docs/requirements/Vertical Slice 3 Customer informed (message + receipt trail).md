@@ -59,13 +59,46 @@ When a booking becomes `paid`, automatically send an SMS confirmation and write 
    - manage link (view/cancel comes later)
 4. Business can view “Messages” tab showing logs per appointment
 
+## Slice 3 Summary
+**Appetite:** 2 days | **Status:** Not implemented | **Priority:** Medium
+
+**What it delivers:**
+- SMS confirmation after payment via Twilio
+- Consent capture (SMS opt-in checkbox)
+- Message audit log with body hash and rendered body
+- Deduplication to prevent spam
+- STOP handling and opt-out recording
+
+**Strengths:**
+- Consent-first approach (GDPR/TCPA compliant)
+- Message log has evidence fields (provider_message_id, body_hash, template_key)
+- Idempotency via `message_dedup` table
+- Triggered automatically from webhook (good sequencing)
+
+**Gaps/Risks:**
+- E.164 phone validation is required end-to-end and must be enforced on input
+- STOP keyword handling is a legal requirement in the US (TCPA)
+- Template versioning needs a real `message_templates` table
+- No SMS provider failover if Twilio is down
+- `message_log.rendered_body` should not be optional for disputes
+
+**Recommendations:**
+- Use `libphonenumber-js` (already in repo) for E.164 validation on input
+- Implement a Twilio inbound webhook to process STOP/START/UNSTOP
+- Store `rendered_body` for all messages
+- Add `message_templates` table with versioning
+- Add `message_log.retry_count` for failed messages
+
 ## Scope
 
 ### In scope
 - Consent capture (minimal): SMS opt-in boolean stored per customer
+- E.164 validation on booking input
 - SMS confirmation triggered on `payment_intent.succeeded`
-- Message log stored in DB
+- Message log stored in DB with `rendered_body` + `body_hash` + `retry_count`
 - Idempotency to avoid duplicates
+- Message templates table (versioned)
+- STOP handling via inbound webhook and opt-out storage
 - Admin UI to view message log entries
 
 ### Out of scope (explicit)
@@ -73,7 +106,8 @@ When a booking becomes `paid`, automatically send an SMS confirmation and write 
 - Reminders (24h/2h)
 - WhatsApp/email channels
 - Delivery status callbacks (optional; can be later)
-- Unsubscribe keywords handling (“STOP”) (optional, but note risk)
+- Provider failover for SMS (Twilio down)
+- Automatic retries with backoff
 
 ## Data model
 
@@ -99,12 +133,25 @@ When a booking becomes `paid`, automatically send an SMS confirmation and write 
 - `provider_message_id` text null
 - `status` enum: `queued` | `sent` | `failed`
 - `body_hash` text
-- `template_key` text (e.g. "booking_confirmation_v1")
-- `rendered_body` text (optional; keep if you want full evidence; otherwise store hash only)
+- `template_id` uuid fk
+- `template_key` text (e.g. "booking_confirmation")
+- `template_version` int
+- `rendered_body` text (required)
+- `retry_count` int not null default 0
 - `error_code` text null
 - `error_message` text null
 - `created_at` timestamptz
 - `sent_at` timestamptz null
+
+#### `message_templates`
+- `id` uuid pk
+- `key` text (e.g. "booking_confirmation")
+- `version` int
+- `channel` enum: `sms`
+- `body_template` text
+- `created_at` timestamptz
+
+> Unique key: (`key`, `version`).
 
 #### `message_dedup`
 - `dedup_key` text pk
@@ -114,6 +161,13 @@ Dedup key example:
 - `booking_confirmation:{appointmentId}`
 
 This ensures retries don’t spam.
+
+#### `message_opt_outs`
+- `id` uuid pk
+- `customer_id` uuid fk
+- `channel` enum: `sms`
+- `opted_out_at` timestamptz
+- `reason` text (e.g. "STOP")
 
 ## Backend design
 
@@ -138,13 +192,20 @@ Important ordering:
 ### Sending logic (Twilio)
 - Validate customer has `sms_opt_in=true`
 - Validate phone exists and is E.164 formatted
+- Load message template by key + latest version
 - Render message from template:
   - “Booked: Tue 10:30. Paid £20 deposit. Cancel before Mon 10:30 for refund.”
 - Send via Twilio API
-- Store `provider_message_id`, `status=sent`, `sent_at`
+- Store `provider_message_id`, `status=sent`, `sent_at`, `rendered_body`, `body_hash`, and template version
 
 If Twilio fails:
 - `status=failed`, store error fields
+
+### STOP handling (Twilio inbound)
+- Add a `POST /api/twilio/inbound` route
+- Parse inbound message body for STOP/START/UNSTOP keywords
+- On STOP: set `customer_contact_prefs.sms_opt_in=false` and insert `message_opt_outs`
+- Reply with TwiML confirmation
 
 ### Routes
 - `POST /api/stripe/webhook` (existing)
@@ -152,6 +213,9 @@ If Twilio fails:
 
 - `GET /api/messages?appointmentId=...`
   - returns message log rows
+
+- `POST /api/twilio/inbound`
+  - handles STOP/START/UNSTOP opt-out keywords
 
 (Optional)
 - `POST /api/messages/resend` for admin — **not in scope** for Slice 3, usually causes misuse and support issues.
@@ -200,16 +264,24 @@ Mitigation:
 - only store “sent/failed” in Slice 3
 - delivery callbacks later if needed
 
+### 5) Provider failover
+Risk: Twilio outage blocks confirmation SMS.
+Mitigation:
+- record failures with retry_count and errors
+- add failover provider later if needed
+
 ## Definition of Done
 
 ### Functional
 - ✅ Paid booking triggers SMS send attempt
 - ✅ SMS is not sent without opt-in
 - ✅ Message is logged regardless of success/failure
+- ✅ STOP opt-out is handled and recorded
 
 ### Correctness
 - ✅ Idempotent under Stripe webhook retries
-- ✅ Message log contains enough evidence (hash, template, timestamps, provider id)
+- ✅ Message log contains enough evidence (hash, template, timestamps, provider id, rendered body)
+- ✅ Template versions are stored and referenced
 
 ### Delivery
 - ✅ Runs in deployed environment with Twilio credentials
@@ -221,6 +293,7 @@ Mitigation:
 - Template renderer produces expected output (stable, no missing fields)
 - Consent gating blocks sending
 - Dedup key prevents duplicate sends
+- STOP inbound handler disables `sms_opt_in`
 
 ### Integration tests
 - Webhook `succeeded` called twice → only one message_log row with `sent`
@@ -234,9 +307,114 @@ Scenario: pay → message log created
 4. Assert one message row exists with purpose `booking_confirmation`
 5. (Optionally) assert status is `sent` in mocked environment
 
-## Cut list (if time runs out)
-In order:
-1. Business “Messages” UI → keep logs only in DB
-2. Store rendered body → store hash + template only
-3. Phone validation niceties → minimal regex + accept E.164 only
-4. customer_contact_prefs table → add `sms_opt_in` directly to customers temporarily (but migrate later)
+## Completion Checklist
+
+**Status**: Not started  
+**Estimated Time to Finish**: 1–2 days  
+**Last Updated**: 2026-02-09
+
+---
+
+## 🚨 CRITICAL (Must Fix Before Launch)
+
+### 1. Add Messaging Tables + Enums
+**Files**: `src/lib/schema.ts`, `drizzle/0007_message_log.sql`, `drizzle/meta/_journal.json`
+
+Add enums:
+- `message_channel` (`sms`)
+- `message_purpose` (`booking_confirmation`)
+- `message_status` (`queued`, `sent`, `failed`)
+
+Add tables:
+- `customer_contact_prefs` (pk `customer_id`, `sms_opt_in`, `updated_at`)
+- `message_log` (required `rendered_body`, `body_hash`, `retry_count`, template fields)
+- `message_dedup` (`dedup_key` pk)
+- `message_templates` (key + version + body_template)
+- `message_opt_outs` (STOP history)
+
+**Validation**: Run `pnpm db:migrate` and confirm tables exist.
+
+---
+
+### 2. Capture SMS Opt-in in Booking Flow
+**Files**: `src/components/booking/booking-form.tsx`, `src/app/api/bookings/create/route.ts`, `src/app/api/appointments/route.ts`, `src/lib/queries/appointments.ts`
+
+- Add checkbox “Send me SMS updates about this booking.”
+- Send `customer.smsOptIn` in API payload.
+- Persist into `customer_contact_prefs` during appointment creation.
+
+**Validation**: Create a booking with opt-in true. Verify `customer_contact_prefs.sms_opt_in=true`.
+
+---
+
+### 3. Twilio Client + Env
+**Files**: `env.example`, `src/lib/env.ts`, `src/lib/twilio.ts` (new)
+
+- Add `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`.
+- Add `smsIsMocked()` for tests (like Stripe).
+
+**Validation**: App starts with Twilio env set; tests use mocked sender.
+
+---
+
+### 4. Send SMS on Payment Success
+**Files**: `src/lib/messages.ts` (new), `src/app/api/stripe/webhook/route.ts`
+
+Implement `sendBookingConfirmationSMS(appointmentId)`:
+- Check `sms_opt_in`.
+- Insert into `message_dedup`.
+- Load template from `message_templates`.
+- Render, hash, send.
+- Write `message_log` row with `retry_count`.
+
+Call from `payment_intent.succeeded` handler after DB updates.
+
+**Validation**: Stripe webhook retry triggers only one message send and one log row.
+
+---
+
+### 5. Implement STOP Handling
+**Files**: `src/app/api/twilio/inbound/route.ts` (new), `src/lib/queries/customers.ts` (or messages helper)
+
+- Parse inbound body for STOP/START/UNSTOP.
+- Update `customer_contact_prefs.sms_opt_in=false`.
+- Insert `message_opt_outs` row with reason.
+- Respond with TwiML confirmation.
+
+**Validation**: POST a STOP payload and verify opt-out and history.
+
+---
+
+## 🔴 HIGH (Should Complete)
+
+### 6. Appointment Detail + Message Log UI
+**Files**: `src/app/app/appointments/page.tsx`, `src/app/app/appointments/[id]/page.tsx` (new)
+
+- Add link from list to detail view.
+- Show Messages table with status, sent_at, provider id, template key, body hash.
+
+---
+
+### 7. Messages API
+**Files**: `src/app/api/messages/route.ts` (new)
+
+- `GET` by `appointmentId`
+- Auth via `requireAuth()`
+- Ownership enforcement
+
+---
+
+## ✅ QA Plan
+
+### Unit tests (Vitest)
+- Template renderer output
+- Consent gating blocks send
+- Dedup prevents duplicates
+- STOP handler writes opt-out and disables future sends
+
+### Integration
+- Webhook called twice → single `message_log` row
+- Twilio failure → `message_log.status=failed` with `retry_count=1`
+
+### E2E (Playwright)
+- Book + pay → appointment detail shows one confirmation message

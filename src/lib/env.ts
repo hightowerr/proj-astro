@@ -24,6 +24,15 @@ const serverEnvSchema = z.object({
   // Storage
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
 
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY is required"),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),
+
+  // Twilio
+  TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
+  TWILIO_AUTH_TOKEN: z.string().min(1).optional(),
+  TWILIO_PHONE_NUMBER: z.string().min(1).optional(),
+
   // App
   NODE_ENV: z
     .enum(["development", "production", "test"])
@@ -36,6 +45,9 @@ const serverEnvSchema = z.object({
  */
 const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
+    .string()
+    .min(1, "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is required"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -66,6 +78,8 @@ export function getServerEnv(): ServerEnv {
 export function getClientEnv(): ClientEnv {
   const parsed = clientEnvSchema.safeParse({
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   });
 
   if (!parsed.success) {
@@ -93,6 +107,30 @@ export function checkEnv(): void {
 
   if (!process.env.BETTER_AUTH_SECRET) {
     throw new Error("BETTER_AUTH_SECRET is required");
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is required");
+  }
+
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    throw new Error("STRIPE_WEBHOOK_SECRET is required");
+  }
+
+  if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    throw new Error("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is required");
+  }
+
+  if (!process.env.TWILIO_ACCOUNT_SID) {
+    throw new Error("TWILIO_ACCOUNT_SID is required");
+  }
+
+  if (!process.env.TWILIO_AUTH_TOKEN) {
+    throw new Error("TWILIO_AUTH_TOKEN is required");
+  }
+
+  if (!process.env.TWILIO_PHONE_NUMBER) {
+    throw new Error("TWILIO_PHONE_NUMBER is required");
   }
 
   // Check optional variables and warn
