@@ -7,7 +7,7 @@ export function SiteFooter() {
         <div className="flex flex-col items-center space-y-3">
           <GitHubStars repo="leonvanzyl/agentic-coding-starter-kit" />
           <p>
-            Built using Agentic Coding Boilerplate by{" "}
+            Built using Agentic Coding oilerplate by{" "}
             <a
               href="https://youtube.com/@leonvanzyl"
               target="_blank"
