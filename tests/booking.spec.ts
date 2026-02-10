@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./setup";
 
 const makeEmail = () => `shopper_${randomUUID()}@example.com`;
 const strongPassword = "Password123!";
@@ -37,7 +37,7 @@ test("customer books a slot and business sees it", async ({ page }) => {
   await page.getByLabel("Shop name").fill("Hello Shop");
   await page.getByLabel("Shop URL slug").fill(slug);
   await page.getByRole("button", { name: "Create" }).click();
-  await expect(page.getByText(slug)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(slug).first()).toBeVisible({ timeout: 15000 });
 
   await page.goto(`/book/${slug}`);
   await expect(page.getByText(`Book with Hello Shop`)).toBeVisible();
