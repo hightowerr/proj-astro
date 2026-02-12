@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { createShop, getShopByOwnerId } from "@/lib/queries/shops";
 

@@ -56,16 +56,21 @@ test("customer books a slot and business sees it", async ({ page }) => {
   await page.getByRole("button", { name: "Confirm booking" }).click();
 
   // Wait for Payment Element to fully load
-  await page.waitForTimeout(2000);
+  await expect
+    .poll(
+      () =>
+        page.frames().find((frame) => frame.url().includes("elements-inner-payment")),
+      { timeout: 10000 }
+    )
+    .toBeTruthy();
 
   // Find the Stripe payment iframe
-  const frames = page.frames();
-  const stripeFrame = frames.find(frame =>
-    frame.url().includes('elements-inner-payment')
-  );
+  const stripeFrame = page
+    .frames()
+    .find((frame) => frame.url().includes("elements-inner-payment"));
 
   if (!stripeFrame) {
-    throw new Error('Stripe payment frame not found');
+    throw new Error("Stripe payment frame not found");
   }
 
   // Wait for card number input to be ready

@@ -1,6 +1,7 @@
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { z } from "zod";
 import { buildBookingBaseUrl } from "@/lib/booking-url";
+import { createManageToken } from "@/lib/manage-tokens";
 import {
   createAppointment,
   InvalidSlotError,
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
       bookingBaseUrl,
       paymentsEnabled: true,
     });
+    const manageToken = await createManageToken(result.appointment.id);
 
     return Response.json({
       appointment: {
@@ -122,6 +124,7 @@ export async function POST(req: Request) {
       paymentRequired: result.paymentRequired,
       clientSecret: result.clientSecret,
       bookingUrl: result.bookingUrl,
+      manageToken,
     });
   } catch (error) {
     if (error instanceof SlotTakenError) {

@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { bookingSettings, shopHours, shops } from "@/lib/schema";
 

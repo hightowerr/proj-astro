@@ -105,6 +105,7 @@ export const appointmentStatusEnum = pgEnum("appointment_status", [
   "pending",
   "booked",
   "cancelled",
+  "ended",
 ]);
 
 export const paymentModeEnum = pgEnum("payment_mode", [
@@ -125,6 +126,22 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "succeeded",
   "failed",
   "canceled",
+]);
+
+export const appointmentFinancialOutcomeEnum = pgEnum(
+  "appointment_financial_outcome",
+  ["unresolved", "settled", "voided", "refunded", "disputed"]
+);
+
+export const appointmentEventTypeEnum = pgEnum("appointment_event_type", [
+  "created",
+  "payment_succeeded",
+  "payment_failed",
+  "outcome_resolved",
+  "cancelled",
+  "refund_issued",
+  "refund_failed",
+  "dispute_opened",
 ]);
 
 export const messageChannelEnum = pgEnum("message_channel", ["sms"]);
@@ -215,6 +232,9 @@ export const shopPolicies = pgTable(
     currency: text("currency").notNull(),
     paymentMode: paymentModeEnum("payment_mode").notNull(),
     depositAmountCents: integer("deposit_amount_cents"),
+    resolutionGraceMinutes: integer("resolution_grace_minutes")
+      .default(30)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -232,6 +252,12 @@ export const policyVersions = pgTable(
     currency: text("currency").notNull(),
     paymentMode: paymentModeEnum("payment_mode").notNull(),
     depositAmountCents: integer("deposit_amount_cents"),
+    cancelCutoffMinutes: integer("cancel_cutoff_minutes")
+      .notNull()
+      .default(1440),
+    refundBeforeCutoff: boolean("refund_before_cutoff")
+      .notNull()
+      .default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -289,6 +315,8 @@ export const appointments = pgTable(
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     status: appointmentStatusEnum("status").default("booked").notNull(),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancellationSource: text("cancellation_source"),
     policyVersionId: uuid("policy_version_id").references(
       () => policyVersions.id,
       { onDelete: "set null" }
@@ -297,6 +325,14 @@ export const appointments = pgTable(
       .default("unpaid")
       .notNull(),
     paymentRequired: boolean("payment_required").default(false).notNull(),
+    financialOutcome: appointmentFinancialOutcomeEnum("financial_outcome")
+      .default("unresolved")
+      .notNull(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    resolutionReason: text("resolution_reason"),
+    lastEventId: uuid("last_event_id").references((): any => appointmentEvents.id, {
+      onDelete: "set null",
+    }),
     bookingUrl: text("booking_url"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -313,6 +349,42 @@ export const appointments = pgTable(
     ),
     index("appointments_shop_id_idx").on(table.shopId),
     index("appointments_customer_id_idx").on(table.customerId),
+    index("appointments_shop_ends_idx").on(table.shopId, table.endsAt),
+    index("appointments_financial_outcome_idx").on(table.financialOutcome),
+    check(
+      "appointments_cancellation_source_check",
+      sql`${table.cancellationSource} in ('customer', 'system', 'admin')`
+    ),
+  ]
+);
+
+export const appointmentEvents = pgTable(
+  "appointment_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .references((): any => appointments.id, { onDelete: "cascade" }),
+    type: appointmentEventTypeEnum("type").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    meta: jsonb("meta").$type<Record<string, unknown>>(),
+  },
+  (table) => [
+    index("appointment_events_appointment_id_idx").on(table.appointmentId),
+    index("appointment_events_appointment_occurred_idx").on(
+      table.appointmentId,
+      table.occurredAt
+    ),
+    uniqueIndex("appointment_events_type_time_unique").on(
+      table.appointmentId,
+      table.type,
+      table.occurredAt
+    ),
   ]
 );
 
@@ -331,6 +403,11 @@ export const payments = pgTable(
     currency: text("currency").notNull(),
     status: paymentStatusEnum("status").notNull(),
     stripePaymentIntentId: text("stripe_payment_intent_id"),
+    refundedAmountCents: integer("refunded_amount_cents")
+      .notNull()
+      .default(0),
+    stripeRefundId: text("stripe_refund_id"),
+    refundedAt: timestamp("refunded_at", { withTimezone: true }),
     metadata: jsonb("metadata").$type<Record<string, string>>(),
     attempts: integer("attempts").default(0).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -347,6 +424,25 @@ export const payments = pgTable(
       table.stripePaymentIntentId
     ),
     index("payments_shop_id_idx").on(table.shopId),
+  ]
+);
+
+export const bookingManageTokens = pgTable(
+  "booking_manage_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .unique()
+      .references(() => appointments.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("booking_manage_tokens_token_hash_idx").on(table.tokenHash),
   ]
 );
 
