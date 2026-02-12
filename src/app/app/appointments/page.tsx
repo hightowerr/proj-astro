@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { ReconcilePaymentsButton } from "@/components/payments/reconcile-button";
-import { getBookingSettingsForShop, listAppointmentsForShop } from "@/lib/queries/appointments";
+import {
+  getBookingSettingsForShop,
+  getOutcomeSummaryForShop,
+  listAppointmentsForShop,
+} from "@/lib/queries/appointments";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { requireAuth } from "@/lib/session";
 
@@ -19,9 +23,12 @@ export default async function AppointmentsPage() {
     );
   }
 
-  const settings = await getBookingSettingsForShop(shop.id);
+  const [settings, appointments, outcomeSummary] = await Promise.all([
+    getBookingSettingsForShop(shop.id),
+    listAppointmentsForShop(shop.id),
+    getOutcomeSummaryForShop(shop.id),
+  ]);
   const timezone = settings?.timezone ?? "UTC";
-  const appointments = await listAppointmentsForShop(shop.id);
 
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
@@ -46,15 +53,36 @@ export default async function AppointmentsPage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold">Appointments</h1>
           <p className="text-sm text-muted-foreground">
-            Upcoming bookings for {shop.name}.
+            Recent and upcoming appointments for {shop.name}.
           </p>
         </div>
         <ReconcilePaymentsButton />
       </header>
 
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border p-4">
+          <p className="text-xs font-medium uppercase text-muted-foreground">
+            Settled (7d)
+          </p>
+          <p className="text-2xl font-semibold">{outcomeSummary.settled}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-xs font-medium uppercase text-muted-foreground">
+            Voided (7d)
+          </p>
+          <p className="text-2xl font-semibold">{outcomeSummary.voided}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-xs font-medium uppercase text-muted-foreground">
+            Unresolved (7d)
+          </p>
+          <p className="text-2xl font-semibold">{outcomeSummary.unresolved}</p>
+        </div>
+      </div>
+
       {appointments.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No upcoming appointments. Share your booking link to get started.
+          No recent or upcoming appointments. Share your booking link to get started.
         </p>
       ) : (
         <div className="overflow-hidden rounded-lg border">
@@ -64,6 +92,8 @@ export default async function AppointmentsPage() {
                 <th className="px-4 py-2 font-medium">Start</th>
                 <th className="px-4 py-2 font-medium">Customer</th>
                 <th className="px-4 py-2 font-medium">Payment</th>
+                <th className="px-4 py-2 font-medium">Outcome</th>
+                <th className="px-4 py-2 font-medium">Resolved</th>
                 <th className="px-4 py-2 font-medium">Created</th>
                 <th className="px-4 py-2 font-medium">Details</th>
               </tr>
@@ -90,6 +120,16 @@ export default async function AppointmentsPage() {
                         appointment.paymentCurrency
                       ) ?? (appointment.paymentRequired ? "—" : "No charge")}
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="capitalize">
+                      {appointment.financialOutcome}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {appointment.resolvedAt
+                      ? formatter.format(new Date(appointment.resolvedAt))
+                      : "—"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatter.format(new Date(appointment.createdAt))}

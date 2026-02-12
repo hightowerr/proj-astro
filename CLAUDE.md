@@ -1,250 +1,239 @@
-# Agentic Coding Boilerplate - AI Assistant Guidelines
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-This is a Next.js 16 boilerplate for building AI-powered applications with authentication, database, and modern UI components.
+This is a **booking/appointment management system** with automated financial outcomes, refunds, and policy-driven resolution. Built with Next.js 16, PostgreSQL, Stripe, and Twilio SMS.
 
-### Tech Stack
+**See README.md for setup instructions, API keys, and deployment.**
 
-- **Framework**: Next.js 16 with App Router, React 19, TypeScript
-- **AI Integration**: Vercel AI SDK 5 + OpenRouter (access to 100+ AI models)
-- **Authentication**: BetterAuth with Email/Password
-- **Database**: PostgreSQL with Drizzle ORM
-- **UI**: shadcn/ui components with Tailwind CSS 4
-- **Styling**: Tailwind CSS with dark mode support (next-themes)
+## Commands
 
-## AI Integration with OpenRouter
+### Development (DON'T start dev server yourself - ask user)
+```bash
+pnpm dev          # Start dev server
+pnpm build        # Build for production (runs db:migrate first)
+pnpm start        # Start production server
+```
 
-### Key Points
+### Code Quality (CRITICAL - Always run after changes)
+```bash
+pnpm lint         # Run ESLint
+pnpm typecheck    # TypeScript type checking
+pnpm check        # Both lint and typecheck together
+```
 
-- This project uses **OpenRouter** as the AI provider, NOT direct OpenAI
-- OpenRouter provides access to 100+ AI models through a single unified API
-- Default model: `openai/gpt-5-mini` (configurable via `OPENROUTER_MODEL` env var)
-- Users browse models at: https://openrouter.ai/models
-- Users get API keys from: https://openrouter.ai/settings/keys
+### Testing
+```bash
+# Unit tests (Vitest)
+pnpm test                    # Run all unit tests
+pnpm test:unit:ui            # Open Vitest UI
+pnpm test:unit:coverage      # Generate coverage report
+pnpm test <file>             # Run specific test file
 
-### AI Implementation Files
+# E2E tests (Playwright)
+pnpm test:e2e                # Run all E2E tests
+pnpm test:e2e:ui             # Open Playwright UI
+pnpm test:e2e:headed         # Run with browser visible
+pnpm test:e2e <spec-file>    # Run specific spec
 
-- `src/app/api/chat/route.ts` - Chat API endpoint using OpenRouter
-- Package: `@openrouter/ai-sdk-provider` (not `@ai-sdk/openai`)
-- Import: `import { openrouter } from "@openrouter/ai-sdk-provider"`
+# Resolver tests
+pnpm test:resolve-outcomes   # Test resolver job endpoint
+```
 
-## Project Structure
+### Database
+```bash
+pnpm db:generate  # Generate migrations from schema changes
+pnpm db:migrate   # Run pending migrations
+pnpm db:push      # Push schema to DB (dev only, skips migrations)
+pnpm db:studio    # Open Drizzle Studio (database GUI)
+pnpm db:reset     # Drop all tables and push schema
+```
+
+### Resolver (Cron Job)
+```bash
+# Manually trigger outcome resolver
+curl -X POST http://localhost:3000/api/jobs/resolve-outcomes \
+  -H "x-cron-secret: $CRON_SECRET"
+```
+
+## High-Level Architecture
+
+### Booking Lifecycle
+
+```
+1. Customer books → Creates appointment + Stripe payment intent + manage token + SMS
+2. Customer cancels → Before cutoff: full refund | After cutoff: deposit retained
+3. Appointment ends → Resolver job auto-resolves financial outcome
+4. Financial outcomes: settled | voided | refunded | unresolved
+```
+
+### Key Abstractions
+
+#### 1. Policy Versions (Immutable Snapshots)
+Appointments capture the **policy at booking time** to prevent retroactive changes.
+
+```typescript
+// src/lib/schema.ts → policyVersions table
+{
+  cancelCutoffMinutes: 1440,      // 24 hours
+  refundBeforeCutoff: true,
+  resolutionGraceMinutes: 30,
+  paymentMode: "deposit"
+}
+```
+
+**Critical:** Never join to `shopPolicies` (current policy). Always use `policyVersions` (snapshot).
+
+#### 2. Financial Outcome Resolution
+Resolver job (`src/app/api/jobs/resolve-outcomes/route.ts`) automatically determines outcomes after appointments end.
+
+```typescript
+// src/lib/outcomes.ts
+function resolveFinancialOutcome(input: {
+  paymentRequired: boolean;
+  paymentStatus: string | null;
+}): { financialOutcome: "settled" | "voided"; resolutionReason: string }
+```
+
+**CRITICAL SAFETY RULE:** Resolver MUST skip cancelled appointments:
+```typescript
+.where(and(
+  eq(appointments.status, "booked"),           // ← REQUIRED
+  eq(appointments.financialOutcome, "unresolved"),
+  sql`${appointments.endsAt} <= now() - ...`
+))
+```
+
+#### 3. Token-Based Manage Links
+Customers manage bookings via secure tokenized links (no account required).
+
+```typescript
+// src/lib/manage-tokens.ts
+const rawToken = generateToken();           // 32 bytes random
+const tokenHash = hashToken(rawToken);      // SHA256 (only hash stored)
+```
+
+**Security:** Raw tokens shown only once. Tokens expire after 90 days.
+
+#### 4. Idempotent Refund Processing
+Refunds prevent double-refunding via three safeguards:
+
+```typescript
+// src/lib/stripe-refund.ts
+1. Check if payment.stripeRefundId already exists
+2. Use Stripe idempotency key: `refund-${appointmentId}`
+3. Handle "already refunded" errors gracefully
+```
+
+#### 5. Cancellation Eligibility
+Determines refund eligibility based on cutoff time:
+
+```typescript
+// src/lib/cancellation.ts
+const cutoffTime = addMinutes(appointmentStartsAt, -cancelCutoffMinutes);
+const isEligibleForRefund =
+  refundBeforeCutoff &&
+  isBefore(now, cutoffTime) &&
+  paymentStatus === "succeeded" &&
+  appointmentStatus === "booked";
+```
+
+**Time handling:** All times in UTC. Cutoff calculated in UTC. Display in shop timezone.
+
+### Data Flow: Cancel Before Cutoff
+
+```
+User clicks "Cancel" on /manage/{token}
+  ↓
+POST /api/manage/[token]/cancel
+  ↓ validateToken(token) → appointmentId
+  ↓ Load appointment + policy + payment
+  ↓ calculateCancellationEligibility(...)
+  ↓
+if (isEligibleForRefund) {
+  processRefund() → Stripe API + DB update
+  └─> appointments: status=cancelled, financialOutcome=refunded
+  └─> payments: refundedAmountCents, stripeRefundId
+} else {
+  └─> appointments: status=cancelled, financialOutcome=settled
+}
+```
+
+## Critical Constraints
+
+1. **Resolver Safety:** Resolver MUST NOT overwrite cancellation outcomes
+   - Filter by `status='booked'` in WHERE clause
+   - See: `docs/shaping/slice-5-v5-implementation-plan.md`
+
+2. **Policy Immutability:** Policy changes never affect existing appointments
+   - Always use `policyVersions` (snapshot), not `shopPolicies` (current)
+
+3. **Idempotency Everywhere:**
+   - Refunds use Stripe idempotency keys
+   - Resolver uses conditional WHERE clauses
+   - DB updates check status before changing
+
+4. **Timezone Handling:**
+   - Store all timestamps in UTC (`timestamptz`)
+   - Cutoff calculations in UTC
+   - Display times in shop timezone
+
+## File Organization
 
 ```
 src/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                  # Auth route group
-│   │   ├── login/               # Login page
-│   │   ├── register/            # Registration page
-│   │   ├── forgot-password/     # Forgot password page
-│   │   └── reset-password/      # Reset password page
-│   ├── api/
-│   │   ├── auth/[...all]/       # Better Auth catch-all route
-│   │   ├── chat/route.ts        # AI chat endpoint (OpenRouter)
-│   │   └── diagnostics/         # System diagnostics
-│   ├── chat/page.tsx            # AI chat interface (protected)
-│   ├── dashboard/page.tsx       # User dashboard (protected)
-│   ├── profile/page.tsx         # User profile (protected)
-│   ├── page.tsx                 # Home/landing page
-│   └── layout.tsx               # Root layout
+├── app/api/
+│   ├── appointments/route.ts          # List appointments
+│   ├── bookings/create/route.ts       # Create booking + payment
+│   ├── jobs/resolve-outcomes/route.ts # Scheduled resolver (CRITICAL)
+│   ├── manage/[token]/cancel/route.ts # Cancellation API
+│   └── stripe/webhook/route.ts        # Stripe webhook handler
+├── app/
+│   ├── app/appointments/page.tsx      # Business dashboard
+│   └── manage/[token]/page.tsx        # Customer manage page
 ├── components/
-│   ├── auth/                    # Authentication components
-│   │   ├── sign-in-button.tsx   # Sign in form
-│   │   ├── sign-up-form.tsx     # Sign up form
-│   │   ├── forgot-password-form.tsx
-│   │   ├── reset-password-form.tsx
-│   │   ├── sign-out-button.tsx
-│   │   └── user-profile.tsx
-│   ├── ui/                      # shadcn/ui components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── dialog.tsx
-│   │   ├── dropdown-menu.tsx
-│   │   ├── avatar.tsx
-│   │   ├── badge.tsx
-│   │   ├── separator.tsx
-│   │   ├── mode-toggle.tsx      # Dark/light mode toggle
-│   │   └── github-stars.tsx
-│   ├── site-header.tsx          # Main navigation header
-│   ├── site-footer.tsx          # Footer component
-│   ├── theme-provider.tsx       # Dark mode provider
-│   ├── setup-checklist.tsx      # Setup guide component
-│   └── starter-prompt-modal.tsx # Starter prompts modal
+│   ├── booking/booking-form.tsx       # Customer booking UI
+│   └── manage/manage-booking-view.tsx # Manage booking UI
 └── lib/
-    ├── auth.ts                  # Better Auth server config
-    ├── auth-client.ts           # Better Auth client hooks
-    ├── db.ts                    # Database connection
-    ├── schema.ts                # Drizzle schema (users, sessions, etc.)
-    ├── storage.ts               # File storage abstraction (Vercel Blob / local)
-    └── utils.ts                 # Utility functions (cn, etc.)
+    ├── booking.ts                      # Booking creation logic
+    ├── cancellation.ts                 # Eligibility calculation
+    ├── manage-tokens.ts                # Token generation/validation
+    ├── outcomes.ts                     # Resolution logic (CRITICAL)
+    ├── stripe-refund.ts                # Idempotent refund processing
+    └── __tests__/                      # Unit tests
 ```
 
-## Environment Variables
+## Critical Rules
 
-Required environment variables (see `env.example`):
-
-```env
-# Database
-POSTGRES_URL=postgresql://user:password@localhost:5432/db_name
-
-# Better Auth
-BETTER_AUTH_SECRET=32-char-random-string
-
-# AI via OpenRouter
-OPENROUTER_API_KEY=sk-or-v1-your-key
-OPENROUTER_MODEL=openai/gpt-5-mini  # or any model from openrouter.ai/models
-
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# File Storage (optional)
-BLOB_READ_WRITE_TOKEN=  # Leave empty for local dev, set for Vercel Blob in production
-```
-
-## Available Scripts
-
+### 1. ALWAYS Run Code Quality Checks
+After ANY code change:
 ```bash
-npm run dev          # Start dev server (DON'T run this yourself - ask user)
-npm run build        # Build for production (runs db:migrate first)
-npm run build:ci     # Build without database (for CI/CD pipelines)
-npm run start        # Start production server
-npm run lint         # Run ESLint (ALWAYS run after changes)
-npm run typecheck    # TypeScript type checking (ALWAYS run after changes)
-npm run db:generate  # Generate database migrations
-npm run db:migrate   # Run database migrations
-npm run db:push      # Push schema changes to database
-npm run db:studio    # Open Drizzle Studio (database GUI)
-npm run db:dev       # Push schema for development
-npm run db:reset     # Reset database (drop all tables)
+pnpm lint && pnpm typecheck
 ```
 
-## Documentation Files
+### 2. NEVER Start Dev Server
+If you need dev server output, ask the user to provide it.
 
-The project includes technical documentation in `docs/`:
+### 3. Database Schema Changes
+```bash
+pnpm db:generate  # Generate migration
+# Review generated SQL in drizzle/
+pnpm db:migrate   # Run migration
+```
+Never use `db:push` in production. Use migrations.
 
-- `docs/technical/ai/streaming.md` - AI streaming implementation guide
-- `docs/technical/ai/structured-data.md` - Structured data extraction
-- `docs/technical/react-markdown.md` - Markdown rendering guide
-- `docs/technical/betterauth/polar.md` - Polar payment integration
-- `docs/business/starter-prompt.md` - Business context for AI prompts
+### 4. Resolver Safety (CRITICAL)
+The resolver job MUST:
+1. Filter by `status='booked'` in WHERE clause
+2. Never overwrite cancelled appointments
+3. Be idempotent (use conditional WHERE in UPDATE)
 
-## Guidelines for AI Assistants
+See: `docs/shaping/slice-5-v5-implementation-plan.md`
 
-### CRITICAL RULES
+## Documentation
 
-1. **ALWAYS run lint and typecheck** after completing changes:
-
-   ```bash
-   npm run lint && npm run typecheck
-   ```
-
-2. **NEVER start the dev server yourself**
-
-   - If you need dev server output, ask the user to provide it
-   - Don't run `npm run dev` or `pnpm dev`
-
-3. **Use OpenRouter, NOT OpenAI directly**
-
-   - Import from `@openrouter/ai-sdk-provider`
-   - Use `openrouter()` function, not `openai()`
-   - Model names follow OpenRouter format: `provider/model-name`
-
-4. **Styling Guidelines**
-
-   - Stick to standard Tailwind CSS utility classes
-   - Use shadcn/ui color tokens (e.g., `bg-background`, `text-foreground`)
-   - Avoid custom colors unless explicitly requested
-   - Support dark mode with appropriate Tailwind classes
-
-5. **Authentication**
-
-   - Server-side: Import from `@/lib/auth` (Better Auth instance)
-   - Client-side: Import hooks from `@/lib/auth-client`
-   - Protected routes should check session in Server Components
-   - Use existing auth components from `src/components/auth/`
-
-6. **Database Operations**
-
-   - Use Drizzle ORM (imported from `@/lib/db`)
-   - Schema is defined in `@/lib/schema`
-   - Always run migrations after schema changes
-   - PostgreSQL is the database (not SQLite, MySQL, etc.)
-
-7. **File Storage**
-
-   - Use the storage abstraction from `@/lib/storage`
-   - Automatically uses local storage (dev) or Vercel Blob (production)
-   - Import: `import { upload, deleteFile } from "@/lib/storage"`
-   - Example: `const result = await upload(buffer, "avatar.png", "avatars")`
-   - Storage switches based on `BLOB_READ_WRITE_TOKEN` environment variable
-
-8. **Component Creation**
-
-   - Use existing shadcn/ui components when possible
-   - Follow the established patterns in `src/components/ui/`
-   - Support both light and dark modes
-   - Use TypeScript with proper types
-
-9. **API Routes**
-   - Follow Next.js 16 App Router conventions
-   - Use Route Handlers (route.ts files)
-   - Return Response objects
-   - Handle errors appropriately
-
-### Best Practices
-
-- Read existing code patterns before creating new features
-- Maintain consistency with established file structure
-- Use the documentation files when implementing related features
-- Test changes with lint and typecheck before considering complete
-- When modifying AI functionality, refer to `docs/technical/ai/` guides
-
-### Common Tasks
-
-**Adding a new page:**
-
-1. Create in `src/app/[route]/page.tsx`
-2. Use Server Components by default
-3. Add to navigation if needed
-
-**Adding a new API route:**
-
-1. Create in `src/app/api/[route]/route.ts`
-2. Export HTTP method handlers (GET, POST, etc.)
-3. Use proper TypeScript types
-
-**Adding authentication to a page:**
-
-1. Import auth instance: `import { auth } from "@/lib/auth"`
-2. Get session: `const session = await auth.api.getSession({ headers: await headers() })`
-3. Check session and redirect if needed
-
-**Working with the database:**
-
-1. Update schema in `src/lib/schema.ts`
-2. Generate migration: `npm run db:generate`
-3. Apply migration: `npm run db:migrate`
-4. Import `db` from `@/lib/db` to query
-
-**Modifying AI chat:**
-
-1. Backend: `src/app/api/chat/route.ts`
-2. Frontend: `src/app/chat/page.tsx`
-3. Reference streaming docs: `docs/technical/ai/streaming.md`
-4. Remember to use OpenRouter, not direct OpenAI
-
-**Working with file storage:**
-
-1. Import storage functions: `import { upload, deleteFile } from "@/lib/storage"`
-2. Upload files: `const result = await upload(fileBuffer, "filename.png", "folder")`
-3. Delete files: `await deleteFile(result.url)`
-4. Storage automatically uses local filesystem in dev, Vercel Blob in production
-5. Local files are saved to `public/uploads/` and served at `/uploads/`
-
-## Package Manager
-
-This project uses **pnpm** (see `pnpm-lock.yaml`). When running commands:
-
-- Use `pnpm` instead of `npm` when possible
-- Scripts defined in package.json work with `pnpm run [script]`
+- **Shaping docs:** `docs/shaping/` - Implementation plans with breadboards
+- **Requirements:** `docs/requirements/` - Vertical slice pitches
+- **README.md:** Setup, API keys, deployment, service configuration

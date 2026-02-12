@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./setup";
 
 const makeEmail = () => `shopper_${randomUUID()}@example.com`;
 const strongPassword = "Password123!";
@@ -37,7 +37,7 @@ test("customer books a slot and business sees it", async ({ page }) => {
   await page.getByLabel("Shop name").fill("Hello Shop");
   await page.getByLabel("Shop URL slug").fill(slug);
   await page.getByRole("button", { name: "Create" }).click();
-  await expect(page.getByText(slug)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(slug).first()).toBeVisible({ timeout: 15000 });
 
   await page.goto(`/book/${slug}`);
   await expect(page.getByText(`Book with Hello Shop`)).toBeVisible();
@@ -56,16 +56,21 @@ test("customer books a slot and business sees it", async ({ page }) => {
   await page.getByRole("button", { name: "Confirm booking" }).click();
 
   // Wait for Payment Element to fully load
-  await page.waitForTimeout(2000);
+  await expect
+    .poll(
+      () =>
+        page.frames().find((frame) => frame.url().includes("elements-inner-payment")),
+      { timeout: 10000 }
+    )
+    .toBeTruthy();
 
   // Find the Stripe payment iframe
-  const frames = page.frames();
-  const stripeFrame = frames.find(frame =>
-    frame.url().includes('elements-inner-payment')
-  );
+  const stripeFrame = page
+    .frames()
+    .find((frame) => frame.url().includes("elements-inner-payment"));
 
   if (!stripeFrame) {
-    throw new Error('Stripe payment frame not found');
+    throw new Error("Stripe payment frame not found");
   }
 
   // Wait for card number input to be ready

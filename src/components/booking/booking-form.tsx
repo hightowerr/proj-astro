@@ -46,6 +46,7 @@ type BookingResponse = {
   paymentRequired: boolean;
   clientSecret: string | null;
   bookingUrl?: string | null;
+  manageToken?: string | null;
 };
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
@@ -173,10 +174,14 @@ export function BookingForm({
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(
+    null
+  );
   const [success, setSuccess] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [bookingUrl, setBookingUrl] = useState<string | null>(null);
+  const [manageToken, setManageToken] = useState<string | null>(null);
   const [resumeLoading, setResumeLoading] = useState(false);
   const [resumeFailed, setResumeFailed] = useState(false);
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
@@ -196,7 +201,8 @@ export function BookingForm({
     [timezone]
   );
 
-  const shouldResume = Boolean(resumeAppointmentId) && !resumeFailed;
+  const shouldResume =
+    Boolean(resumeAppointmentId) && !resumeFailed && !success;
 
   useEffect(() => {
     if (resumeAppointmentId) {
@@ -214,7 +220,7 @@ export function BookingForm({
 
     const loadAvailability = async () => {
       setLoading(true);
-      setError(null);
+      setAvailabilityError(null);
       setSelectedSlot(null);
       setSlots([]);
 
@@ -229,7 +235,7 @@ export function BookingForm({
         });
 
         if (!res.ok) {
-          setError("Failed to load availability");
+          setAvailabilityError("Failed to load availability");
           return;
         }
 
@@ -238,7 +244,7 @@ export function BookingForm({
         setSlots(data.slots ?? []);
       } catch (err) {
         if ((err as { name?: string }).name !== "AbortError") {
-          setError("Failed to load availability");
+          setAvailabilityError("Failed to load availability");
         }
       } finally {
         if (active) {
@@ -266,6 +272,8 @@ export function BookingForm({
     const resumePayment = async () => {
       setResumeLoading(true);
       setError(null);
+      setAvailabilityError(null);
+      setManageToken(null);
 
       try {
         const res = await fetch(`/api/bookings/${resumeAppointmentId}`, {
@@ -287,6 +295,7 @@ export function BookingForm({
 
         setSelectedSlot(data.appointment.startsAt);
         setBookingUrl(data.bookingUrl ?? data.appointment.bookingUrl ?? null);
+        setManageToken(data.manageToken ?? null);
 
         if (!data.paymentRequired || data.appointment.paymentStatus === "paid") {
           setSuccess(true);
@@ -369,9 +378,19 @@ export function BookingForm({
       const resolvedBookingUrl =
         data.bookingUrl ?? data.appointment.bookingUrl ?? null;
 
-      setBookingUrl(resolvedBookingUrl);
+      if (paymentsEnabled && data.paymentRequired) {
+        setBookingUrl(resolvedBookingUrl);
+      } else {
+        setBookingUrl(null);
+      }
+      setManageToken(data.manageToken ?? null);
 
-      if (resolvedBookingUrl && typeof window !== "undefined") {
+      if (
+        paymentsEnabled &&
+        data.paymentRequired &&
+        resolvedBookingUrl &&
+        typeof window !== "undefined"
+      ) {
         try {
           const url = new URL(resolvedBookingUrl);
           if (url.origin === window.location.origin) {
@@ -407,15 +426,32 @@ export function BookingForm({
 
   if (success) {
     return (
-      <div className="rounded-lg border p-6 space-y-2">
-        <h2 className="text-xl font-semibold">Booking confirmed</h2>
-        <p className="text-sm text-muted-foreground">
-          We&apos;ve reserved your slot at {shopName}.
-        </p>
-        {selectedSlot ? (
-          <p className="text-sm">
-            {timeFormatter.format(new Date(selectedSlot))} ({timezone})
+      <div className="rounded-lg border p-6 space-y-4">
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">Booking confirmed</h2>
+          <p className="text-sm text-muted-foreground">
+            We&apos;ve reserved your slot at {shopName}.
           </p>
+          {selectedSlot ? (
+            <p className="text-sm">
+              {timeFormatter.format(new Date(selectedSlot))} ({timezone})
+            </p>
+          ) : null}
+        </div>
+
+        {manageToken ? (
+          <div className="rounded-lg border bg-muted/40 p-4 space-y-2">
+            <h3 className="text-sm font-semibold">Manage your booking</h3>
+            <p className="text-sm text-muted-foreground">
+              Use this link to view details or cancel your appointment.
+            </p>
+            <Button asChild>
+              <a href={`/manage/${manageToken}`}>Manage booking</a>
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Save this link — you&apos;ll need it to manage your appointment.
+            </p>
+          </div>
         ) : null}
       </div>
     );
@@ -480,6 +516,8 @@ export function BookingForm({
         <Label>Available slots</Label>
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading slots...</p>
+        ) : availabilityError ? (
+          <p className="text-sm text-destructive">{availabilityError}</p>
         ) : slots.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No slots available for this day.

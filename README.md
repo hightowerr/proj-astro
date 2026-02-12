@@ -188,6 +188,41 @@ The project includes a flexible storage abstraction that automatically switches 
 
 The storage service automatically detects which backend to use based on the presence of the `BLOB_READ_WRITE_TOKEN` environment variable.
 
+### Scheduled Resolver (CRON_SECRET)
+
+Configure the scheduled outcome resolver by setting a shared secret and wiring a cron job to call the API route.
+
+**Local setup**
+
+1. Add to your `.env`:
+
+```env
+CRON_SECRET="your-random-secret"
+```
+
+2. Run migrations:
+
+```bash
+pnpm db:migrate
+```
+
+3. Call the resolver route:
+
+```bash
+curl -X POST http://localhost:3000/api/jobs/resolve-outcomes \
+  -H "x-cron-secret: your-random-secret"
+```
+
+**Vercel setup**
+
+1. Go to Vercel → Project → Settings → Environment Variables.
+2. Add `CRON_SECRET` with the same value you will send in the header.
+3. Create a Cron Job in Vercel that calls:
+   - URL: `/api/jobs/resolve-outcomes`
+   - Method: `POST`
+   - Header: `x-cron-secret: <your-secret>`
+4. Choose a schedule (for example, every 5 minutes).
+
 ## 🗂️ Project Structure
 
 ```

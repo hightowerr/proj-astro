@@ -44,6 +44,9 @@ export default async function AppointmentDetailPage({
       status: appointments.status,
       paymentStatus: appointments.paymentStatus,
       paymentRequired: appointments.paymentRequired,
+      financialOutcome: appointments.financialOutcome,
+      resolvedAt: appointments.resolvedAt,
+      resolutionReason: appointments.resolutionReason,
       bookingUrl: appointments.bookingUrl,
       createdAt: appointments.createdAt,
       customerName: customers.fullName,
@@ -134,6 +137,16 @@ export default async function AppointmentDetailPage({
           </p>
           <p className="text-sm text-muted-foreground">
             {appointment.paymentRequired ? "Payment required" : "No charge"}
+          </p>
+          <p className="text-sm">
+            Outcome:{" "}
+            <span className="capitalize">{appointment.financialOutcome}</span>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Resolved at:{" "}
+            {appointment.resolvedAt
+              ? formatter.format(new Date(appointment.resolvedAt))
+              : "—"}
           </p>
         </div>
       </div>

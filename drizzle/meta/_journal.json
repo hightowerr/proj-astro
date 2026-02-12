@@ -57,6 +57,13 @@
       "when": 1770617778317,
       "tag": "0007_message_log",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1770715535284,
+      "tag": "0008_outcome_resolution",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "../setup";
+import type { Page } from "@playwright/test";
 
 const makeEmail = () => `shopper_${randomUUID()}@example.com`;
 const strongPassword = "Password123!";
@@ -65,7 +66,7 @@ const createShop = async (page: Page) => {
   await page.getByLabel("Shop name").fill("Hello Shop");
   await page.getByLabel("Shop URL slug").fill(slug);
   await page.getByRole("button", { name: "Create" }).click();
-  await expect(page.getByText(slug)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(slug).first()).toBeVisible({ timeout: 15000 });
 
   return slug;
 };

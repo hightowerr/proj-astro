@@ -1,5 +1,5 @@
 import { toZonedTime } from "date-fns-tz";
-import { and, asc, eq, gte, inArray, lt } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import {
   computeEndsAt,
   formatDateInTimeZone,
@@ -156,7 +156,7 @@ const upsertCustomer = async (
     phone: string;
     email: string;
   }
-) => {
+): Promise<typeof customers.$inferSelect> => {
   const byPhone = await tx.query.customers.findFirst({
     where: (table, { and, eq }) =>
       and(eq(table.shopId, input.shopId), eq(table.phone, input.phone)),
@@ -170,9 +170,15 @@ const upsertCustomer = async (
 
     if (Object.keys(updates).length > 0) {
       await tx.update(customers).set(updates).where(eq(customers.id, byPhone.id));
+      return {
+        ...byPhone,
+        fullName: updates.fullName ?? byPhone.fullName,
+        email: updates.email ?? byPhone.email,
+        phone: updates.phone ?? byPhone.phone,
+      };
     }
 
-    return { ...byPhone, ...updates };
+    return byPhone;
   }
 
   const byEmail = await tx.query.customers.findFirst({
@@ -188,9 +194,15 @@ const upsertCustomer = async (
 
     if (Object.keys(updates).length > 0) {
       await tx.update(customers).set(updates).where(eq(customers.id, byEmail.id));
+      return {
+        ...byEmail,
+        fullName: updates.fullName ?? byEmail.fullName,
+        email: updates.email ?? byEmail.email,
+        phone: updates.phone ?? byEmail.phone,
+      };
     }
 
-    return { ...byEmail, ...updates };
+    return byEmail;
   }
 
   const [created] = await tx
@@ -361,10 +373,13 @@ export const createAppointment = async (input: {
         email: input.customer.email,
       });
 
-      await upsertCustomerContactPrefs(tx, {
+      const contactPrefsInput: { customerId: string; smsOptIn?: boolean } = {
         customerId: customer.id,
-        smsOptIn: input.customer.smsOptIn,
-      });
+      };
+      if (typeof input.customer.smsOptIn === "boolean") {
+        contactPrefsInput.smsOptIn = input.customer.smsOptIn;
+      }
+      await upsertCustomerContactPrefs(tx, contactPrefsInput);
 
       const paymentsEnabled = input.paymentsEnabled ?? true;
       let policyVersion: typeof policyVersions.$inferSelect | null = null;
@@ -581,6 +596,7 @@ export const createAppointment = async (input: {
 
 export const listAppointmentsForShop = async (shopId: string) => {
   const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   return await db
     .select({
       id: appointments.id,
@@ -589,6 +605,8 @@ export const listAppointmentsForShop = async (shopId: string) => {
       status: appointments.status,
       paymentStatus: appointments.paymentStatus,
       paymentRequired: appointments.paymentRequired,
+      financialOutcome: appointments.financialOutcome,
+      resolvedAt: appointments.resolvedAt,
       createdAt: appointments.createdAt,
       customerName: customers.fullName,
       customerEmail: customers.email,
@@ -602,9 +620,43 @@ export const listAppointmentsForShop = async (shopId: string) => {
     .where(
       and(
         eq(appointments.shopId, shopId),
-        gte(appointments.startsAt, now),
+        gte(appointments.endsAt, sevenDaysAgo),
         inArray(appointments.status, ["booked", "pending"])
       )
     )
     .orderBy(asc(appointments.startsAt));
+};
+
+export const getOutcomeSummaryForShop = async (shopId: string) => {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const rows = await db
+    .select({
+      outcome: appointments.financialOutcome,
+      count: sql<number>`count(*)`,
+    })
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.shopId, shopId),
+        gte(appointments.endsAt, sevenDaysAgo),
+        lt(appointments.endsAt, now)
+      )
+    )
+    .groupBy(appointments.financialOutcome);
+
+  const summary: Record<string, number> = {
+    settled: 0,
+    voided: 0,
+    unresolved: 0,
+    refunded: 0,
+    disputed: 0,
+  };
+
+  for (const row of rows) {
+    summary[row.outcome] = Number(row.count);
+  }
+
+  return summary;
 };

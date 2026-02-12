@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
@@ -14,13 +15,7 @@ import {
 import { db } from "@/lib/db";
 import { createAppointment } from "@/lib/queries/appointments";
 import { createShop } from "@/lib/queries/shops";
-import {
-  appointments,
-  payments,
-  processedStripeEvents,
-  shops,
-  user,
-} from "@/lib/schema";
+import { processedStripeEvents, shops, user } from "@/lib/schema";
 
 let mockEvent: Stripe.Event | null = null;
 
@@ -57,7 +52,6 @@ vi.mock("@/lib/stripe", () => ({
 import { POST } from "./route";
 
 let userId: string;
-const originalNodeEnv = process.env.NODE_ENV;
 
 const insertUser = async (id: string) => {
   const email = `user_${id}@example.com`;
@@ -70,11 +64,11 @@ const insertUser = async (id: string) => {
 };
 
 beforeAll(() => {
-  process.env.NODE_ENV = "test";
+  vi.stubEnv("NODE_ENV", "test");
 });
 
 afterAll(() => {
-  process.env.NODE_ENV = originalNodeEnv;
+  vi.unstubAllEnvs();
 });
 
 beforeEach(async () => {

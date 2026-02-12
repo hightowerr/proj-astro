@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments, payments } from "@/lib/schema";

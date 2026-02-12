@@ -13,7 +13,15 @@
       "Bash(git log:*)",
       "Bash(find:*)",
       "Bash(git checkout:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(pnpm run lint)",
+      "Bash(pnpm run typecheck:*)",
+      "Skill(shaping)",
+      "WebSearch",
+      "Bash(pnpm test:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm typecheck:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
