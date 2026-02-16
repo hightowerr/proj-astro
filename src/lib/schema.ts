@@ -114,6 +114,8 @@ export const paymentModeEnum = pgEnum("payment_mode", [
   "none",
 ]);
 
+export const tierEnum = pgEnum("tier", ["top", "neutral", "risk"]);
+
 export const appointmentPaymentStatusEnum = pgEnum(
   "appointment_payment_status",
   ["unpaid", "pending", "paid", "failed"]
@@ -232,6 +234,13 @@ export const shopPolicies = pgTable(
     currency: text("currency").notNull(),
     paymentMode: paymentModeEnum("payment_mode").notNull(),
     depositAmountCents: integer("deposit_amount_cents"),
+    riskPaymentMode: paymentModeEnum("risk_payment_mode"),
+    riskDepositAmountCents: integer("risk_deposit_amount_cents"),
+    topDepositWaived: boolean("top_deposit_waived").default(false).notNull(),
+    topDepositAmountCents: integer("top_deposit_amount_cents"),
+    excludeRiskFromOffers: boolean("exclude_risk_from_offers")
+      .default(false)
+      .notNull(),
     resolutionGraceMinutes: integer("resolution_grace_minutes")
       .default(30)
       .notNull(),
@@ -286,6 +295,48 @@ export const customers = pgTable(
   ]
 );
 
+export const customerScores = pgTable(
+  "customer_scores",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    score: integer("score").notNull(),
+    tier: tierEnum("tier").notNull(),
+    windowDays: integer("window_days").notNull().default(180),
+    stats: jsonb("stats")
+      .notNull()
+      .$type<{
+        settled: number;
+        voided: number;
+        refunded: number;
+        lateCancels: number;
+        lastActivityAt: string | null;
+        voidedLast90Days: number;
+      }>(),
+    computedAt: timestamp("computed_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("customer_scores_customer_shop_idx").on(
+      table.customerId,
+      table.shopId
+    ),
+  ]
+);
+
 export const customerContactPrefs = pgTable(
   "customer_contact_prefs",
   {
@@ -333,6 +384,11 @@ export const appointments = pgTable(
     lastEventId: uuid("last_event_id").references((): any => appointmentEvents.id, {
       onDelete: "set null",
     }),
+    source: text("source").$type<"web" | "slot_recovery">(),
+    sourceSlotOpeningId: uuid("source_slot_opening_id").references(
+      (): any => slotOpenings.id,
+      { onDelete: "set null" }
+    ),
     bookingUrl: text("booking_url"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -351,9 +407,16 @@ export const appointments = pgTable(
     index("appointments_customer_id_idx").on(table.customerId),
     index("appointments_shop_ends_idx").on(table.shopId, table.endsAt),
     index("appointments_financial_outcome_idx").on(table.financialOutcome),
+    index("appointments_source_slot_opening_id_idx").on(
+      table.sourceSlotOpeningId
+    ),
     check(
       "appointments_cancellation_source_check",
       sql`${table.cancellationSource} in ('customer', 'system', 'admin')`
+    ),
+    check(
+      "appointments_source_check",
+      sql`${table.source} in ('web', 'slot_recovery')`
     ),
   ]
 );
@@ -424,6 +487,83 @@ export const payments = pgTable(
       table.stripePaymentIntentId
     ),
     index("payments_shop_id_idx").on(table.shopId),
+  ]
+);
+
+export const slotOpenings = pgTable(
+  "slot_openings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    sourceAppointmentId: uuid("source_appointment_id")
+      .notNull()
+      .references(() => appointments.id, { onDelete: "cascade" }),
+    status: text("status")
+      .$type<"open" | "filled" | "expired">()
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("slot_openings_unique_slot").on(table.shopId, table.startsAt),
+    index("slot_openings_shop_status_idx").on(table.shopId, table.status),
+    index("slot_openings_source_idx").on(table.sourceAppointmentId),
+    check(
+      "slot_openings_status_check",
+      sql`${table.status} in ('open', 'filled', 'expired')`
+    ),
+  ]
+);
+
+export const slotOffers = pgTable(
+  "slot_offers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slotOpeningId: uuid("slot_opening_id")
+      .notNull()
+      .references(() => slotOpenings.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    channel: text("channel").$type<"sms">().notNull(),
+    status: text("status")
+      .$type<"sent" | "accepted" | "expired" | "declined">()
+      .notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("slot_offers_unique_customer").on(
+      table.slotOpeningId,
+      table.customerId
+    ),
+    index("slot_offers_slot_idx").on(table.slotOpeningId),
+    index("slot_offers_customer_idx").on(table.customerId),
+    index("slot_offers_expiry_idx")
+      .on(table.status, table.expiresAt)
+      .where(sql`${table.status} = 'sent'`),
+    check("slot_offers_channel_check", sql`${table.channel} in ('sms')`),
+    check(
+      "slot_offers_status_check",
+      sql`${table.status} in ('sent', 'accepted', 'expired', 'declined')`
+    ),
   ]
 );
 

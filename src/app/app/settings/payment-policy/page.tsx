@@ -1,10 +1,13 @@
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 import { z } from "zod";
 import { PaymentPolicyForm } from "@/components/payments/payment-policy-form";
+import { TierPolicyForm } from "@/components/payments/tier-policy-form";
 import { db } from "@/lib/db";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { shopPolicies } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
+import { updateShopPolicyTierSettings } from "./actions";
 
 const policySchema = z.object({
   currency: z.string().trim().length(3),
@@ -104,7 +107,7 @@ export default async function PaymentPolicyPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10 space-y-6">
+    <div className="container mx-auto px-4 py-10 space-y-8">
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold">Payment policy</h1>
         <p className="text-sm text-muted-foreground">
@@ -112,15 +115,60 @@ export default async function PaymentPolicyPage() {
         </p>
       </header>
 
-      <PaymentPolicyForm
-        action={updatePolicy}
-        initial={{
-          currency: policy?.currency ?? DEFAULT_POLICY.currency,
-          paymentMode: policy?.paymentMode ?? DEFAULT_POLICY.paymentMode,
-          depositAmountCents:
-            policy?.depositAmountCents ?? DEFAULT_POLICY.depositAmountCents,
-        }}
-      />
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Base policy</h2>
+        <PaymentPolicyForm
+          action={updatePolicy}
+          initial={{
+            currency: policy?.currency ?? DEFAULT_POLICY.currency,
+            paymentMode: policy?.paymentMode ?? DEFAULT_POLICY.paymentMode,
+            depositAmountCents:
+              policy?.depositAmountCents ?? DEFAULT_POLICY.depositAmountCents,
+          }}
+        />
+      </section>
+
+      <section className="space-y-4">
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">Tier-based overrides</h2>
+          <p className="text-sm text-muted-foreground">
+            Configure optional deposit and offer behavior overrides per reliability tier.
+          </p>
+        </div>
+
+        <TierPolicyForm
+          action={updateShopPolicyTierSettings.bind(null, shop.id)}
+          initial={{
+            riskDepositAmountCents: policy?.riskDepositAmountCents ?? null,
+            topDepositWaived: policy?.topDepositWaived ?? false,
+            topDepositAmountCents: policy?.topDepositAmountCents ?? null,
+            excludeRiskFromOffers: policy?.excludeRiskFromOffers ?? false,
+            baseDepositAmountCents: policy?.depositAmountCents ?? null,
+          }}
+        />
+      </section>
+
+      <section className="max-w-xl rounded-lg border bg-muted/30 p-4">
+        <h2 className="text-sm font-medium">How tiers work</h2>
+        <div className="mt-2 space-y-2 text-xs text-muted-foreground">
+          <p>
+            <strong>Top tier:</strong> score &ge;80 and no recent voids.
+          </p>
+          <p>
+            <strong>Neutral tier:</strong> default tier for most customers.
+          </p>
+          <p>
+            <strong>Risk tier:</strong> score &lt;40 or repeated recent voids.
+          </p>
+          <p>
+            Tier assignments are computed automatically. Review customer tier distribution on the{" "}
+            <Link href="/app/customers" className="underline">
+              customers page
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

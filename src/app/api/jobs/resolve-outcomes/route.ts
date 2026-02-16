@@ -13,7 +13,7 @@ export const runtime = "nodejs";
 const CRON_HEADER = "x-cron-secret";
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 1000;
-const LOCK_ID = 482173;
+const DEFAULT_LOCK_ID = 482173;
 
 const parseLimit = (req: Request) => {
   const url = new URL(req.url);
@@ -24,6 +24,27 @@ const parseLimit = (req: Request) => {
     return DEFAULT_LIMIT;
   }
   return Math.min(parsed, MAX_LIMIT);
+};
+
+const parseLockId = (req: Request) => {
+  const url = new URL(req.url);
+  const queryLockId = url.searchParams.get("lockId");
+  const envLockId = process.env.RESOLVE_OUTCOMES_LOCK_ID;
+
+  // Allow query override only outside production for test isolation.
+  const raw =
+    process.env.NODE_ENV === "production" ? envLockId : queryLockId ?? envLockId;
+
+  if (!raw) {
+    return DEFAULT_LOCK_ID;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return DEFAULT_LOCK_ID;
+  }
+
+  return parsed;
 };
 
 /**
@@ -51,9 +72,10 @@ export async function POST(req: Request) {
   }
 
   const limit = parseLimit(req);
+  const lockId = parseLockId(req);
 
   const lockResult = await db.execute(
-    sql`select pg_try_advisory_lock(${LOCK_ID}) as locked, pg_backend_pid() as pid`
+    sql`select pg_try_advisory_lock(${lockId}) as locked, pg_backend_pid() as pid`
   );
   const locked = lockResult[0]?.locked === true;
 
@@ -259,6 +281,6 @@ export async function POST(req: Request) {
       errors,
     });
   } finally {
-    await db.execute(sql`select pg_advisory_unlock(${LOCK_ID})`);
+    await db.execute(sql`select pg_advisory_unlock(${lockId})`);
   }
 }

@@ -32,6 +32,9 @@ const serverEnvSchema = z.object({
   TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
   TWILIO_AUTH_TOKEN: z.string().min(1).optional(),
   TWILIO_PHONE_NUMBER: z.string().min(1).optional(),
+  TWILIO_TEST_MODE: z.enum(["true", "false"]).optional(),
+  TWILIO_TEST_FROM_NUMBER: z.string().min(1).optional(),
+  TWILIO_TEST_TO_NUMBER_OVERRIDE: z.string().min(1).optional(),
 
   // App
   NODE_ENV: z
@@ -99,6 +102,7 @@ export function getClientEnv(): ClientEnv {
  */
 export function checkEnv(): void {
   const warnings: string[] = [];
+  const twilioTestMode = process.env.TWILIO_TEST_MODE === "true";
 
   // Check required variables
   if (!process.env.POSTGRES_URL) {
@@ -129,7 +133,7 @@ export function checkEnv(): void {
     throw new Error("TWILIO_AUTH_TOKEN is required");
   }
 
-  if (!process.env.TWILIO_PHONE_NUMBER) {
+  if (!twilioTestMode && !process.env.TWILIO_PHONE_NUMBER) {
     throw new Error("TWILIO_PHONE_NUMBER is required");
   }
 

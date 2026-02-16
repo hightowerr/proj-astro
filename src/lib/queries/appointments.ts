@@ -1,5 +1,5 @@
 import { toZonedTime } from "date-fns-tz";
-import { and, asc, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import {
   computeEndsAt,
   formatDateInTimeZone,
@@ -9,6 +9,7 @@ import {
   parseTimeToMinutes,
 } from "@/lib/booking";
 import { db } from "@/lib/db";
+import { loadCustomerScoreTx } from "@/lib/queries/scoring";
 import {
   appointments,
   customerContactPrefs,
@@ -16,8 +17,10 @@ import {
   payments,
   policyVersions,
   shopPolicies,
+  slotOpenings,
 } from "@/lib/schema";
 import { getStripeClient, normalizeStripePaymentStatus, stripeIsMocked } from "@/lib/stripe";
+import { applyTierPricingOverride, derivePaymentRequirement } from "@/lib/tier-pricing";
 
 const DEFAULT_PAYMENT_POLICY = {
   currency: "USD",
@@ -291,22 +294,6 @@ const ensureShopPolicy = async (tx: DbLike, shopId: string) => {
   return retry;
 };
 
-const derivePaymentAmount = (policy: {
-  paymentMode: "deposit" | "full_prepay" | "none";
-  depositAmountCents: number | null;
-}) => {
-  if (policy.paymentMode === "none") {
-    return { paymentRequired: false, amountCents: 0 };
-  }
-
-  const amountCents = policy.depositAmountCents ?? 0;
-  if (amountCents <= 0) {
-    throw new Error("Payment policy amount must be greater than 0");
-  }
-
-  return { paymentRequired: true, amountCents };
-};
-
 export const createAppointment = async (input: {
   shopId: string;
   startsAt: Date;
@@ -318,6 +305,8 @@ export const createAppointment = async (input: {
   };
   paymentsEnabled?: boolean;
   bookingBaseUrl?: string | null;
+  source?: "web" | "slot_recovery";
+  sourceSlotOpeningId?: string | null;
 }) => {
   try {
     const created = await db.transaction(async (tx) => {
@@ -392,9 +381,28 @@ export const createAppointment = async (input: {
 
       if (paymentsEnabled) {
         const policy = await ensureShopPolicy(tx, input.shopId);
-        const derived = derivePaymentAmount({
-          paymentMode: policy.paymentMode,
-          depositAmountCents: policy.depositAmountCents,
+        const customerScore = await loadCustomerScoreTx(
+          tx,
+          customer.id,
+          input.shopId
+        );
+        const tierPricing = applyTierPricingOverride(
+          customerScore?.tier ?? null,
+          {
+            paymentMode: policy.paymentMode,
+            depositAmountCents: policy.depositAmountCents,
+          },
+          {
+            riskPaymentMode: policy.riskPaymentMode,
+            riskDepositAmountCents: policy.riskDepositAmountCents,
+            topDepositWaived: policy.topDepositWaived,
+            topDepositAmountCents: policy.topDepositAmountCents,
+          }
+        );
+
+        const derived = derivePaymentRequirement({
+          paymentMode: tierPricing.paymentMode,
+          depositAmountCents: tierPricing.depositAmountCents,
         });
         paymentRequired = derived.paymentRequired;
         amountCents = derived.amountCents;
@@ -405,8 +413,8 @@ export const createAppointment = async (input: {
           .values({
             shopId: input.shopId,
             currency: policy.currency,
-            paymentMode: policy.paymentMode,
-            depositAmountCents: policy.depositAmountCents,
+            paymentMode: tierPricing.paymentMode,
+            depositAmountCents: tierPricing.depositAmountCents,
           })
           .returning();
 
@@ -432,6 +440,8 @@ export const createAppointment = async (input: {
         policyVersionId: policyVersion?.id ?? null,
         paymentStatus: paymentRequired ? "pending" : "unpaid",
         paymentRequired,
+        source: input.source ?? "web",
+        sourceSlotOpeningId: input.sourceSlotOpeningId ?? null,
         bookingUrl: bookingUrl ?? null,
       };
 
@@ -659,4 +669,59 @@ export const getOutcomeSummaryForShop = async (shopId: string) => {
   }
 
   return summary;
+};
+
+export const listSlotOpeningsForShop = async (shopId: string, limit = 20) => {
+  const openings = await db
+    .select({
+      id: slotOpenings.id,
+      startsAt: slotOpenings.startsAt,
+      endsAt: slotOpenings.endsAt,
+      status: slotOpenings.status,
+      createdAt: slotOpenings.createdAt,
+      sourceAppointmentId: slotOpenings.sourceAppointmentId,
+    })
+    .from(slotOpenings)
+    .where(eq(slotOpenings.shopId, shopId))
+    .orderBy(desc(slotOpenings.createdAt))
+    .limit(limit);
+
+  if (openings.length === 0) {
+    return [];
+  }
+
+  const openingIds = openings.map((opening) => opening.id);
+  const recoveredAppointments = await db
+    .select({
+      id: appointments.id,
+      sourceSlotOpeningId: appointments.sourceSlotOpeningId,
+      createdAt: appointments.createdAt,
+    })
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.shopId, shopId),
+        inArray(appointments.sourceSlotOpeningId, openingIds)
+      )
+    )
+    .orderBy(desc(appointments.createdAt));
+
+  const recoveredBySlot = new Map<string, string>();
+  for (const recoveredAppointment of recoveredAppointments) {
+    if (!recoveredAppointment.sourceSlotOpeningId) {
+      continue;
+    }
+
+    if (!recoveredBySlot.has(recoveredAppointment.sourceSlotOpeningId)) {
+      recoveredBySlot.set(
+        recoveredAppointment.sourceSlotOpeningId,
+        recoveredAppointment.id
+      );
+    }
+  }
+
+  return openings.map((opening) => ({
+    ...opening,
+    recoveredAppointmentId: recoveredBySlot.get(opening.id) ?? null,
+  }));
 };

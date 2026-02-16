@@ -12,6 +12,7 @@ import {
 } from "vitest";
 
 const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
+const testLockId = String(800001 + Math.floor(Math.random() * 100000));
 if (!hasPostgresUrl) {
   // Prevent module-import crash in db.ts; suite remains skipped below.
   process.env.POSTGRES_URL =
@@ -65,10 +66,45 @@ const insertUser = async (id: string) => {
 };
 
 const makeRequest = (cronSecret = "test-secret") =>
-  new Request("http://localhost:3000/api/jobs/resolve-outcomes", {
+  new Request(`http://localhost:3000/api/jobs/resolve-outcomes?lockId=${testLockId}`, {
     method: "POST",
     headers: { "x-cron-secret": cronSecret },
   });
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const runResolveOutcomes = async (attempts = 10, delayMs = 100) => {
+  let lastBody: unknown = null;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const response = await POST(makeRequest());
+    expect(response.status).toBe(200);
+    lastBody = await response.json();
+
+    const skipped =
+      typeof lastBody === "object" &&
+      lastBody !== null &&
+      "skipped" in lastBody &&
+      (lastBody as { skipped?: unknown }).skipped === true;
+
+    if (!skipped) {
+      return lastBody as {
+        total: number;
+        resolved: number;
+        skipped: number;
+        backfilled: number;
+        errors: string[];
+      };
+    }
+
+    await sleep(delayMs);
+  }
+
+  throw new Error(
+    `resolve-outcomes remained locked after ${attempts} attempts. Last response: ${JSON.stringify(lastBody)}`
+  );
+};
 
 const createAppointment = async (input: CreateAppointmentInput = {}) => {
   const now = new Date();
@@ -179,11 +215,7 @@ describeIf("resolve outcomes job", () => {
 
   it("resolves non-cancelled outcomes and remains idempotent", async () => {
     const appointmentId = await createAppointment();
-    const req = makeRequest();
-
-    const response = await POST(req);
-    expect(response.status).toBe(200);
-    await response.json();
+    await runResolveOutcomes();
 
     const appointmentRow = await db.query.appointments.findFirst({
       where: (table, { eq }) => eq(table.id, appointmentId),
@@ -203,9 +235,7 @@ describeIf("resolve outcomes job", () => {
     );
     expect(resolvedEvents.length).toBe(1);
 
-    const secondResponse = await POST(req);
-    expect(secondResponse.status).toBe(200);
-    await secondResponse.json();
+    await runResolveOutcomes();
 
     const eventsAfter = await db.query.appointmentEvents.findMany({
       where: (table, { eq }) => eq(table.appointmentId, appointmentId),
@@ -227,9 +257,7 @@ describeIf("resolve outcomes job", () => {
       },
     });
 
-    const response = await POST(makeRequest());
-    expect(response.status).toBe(200);
-    const body = await response.json();
+    const body = await runResolveOutcomes();
     expect(body.backfilled).toBeGreaterThanOrEqual(1);
 
     const row = await db.query.appointments.findFirst({
@@ -261,9 +289,7 @@ describeIf("resolve outcomes job", () => {
       },
     });
 
-    const response = await POST(makeRequest());
-    expect(response.status).toBe(200);
-    const body = await response.json();
+    const body = await runResolveOutcomes();
     expect(body.backfilled).toBeGreaterThanOrEqual(1);
 
     const row = await db.query.appointments.findFirst({
@@ -282,9 +308,7 @@ describeIf("resolve outcomes job", () => {
       paymentRequired: false,
     });
 
-    const response = await POST(makeRequest());
-    expect(response.status).toBe(200);
-    const body = await response.json();
+    const body = await runResolveOutcomes();
     expect(body.backfilled).toBeGreaterThanOrEqual(1);
 
     const row = await db.query.appointments.findFirst({
@@ -310,9 +334,7 @@ describeIf("resolve outcomes job", () => {
       where: (table, { eq }) => eq(table.id, appointmentId),
     });
 
-    const response = await POST(makeRequest());
-    expect(response.status).toBe(200);
-    await response.json();
+    await runResolveOutcomes();
 
     const after = await db.query.appointments.findFirst({
       where: (table, { eq }) => eq(table.id, appointmentId),

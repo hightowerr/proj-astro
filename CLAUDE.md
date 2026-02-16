@@ -58,6 +58,13 @@ curl -X POST http://localhost:3000/api/jobs/resolve-outcomes \
   -H "x-cron-secret: $CRON_SECRET"
 ```
 
+### Tier System (Cron Job)
+```bash
+# Manually trigger customer score recompute
+curl -X POST http://localhost:3000/api/jobs/recompute-scores \
+  -H "x-cron-secret: $CRON_SECRET"
+```
+
 ## High-Level Architecture
 
 ### Booking Lifecycle
@@ -141,6 +148,28 @@ const isEligibleForRefund =
 ```
 
 **Time handling:** All times in UTC. Cutoff calculated in UTC. Display in shop timezone.
+
+#### 6. Tier Scoring and Pricing
+Tier behavior is deterministic and data-driven (`src/lib/scoring.ts`):
+
+- `top`: score `>= 80` and `voidedLast90Days = 0`
+- `risk`: score `< 40` or `voidedLast90Days >= 2`
+- `neutral`: everything else, including missing score/tier defaults
+
+Booking pricing reads customer score + shop policy and applies overrides in
+`src/lib/tier-pricing.ts` and `src/lib/queries/appointments.ts`.
+
+**Critical:** policy snapshots must store the tier-adjusted amount at booking time.
+
+#### 7. Tier Offer Prioritization
+Slot recovery candidate ordering in `src/lib/slot-recovery.ts` is deterministic:
+
+1. tier priority: `top` → `neutral/null` → `risk`
+2. score descending with `NULL` score treated as `50`
+3. `computedAt DESC NULLS LAST`
+4. stable `customerId` tiebreaker
+
+`excludeRiskFromOffers` in `shop_policies` filters risk-tier customers out entirely.
 
 ### Data Flow: Cancel Before Cutoff
 

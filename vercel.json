@@ -3,6 +3,14 @@
     {
       "path": "/api/jobs/resolve-outcomes",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/jobs/expire-offers",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/jobs/recompute-scores",
+      "schedule": "0 2 * * *"
     }
   ]
 }

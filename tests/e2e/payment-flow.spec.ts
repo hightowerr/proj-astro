@@ -18,33 +18,64 @@ const nextWeekdayUtc = (): string => {
   return date.toISOString().slice(0, 10);
 };
 
-const fillStripeCard = async (page: Page, card: string) => {
-  // Wait for Payment Element to fully load
-  await page.waitForTimeout(2000);
+const findStripeCardFrame = async (
+  page: Page,
+  timeoutMs = 15000
+) => {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const frames = page.frames();
+    for (const frame of frames) {
+      const cardNumberInput = frame
+        .locator('input[name="number"], input[autocomplete="cc-number"]')
+        .first();
 
-  // Find all Stripe iframes
-  const frames = page.frames();
-  const stripeFrame = frames.find(frame =>
-    frame.url().includes('elements-inner-payment')
-  );
+      const visible = await cardNumberInput
+        .isVisible({ timeout: 250 })
+        .catch(() => false);
+      if (visible) {
+        return frame;
+      }
+    }
 
-  if (!stripeFrame) {
-    throw new Error('Stripe payment frame not found');
+    await page.waitForTimeout(200);
   }
 
+  throw new Error("Stripe payment frame not found");
+};
+
+const fillStripeCard = async (page: Page, card: string) => {
+  const stripeFrame = await findStripeCardFrame(page);
+
   // Wait for card number input to be ready
-  const cardNumberInput = stripeFrame.locator('input[name="number"]');
-  await cardNumberInput.waitFor({ state: 'visible', timeout: 15000 });
+  const cardNumberInput = stripeFrame
+    .locator('input[name="number"], input[autocomplete="cc-number"]')
+    .first();
+  await cardNumberInput.waitFor({ state: "visible", timeout: 15000 });
 
   // Fill in card details
   await cardNumberInput.fill(card);
-  await stripeFrame.locator('input[name="expiry"]').fill("1234");
-  await stripeFrame.locator('input[name="cvc"]').fill("123");
+  await stripeFrame
+    .locator('input[name="expiry"], input[autocomplete="cc-exp"]')
+    .first()
+    .fill("1234");
+  await stripeFrame
+    .locator('input[name="cvc"], input[autocomplete="cc-csc"]')
+    .first()
+    .fill("123");
+  const countrySelect = stripeFrame.locator(
+    'select[name="country"], select[autocomplete="country"]'
+  );
+  if (await countrySelect.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await countrySelect.selectOption("US");
+  }
 
   // Fill postal code if visible (depends on Stripe configuration)
-  const postalInput = stripeFrame.locator('input[name="postalCode"]');
+  const postalInput = stripeFrame.locator(
+    'input[name="postalCode"], input[autocomplete="postal-code"]'
+  );
   if (await postalInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await postalInput.fill("SW1A 1AA");
+    await postalInput.fill("10001");
   }
 };
 
@@ -90,10 +121,6 @@ test.describe("Payment Flow", () => {
     await page.getByLabel("Email").fill("test@example.com");
     await page.getByRole("button", { name: "Confirm booking" }).click();
 
-    await page.waitForSelector('iframe[title="Secure payment input frame"]', {
-      timeout: 15000,
-    });
-
     await fillStripeCard(page, "4242424242424242");
     await page.getByRole("button", { name: "Pay now" }).click();
 
@@ -121,10 +148,6 @@ test.describe("Payment Flow", () => {
     await page.getByLabel("Phone").fill("+12025551235");
     await page.getByLabel("Email").fill("fail@example.com");
     await page.getByRole("button", { name: "Confirm booking" }).click();
-
-    await page.waitForSelector('iframe[title="Secure payment input frame"]', {
-      timeout: 15000,
-    });
 
     await fillStripeCard(page, "4000000000000002");
     await page.getByRole("button", { name: "Pay now" }).click();

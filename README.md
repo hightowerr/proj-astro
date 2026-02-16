@@ -223,6 +223,58 @@ curl -X POST http://localhost:3000/api/jobs/resolve-outcomes \
    - Header: `x-cron-secret: <your-secret>`
 4. Choose a schedule (for example, every 5 minutes).
 
+### Twilio Test Credentials for E2E
+
+For Playwright e2e runs, this project supports a Twilio test mode that calls
+Twilio with test credentials and magic numbers (no real SMS delivery or charges).
+
+Set these in `.env`:
+
+```env
+TWILIO_ACCOUNT_SID=AC... # Twilio test Account SID
+TWILIO_AUTH_TOKEN=...    # Twilio test Auth Token
+TWILIO_TEST_MODE=true
+TWILIO_TEST_FROM_NUMBER=+15005550006
+# Optional: simulate non-mobile failure
+# TWILIO_TEST_TO_NUMBER_OVERRIDE=+15005550009
+```
+
+Notes:
+- `pnpm test:e2e` defaults `TWILIO_TEST_MODE=true` for the Playwright web server.
+- In production/live flows, keep `TWILIO_TEST_MODE=false` and use your real
+  `TWILIO_PHONE_NUMBER`.
+
+### Tier System (Slice 7)
+
+The tier system scores customers from `0-100` based on booking outcomes over a rolling
+180-day window and assigns tiers:
+
+- `top`: score `>= 80` and no voids in 90 days
+- `neutral`: default tier
+- `risk`: score `< 40` or `>= 2` voids in 90 days
+
+Tier data powers:
+
+1. Tier-based deposit overrides at `/app/settings/payment-policy`
+2. Tier-adjusted booking pricing at booking time
+3. Tier-prioritized slot recovery offers (`top > neutral > risk`)
+
+Manual recompute:
+
+```bash
+curl -X POST http://localhost:3000/api/jobs/recompute-scores \
+  -H "x-cron-secret: $CRON_SECRET"
+```
+
+Useful verification:
+
+```bash
+pnpm test src/lib/__tests__/scoring.test.ts
+pnpm test src/lib/__tests__/tier-pricing.test.ts
+pnpm test src/lib/__tests__/slot-recovery-tier-sorting.test.ts
+pnpm db:studio
+```
+
 ## 🗂️ Project Structure
 
 ```

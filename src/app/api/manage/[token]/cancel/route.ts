@@ -10,6 +10,7 @@ import {
   policyVersions,
   shops,
 } from "@/lib/schema";
+import { createSlotOpeningFromCancellation } from "@/lib/slot-recovery";
 import { processRefund } from "@/lib/stripe-refund";
 
 export const runtime = "nodejs";
@@ -84,6 +85,8 @@ export async function POST(_request: Request, { params }: CancelParams) {
         cutoffTime: eligibility.cutoffTime,
       });
 
+      await createSlotOpeningFromCancellation(row.appointment, row.payment);
+
       return Response.json({
         success: true,
         refunded: true,
@@ -151,6 +154,8 @@ export async function POST(_request: Request, { params }: CancelParams) {
         message: "Appointment cancelled. Deposit retained per cancellation policy.",
       });
     }
+
+    await createSlotOpeningFromCancellation(row.appointment, row.payment);
 
     return Response.json({
       success: true,
