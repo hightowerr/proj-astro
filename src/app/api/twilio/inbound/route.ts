@@ -5,6 +5,7 @@ import {
   customerContactPrefs,
   messageOptOuts,
 } from "@/lib/schema";
+import { acceptOffer, findLatestOpenOffer } from "@/lib/slot-recovery";
 
 export const runtime = "nodejs";
 
@@ -17,7 +18,7 @@ const STOP_KEYWORDS = new Set([
   "QUIT",
 ]);
 
-const START_KEYWORDS = new Set(["START", "UNSTOP", "YES"]);
+const START_KEYWORDS = new Set(["START", "UNSTOP"]);
 
 const escapeXml = (input: string) =>
   input
@@ -112,6 +113,56 @@ export async function POST(req: Request) {
   }
 
   const normalized = message.toUpperCase().replace(/\s+/g, "");
+
+  if (normalized === "YES") {
+    try {
+      const openOffer = await findLatestOpenOffer(from);
+
+      if (!openOffer) {
+        return new Response(
+          twimlResponse("No active offers found. Please contact us."),
+          {
+            status: 200,
+            headers: { "Content-Type": "text/xml" },
+          }
+        );
+      }
+
+      await acceptOffer(openOffer);
+
+      return new Response(twimlResponse(), {
+        status: 200,
+        headers: { "Content-Type": "text/xml" },
+      });
+    } catch (error) {
+      console.error("Failed to accept slot recovery offer", { from, error });
+
+      const maybeCode = error instanceof Error ? error.message : null;
+      if (
+        maybeCode === "SLOT_TAKEN" ||
+        maybeCode === "SLOT_NO_LONGER_AVAILABLE"
+      ) {
+        return new Response(
+          twimlResponse("Sorry, this slot has just been taken by another customer."),
+          {
+            status: 200,
+            headers: { "Content-Type": "text/xml" },
+          }
+        );
+      }
+
+      return new Response(
+        twimlResponse(
+          "Sorry, something went wrong. Please try again or contact us."
+        ),
+        {
+          status: 200,
+          headers: { "Content-Type": "text/xml" },
+        }
+      );
+    }
+  }
+
   const isStop = Array.from(STOP_KEYWORDS).some((keyword) =>
     normalized.startsWith(keyword)
   );

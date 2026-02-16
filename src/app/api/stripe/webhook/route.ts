@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { sendBookingConfirmationSMS } from "@/lib/messages";
@@ -6,6 +6,8 @@ import {
   appointments,
   payments,
   processedStripeEvents,
+  slotOffers,
+  slotOpenings,
 } from "@/lib/schema";
 import {
   getStripeClient,
@@ -71,6 +73,97 @@ const handlePaymentIntent = async (
   return payment.appointmentId;
 };
 
+const recoverSlotAfterPaymentFailure = async (
+  tx: DbLike,
+  intent: Stripe.PaymentIntent
+): Promise<string | null> => {
+  const payment = await tx.query.payments.findFirst({
+    where: (table, { eq: whereEq }) => whereEq(table.stripePaymentIntentId, intent.id),
+  });
+
+  if (!payment || payment.status === "succeeded") {
+    return null;
+  }
+
+  const appointment = await tx.query.appointments.findFirst({
+    where: (table, { eq: whereEq }) => whereEq(table.id, payment.appointmentId),
+  });
+
+  if (!appointment?.sourceSlotOpeningId) {
+    return null;
+  }
+
+  const [reopenedSlot] = await tx
+    .update(slotOpenings)
+    .set({
+      status: "open",
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(slotOpenings.id, appointment.sourceSlotOpeningId),
+        eq(slotOpenings.status, "filled")
+      )
+    )
+    .returning({ id: slotOpenings.id });
+
+  if (!reopenedSlot) {
+    return null;
+  }
+
+  await tx
+    .update(slotOffers)
+    .set({
+      status: "declined",
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(slotOffers.slotOpeningId, appointment.sourceSlotOpeningId),
+        eq(slotOffers.customerId, appointment.customerId),
+        inArray(slotOffers.status, ["sent", "accepted"])
+      )
+    );
+
+  return reopenedSlot.id;
+};
+
+const triggerOfferLoop = async (slotOpeningId: string): Promise<void> => {
+  const appUrl = process.env.APP_URL;
+  const internalSecret = process.env.INTERNAL_SECRET;
+
+  if (!appUrl || !internalSecret) {
+    console.warn(
+      "Skipped offer-loop trigger after payment failure because APP_URL or INTERNAL_SECRET is missing",
+      { slotOpeningId }
+    );
+    return;
+  }
+
+  try {
+    const response = await fetch(`${appUrl}/api/jobs/offer-loop`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-internal-secret": internalSecret,
+      },
+      body: JSON.stringify({ slotOpeningId }),
+    });
+
+    if (!response.ok) {
+      console.error("Offer-loop trigger failed after payment failure", {
+        slotOpeningId,
+        status: response.status,
+      });
+    }
+  } catch (error) {
+    console.error("Offer-loop trigger errored after payment failure", {
+      slotOpeningId,
+      error,
+    });
+  }
+};
+
 export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
   if (!signature) {
@@ -92,6 +185,7 @@ export async function POST(req: Request) {
   }
 
   let appointmentToNotify: string | null = null;
+  let slotOpeningToRetry: string | null = null;
 
   try {
     await db.transaction(async (tx) => {
@@ -132,6 +226,7 @@ export async function POST(req: Request) {
           "failed",
           { incrementAttempts: true }
         );
+        slotOpeningToRetry = await recoverSlotAfterPaymentFailure(tx, intent);
         return;
       }
 
@@ -167,6 +262,10 @@ export async function POST(req: Request) {
         error,
       });
     }
+  }
+
+  if (slotOpeningToRetry) {
+    await triggerOfferLoop(slotOpeningToRetry);
   }
 
   return Response.json({ received: true });

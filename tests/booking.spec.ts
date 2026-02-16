@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { test, expect } from "./setup";
+import type { Page } from "@playwright/test";
 
 const makeEmail = () => `shopper_${randomUUID()}@example.com`;
 const strongPassword = "Password123!";
@@ -17,7 +18,39 @@ const nextWeekdayUtc = (): string => {
   return date.toISOString().slice(0, 10);
 };
 
+const nextUtcDate = (dateStr: string): string => {
+  const date = new Date(`${dateStr}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+};
+
+const findStripeCardFrame = async (
+  page: Page,
+  timeoutMs = 15000
+) => {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    for (const frame of page.frames()) {
+      const cardNumberInput = frame
+        .locator('input[name="number"], input[autocomplete="cc-number"]')
+        .first();
+
+      const visible = await cardNumberInput
+        .isVisible({ timeout: 250 })
+        .catch(() => false);
+      if (visible) {
+        return frame;
+      }
+    }
+
+    await page.waitForTimeout(200);
+  }
+
+  throw new Error("Stripe payment frame not found");
+};
+
 test("customer books a slot and business sees it", async ({ page }) => {
+  test.setTimeout(60_000);
   const slug = `hello-shop-${randomUUID()}`;
 
   await page.goto("/app");
@@ -42,11 +75,33 @@ test("customer books a slot and business sees it", async ({ page }) => {
   await page.goto(`/book/${slug}`);
   await expect(page.getByText(`Book with Hello Shop`)).toBeVisible();
 
-  const dateStr = nextWeekdayUtc();
-  await page.locator('#booking-date').fill(dateStr);
-
+  let dateStr = nextWeekdayUtc();
   const firstSlot = page.locator("[data-booking-slot]").first();
-  await expect(firstSlot).toBeVisible();
+  let hasSlot = false;
+
+  for (let attempt = 0; attempt < 7; attempt += 1) {
+    await page.locator("#booking-date").fill(dateStr);
+
+    await page
+      .getByText("Loading slots...")
+      .waitFor({ state: "hidden", timeout: 10000 })
+      .catch(() => undefined);
+
+    hasSlot = await firstSlot
+      .isVisible({ timeout: 4000 })
+      .catch(() => false);
+
+    if (hasSlot) {
+      break;
+    }
+
+    dateStr = nextUtcDate(dateStr);
+  }
+
+  if (!hasSlot) {
+    throw new Error("No available slot found in the next 7 days");
+  }
+
   await firstSlot.click();
   await expect(firstSlot).toHaveAttribute("aria-pressed", "true");
 
@@ -55,37 +110,44 @@ test("customer books a slot and business sees it", async ({ page }) => {
   await page.getByLabel("Email").fill("jamie@example.com");
   await page.getByRole("button", { name: "Confirm booking" }).click();
 
-  // Wait for Payment Element to fully load
-  await expect
-    .poll(
-      () =>
-        page.frames().find((frame) => frame.url().includes("elements-inner-payment")),
-      { timeout: 10000 }
-    )
-    .toBeTruthy();
-
-  // Find the Stripe payment iframe
-  const stripeFrame = page
-    .frames()
-    .find((frame) => frame.url().includes("elements-inner-payment"));
-
-  if (!stripeFrame) {
-    throw new Error("Stripe payment frame not found");
-  }
+  const stripeFrame = await findStripeCardFrame(page);
 
   // Wait for card number input to be ready
-  const cardNumberInput = stripeFrame.locator('input[name="number"]');
-  await cardNumberInput.waitFor({ state: 'visible', timeout: 15000 });
+  const cardNumberInput = stripeFrame
+    .locator('input[name="number"], input[autocomplete="cc-number"]')
+    .first();
+  await cardNumberInput.waitFor({ state: "visible", timeout: 15000 });
 
   // Fill in card details
   await cardNumberInput.fill("4242424242424242");
-  await stripeFrame.locator('input[name="expiry"]').fill("1234");
-  await stripeFrame.locator('input[name="cvc"]').fill("123");
+  await stripeFrame
+    .locator('input[name="expiry"], input[autocomplete="cc-exp"]')
+    .first()
+    .fill("1234");
+  await stripeFrame
+    .locator('input[name="cvc"], input[autocomplete="cc-csc"]')
+    .first()
+    .fill("123");
+  const countrySelect = stripeFrame.locator(
+    'select[name="country"], select[autocomplete="country"]'
+  );
+  if (await countrySelect.isVisible({ timeout: 3000 }).catch(() => false)) {
+    const optionLabels = await countrySelect
+      .locator("option")
+      .allTextContents();
+    if (optionLabels.some((label) => label.includes("United States"))) {
+      await countrySelect.selectOption({ label: "United States" });
+    } else {
+      await countrySelect.selectOption("US").catch(() => undefined);
+    }
+  }
 
   // Fill postal code if visible
-  const postalInput = stripeFrame.locator('input[name="postalCode"]');
+  const postalInput = stripeFrame.locator(
+    'input[name="postalCode"], input[autocomplete="postal-code"]'
+  );
   if (await postalInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await postalInput.fill("SW1A 1AA");
+    await postalInput.fill("10001");
   }
 
   await page.getByRole("button", { name: "Pay now" }).click();

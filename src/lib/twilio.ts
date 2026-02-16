@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { getServerEnv } from "@/lib/env";
 
+const DEFAULT_TWILIO_TEST_FROM_NUMBER = "+15005550006";
+
 export const smsIsMocked = () => process.env.NODE_ENV === "test";
+export const smsUsesTwilioTestApi = () =>
+  process.env.TWILIO_TEST_MODE === "true";
 
 type TwilioResponse = {
   sid: string;
@@ -27,15 +31,27 @@ export const sendTwilioSms = async (input: {
   const env = getServerEnv();
   if (
     !env.TWILIO_ACCOUNT_SID ||
-    !env.TWILIO_AUTH_TOKEN ||
-    !env.TWILIO_PHONE_NUMBER
+    !env.TWILIO_AUTH_TOKEN
   ) {
     throw new Error("Twilio environment variables are missing");
   }
+
+  const useTwilioTestApi = smsUsesTwilioTestApi();
+  const from = useTwilioTestApi
+    ? (env.TWILIO_TEST_FROM_NUMBER ?? DEFAULT_TWILIO_TEST_FROM_NUMBER)
+    : env.TWILIO_PHONE_NUMBER;
+  const to = useTwilioTestApi
+    ? (env.TWILIO_TEST_TO_NUMBER_OVERRIDE ?? input.to)
+    : input.to;
+
+  if (!from) {
+    throw new Error("Twilio sender phone number is missing");
+  }
+
   const url = `https://api.twilio.com/2010-04-01/Accounts/${env.TWILIO_ACCOUNT_SID}/Messages.json`;
   const payload = new URLSearchParams({
-    From: env.TWILIO_PHONE_NUMBER,
-    To: input.to,
+    From: from,
+    To: to,
     Body: input.body,
   });
 

@@ -3,6 +3,7 @@ import { ReconcilePaymentsButton } from "@/components/payments/reconcile-button"
 import {
   getBookingSettingsForShop,
   getOutcomeSummaryForShop,
+  listSlotOpeningsForShop,
   listAppointmentsForShop,
 } from "@/lib/queries/appointments";
 import { getShopByOwnerId } from "@/lib/queries/shops";
@@ -23,10 +24,11 @@ export default async function AppointmentsPage() {
     );
   }
 
-  const [settings, appointments, outcomeSummary] = await Promise.all([
+  const [settings, appointments, outcomeSummary, slotOpenings] = await Promise.all([
     getBookingSettingsForShop(shop.id),
     listAppointmentsForShop(shop.id),
     getOutcomeSummaryForShop(shop.id),
+    listSlotOpeningsForShop(shop.id),
   ]);
   const timezone = settings?.timezone ?? "UTC";
 
@@ -148,6 +150,90 @@ export default async function AppointmentsPage() {
           </table>
         </div>
       )}
+
+      <section className="space-y-3">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold">Slot Recovery</h2>
+          <p className="text-sm text-muted-foreground">
+            Recently opened slots and their recovery progress.
+          </p>
+        </div>
+
+        {slotOpenings.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No slot openings yet.</p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left">
+                <tr>
+                  <th className="px-4 py-2 font-medium">Time</th>
+                  <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2 font-medium">Opened</th>
+                  <th className="px-4 py-2 font-medium">Recovered Booking</th>
+                  <th className="px-4 py-2 font-medium">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {slotOpenings.map((slotOpening) => (
+                  <tr key={slotOpening.id} className="border-t">
+                    <td className="px-4 py-3">
+                      <div className="font-medium">
+                        {formatter.format(new Date(slotOpening.startsAt))}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Ends {formatter.format(new Date(slotOpening.endsAt))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <SlotStatusBadge status={slotOpening.status} />
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {formatter.format(new Date(slotOpening.createdAt))}
+                    </td>
+                    <td className="px-4 py-3">
+                      {slotOpening.status === "filled" &&
+                      slotOpening.recoveredAppointmentId ? (
+                        <Link
+                          href={`/app/appointments/${slotOpening.recoveredAppointmentId}`}
+                          className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                        >
+                          View booking
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/app/slot-openings/${slotOpening.id}`}
+                        className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        View slot
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
+  );
+}
+
+function SlotStatusBadge({ status }: { status: "open" | "filled" | "expired" }) {
+  const classes = {
+    open: "bg-blue-100 text-blue-800",
+    filled: "bg-green-100 text-green-800",
+    expired: "bg-muted text-muted-foreground",
+  };
+
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium capitalize ${classes[status]}`}
+    >
+      {status}
+    </span>
   );
 }

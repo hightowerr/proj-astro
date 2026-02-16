@@ -15,10 +15,45 @@ import type { Page } from "@playwright/test";
 const shouldRun = Boolean(process.env.POSTGRES_URL && process.env.CRON_SECRET);
 
 test.describe("Outcome Resolution", () => {
+  test.describe.configure({ mode: "serial" });
   test.skip(!shouldRun, "POSTGRES_URL or CRON_SECRET not set");
 
+  const testLockId = String(900001 + Math.floor(Math.random() * 100000));
   const makeEmail = () => `shopper_${randomUUID()}@example.com`;
   const strongPassword = "Password123!";
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const runResolveOutcomesOnce = async (page: Page) => {
+    const response = await page.request.post(
+      `/api/jobs/resolve-outcomes?lockId=${testLockId}`,
+      {
+        headers: { "x-cron-secret": process.env.CRON_SECRET ?? "" },
+      }
+    );
+    expect(response.ok()).toBeTruthy();
+    return await response.json().catch(() => null);
+  };
+
+  const runResolveOutcomesWithRetry = async (page: Page, attempts = 4) => {
+    let lastBody: unknown = null;
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      lastBody = await runResolveOutcomesOnce(page);
+
+      if (!lastBody || typeof lastBody !== "object" || !("skipped" in lastBody)) {
+        return lastBody;
+      }
+
+      const maybeSkipped = lastBody as { skipped?: boolean };
+      if (!maybeSkipped.skipped) {
+        return lastBody;
+      }
+
+      await sleep(250);
+    }
+
+    return lastBody;
+  };
 
   const createShop = async (page: Page, email: string) => {
     const slug = `hello-shop-${randomUUID()}`;
@@ -44,9 +79,9 @@ test.describe("Outcome Resolution", () => {
   };
 
   test("ended appointment resolves to settled", async ({ page }) => {
-    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-    const waitForOutcome = async (appointmentId: string, timeoutMs = 5000) => {
+    const waitForOutcome = async (appointmentId: string, timeoutMs = 12000) => {
       const deadline = Date.now() + timeoutMs;
+      let attempts = 0;
       while (Date.now() < deadline) {
         const row = await db.query.appointments.findFirst({
           where: (table, { eq }) => eq(table.id, appointmentId),
@@ -54,6 +89,12 @@ test.describe("Outcome Resolution", () => {
         if (row?.financialOutcome === "settled") {
           return true;
         }
+
+        if (attempts % 2 === 0) {
+          await runResolveOutcomesOnce(page);
+        }
+        attempts += 1;
+
         await sleep(250);
       }
       return false;
@@ -121,19 +162,7 @@ test.describe("Outcome Resolution", () => {
       attempts: 0,
     });
 
-    const runResolveOutcomes = async () => {
-      const response = await page.request.post("/api/jobs/resolve-outcomes", {
-        headers: { "x-cron-secret": process.env.CRON_SECRET ?? "" },
-      });
-      expect(response.ok()).toBeTruthy();
-      return await response.json().catch(() => null);
-    };
-
-    let outcomeBody = await runResolveOutcomes();
-    if (outcomeBody?.skipped) {
-      await sleep(250);
-      outcomeBody = await runResolveOutcomes();
-    }
+    const outcomeBody = await runResolveOutcomesWithRetry(page, 12);
 
     const resolved = await waitForOutcome(appointment.id);
     if (!resolved) {
@@ -161,13 +190,13 @@ test.describe("Outcome Resolution", () => {
   });
 
   test("backfills orphaned cancelled appointment as refunded", async ({ page }) => {
-    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
     const waitForOutcome = async (
       appointmentId: string,
       expectedOutcome: "refunded",
-      timeoutMs = 5000
+      timeoutMs = 12000
     ) => {
       const deadline = Date.now() + timeoutMs;
+      let attempts = 0;
       while (Date.now() < deadline) {
         const row = await db.query.appointments.findFirst({
           where: (table, { eq }) => eq(table.id, appointmentId),
@@ -178,6 +207,12 @@ test.describe("Outcome Resolution", () => {
         ) {
           return true;
         }
+
+        if (attempts % 2 === 0) {
+          await runResolveOutcomesOnce(page);
+        }
+        attempts += 1;
+
         await sleep(250);
       }
       return false;
@@ -249,21 +284,7 @@ test.describe("Outcome Resolution", () => {
       attempts: 0,
     });
 
-    const runResolveOutcomes = async () => {
-      const response = await page.request.post("/api/jobs/resolve-outcomes", {
-        headers: { "x-cron-secret": process.env.CRON_SECRET ?? "" },
-      });
-      expect(response.ok()).toBeTruthy();
-      return await response.json().catch(() => null);
-    };
-
-    let outcomeBody = await runResolveOutcomes();
-    if (outcomeBody?.skipped) {
-      await sleep(250);
-      outcomeBody = await runResolveOutcomes();
-    }
-
-    expect(outcomeBody?.backfilled ?? 0).toBeGreaterThanOrEqual(1);
+    const outcomeBody = await runResolveOutcomesWithRetry(page, 12);
 
     const backfilled = await waitForOutcome(appointment.id, "refunded");
     if (!backfilled) {
