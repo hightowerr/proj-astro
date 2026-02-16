@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/jobs/expire-offers",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 1 * * *"
     },
     {
       "path": "/api/jobs/recompute-scores",

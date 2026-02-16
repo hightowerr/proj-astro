@@ -221,7 +221,9 @@ curl -X POST http://localhost:3000/api/jobs/resolve-outcomes \
    - URL: `/api/jobs/resolve-outcomes`
    - Method: `POST`
    - Header: `x-cron-secret: <your-secret>`
-4. Choose a schedule (for example, every 5 minutes).
+4. Choose a daily schedule (for example, `0 0 * * *`).
+   - Hobby accounts only support daily cron jobs.
+   - More frequent schedules require Vercel Pro.
 
 ### Twilio Test Credentials for E2E
 
