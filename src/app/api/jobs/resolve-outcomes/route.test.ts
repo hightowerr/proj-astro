@@ -26,7 +26,8 @@ const [{ db }, { createShop }, schema, route] = await Promise.all([
   import("./route"),
 ]);
 
-const { appointments, customers, payments, shopPolicies, shops, user } = schema;
+const { appointments, customerNoShowStats, customers, payments, shopPolicies, shops, user } =
+  schema;
 const { POST } = route;
 
 const describeIf = hasPostgresUrl ? describe : describe.skip;
@@ -94,6 +95,7 @@ const runResolveOutcomes = async (attempts = 10, delayMs = 100) => {
         resolved: number;
         skipped: number;
         backfilled: number;
+        noShowsDetected: number;
         errors: string[];
       };
     }
@@ -215,12 +217,14 @@ describeIf("resolve outcomes job", () => {
 
   it("resolves non-cancelled outcomes and remains idempotent", async () => {
     const appointmentId = await createAppointment();
-    await runResolveOutcomes();
+    const firstRun = await runResolveOutcomes();
+    expect(firstRun.noShowsDetected).toBe(0);
 
     const appointmentRow = await db.query.appointments.findFirst({
       where: (table, { eq }) => eq(table.id, appointmentId),
     });
 
+    expect(appointmentRow?.status).toBe("ended");
     expect(appointmentRow?.financialOutcome).toBe("settled");
     expect(appointmentRow?.resolvedAt).toBeTruthy();
     expect(appointmentRow?.resolutionReason).toBe("payment_captured");
@@ -244,6 +248,51 @@ describeIf("resolve outcomes job", () => {
       (event) => event.type === "outcome_resolved"
     );
     expect(resolvedEventsAfter.length).toBe(1);
+  });
+
+  it("records no-shows for voided booked appointments and is idempotent", async () => {
+    const appointmentId = await createAppointment({
+      paymentRequired: false,
+      appointmentPaymentStatus: "unpaid",
+      withPayment: false,
+    });
+
+    const firstRun = await runResolveOutcomes();
+    expect(firstRun.noShowsDetected).toBeGreaterThanOrEqual(1);
+
+    const firstAppointment = await db.query.appointments.findFirst({
+      where: (table, { eq }) => eq(table.id, appointmentId),
+    });
+    expect(firstAppointment?.status).toBe("ended");
+    expect(firstAppointment?.financialOutcome).toBe("voided");
+    expect(firstAppointment?.resolutionReason).toBe("no_payment_required");
+
+    const [firstStats] = await db
+      .select({
+        noShowCount: customerNoShowStats.noShowCount,
+        lastNoShowAt: customerNoShowStats.lastNoShowAt,
+      })
+      .from(customerNoShowStats)
+      .where(
+        eq(customerNoShowStats.customerId, customerId)
+      );
+
+    expect(firstStats?.noShowCount).toBe(1);
+    expect(firstStats?.lastNoShowAt).toBeTruthy();
+
+    const secondRun = await runResolveOutcomes();
+    expect(secondRun.noShowsDetected).toBe(0);
+
+    const [secondStats] = await db
+      .select({
+        noShowCount: customerNoShowStats.noShowCount,
+      })
+      .from(customerNoShowStats)
+      .where(
+        eq(customerNoShowStats.customerId, customerId)
+      );
+
+    expect(secondStats?.noShowCount).toBe(1);
   });
 
   it("backfills cancelled unresolved appointments as refunded", async () => {

@@ -12,6 +12,7 @@ type TierPolicyFormProps = {
     topDepositWaived: boolean;
     topDepositAmountCents: number | null;
     excludeRiskFromOffers: boolean;
+    excludeHighNoShowFromOffers: boolean;
     baseDepositAmountCents: number | null;
   };
 };
@@ -123,10 +124,27 @@ export function TierPolicyForm({ action, initial }: TierPolicyFormProps) {
             When disabled, risk tier customers are still eligible and prioritized last.
           </p>
         </div>
+
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="excludeHighNoShowFromOffers"
+              defaultChecked={initial.excludeHighNoShowFromOffers}
+              className="h-4 w-4"
+            />
+            <span className="font-medium">
+              Exclude high no-show risk from slot recovery offers
+            </span>
+          </label>
+          <p className="text-xs text-muted-foreground">
+            When enabled, customers with 2 or more no-shows are excluded from offers.
+          </p>
+        </div>
       </div>
 
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Saving..." : "Save tier settings"}
+        {isSubmitting ? "Saving…" : "Save tier settings"}
       </Button>
     </form>
   );

@@ -21,6 +21,9 @@ type AvailabilityResponse = {
   slotMinutes: number;
   slots: Slot[];
 };
+type AvailabilityErrorResponse = {
+  error?: string;
+};
 
 type BookingFormProps = {
   shopSlug: string;
@@ -148,7 +151,7 @@ function PaymentStep({
         ) : null}
         <Button type="submit" disabled={!stripe || !elements || isPaying}>
           {isPaying
-            ? "Processing..."
+            ? "Processing…"
             : paymentError
               ? "Pay again"
               : "Pay now"}
@@ -235,7 +238,10 @@ export function BookingForm({
         });
 
         if (!res.ok) {
-          setAvailabilityError("Failed to load availability");
+          const data = (await res.json().catch(() => null)) as
+            | AvailabilityErrorResponse
+            | null;
+          setAvailabilityError(data?.error ?? "Failed to load availability");
           return;
         }
 
@@ -335,7 +341,7 @@ export function BookingForm({
     setError(null);
 
     if (!selectedSlot) {
-      setError("Select a time slot.");
+      setError("Please select a time slot before confirming.");
       return;
     }
 
@@ -462,7 +468,7 @@ export function BookingForm({
       <div className="rounded-lg border p-6 space-y-2">
         <h2 className="text-xl font-semibold">Loading your booking</h2>
         <p className="text-sm text-muted-foreground">
-          Fetching payment details...
+          Fetching payment details…
         </p>
       </div>
     );
@@ -512,10 +518,10 @@ export function BookingForm({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Available slots</Label>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">Available slots</legend>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading slots...</p>
+          <p className="text-sm text-muted-foreground">Loading slots…</p>
         ) : availabilityError ? (
           <p className="text-sm text-destructive">{availabilityError}</p>
         ) : slots.length === 0 ? (
@@ -547,13 +553,15 @@ export function BookingForm({
         <p className="text-xs text-muted-foreground">
           Slot length: {slotMinutes} minutes ({timezone})
         </p>
-      </div>
+      </fieldset>
 
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="full-name">Full name</Label>
           <Input
             id="full-name"
+            name="fullName"
+            autoComplete="name"
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
             required
@@ -563,7 +571,9 @@ export function BookingForm({
           <Label htmlFor="phone">Phone</Label>
           <Input
             id="phone"
+            name="phone"
             type="tel"
+            autoComplete="tel"
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             required
@@ -573,7 +583,10 @@ export function BookingForm({
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
+            name="email"
             type="email"
+            autoComplete="email"
+            spellCheck={false}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
@@ -596,8 +609,8 @@ export function BookingForm({
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <Button type="submit" disabled={!selectedSlot || isSubmitting}>
-        {isSubmitting ? "Booking..." : "Confirm booking"}
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Booking…" : "Confirm booking"}
       </Button>
     </form>
   );

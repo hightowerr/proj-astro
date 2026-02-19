@@ -14,6 +14,7 @@ const tierSettingsSchema = z.object({
   topDepositWaived: z.boolean(),
   topDepositAmountCents: z.number().int().positive().nullable(),
   excludeRiskFromOffers: z.boolean(),
+  excludeHighNoShowFromOffers: z.boolean(),
 });
 
 const parseNullablePositiveCents = (
@@ -61,6 +62,8 @@ export async function updateShopPolicyTierSettings(
   );
   const topDepositWaived = formData.get("topDepositWaived") === "on";
   const excludeRiskFromOffers = formData.get("excludeRiskFromOffers") === "on";
+  const excludeHighNoShowFromOffers =
+    formData.get("excludeHighNoShowFromOffers") === "on";
 
   if (
     !topDepositWaived &&
@@ -77,6 +80,7 @@ export async function updateShopPolicyTierSettings(
     topDepositWaived,
     topDepositAmountCents,
     excludeRiskFromOffers,
+    excludeHighNoShowFromOffers,
   });
 
   if (!parsed.success) {
@@ -92,6 +96,7 @@ export async function updateShopPolicyTierSettings(
         ? null
         : parsed.data.topDepositAmountCents,
       excludeRiskFromOffers: parsed.data.excludeRiskFromOffers,
+      excludeHighNoShowFromOffers: parsed.data.excludeHighNoShowFromOffers,
     })
     .where(eq(shopPolicies.shopId, parsed.data.shopId));
 

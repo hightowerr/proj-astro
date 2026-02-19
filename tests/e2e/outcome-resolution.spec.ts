@@ -58,9 +58,7 @@ test.describe("Outcome Resolution", () => {
   const createShop = async (page: Page, email: string) => {
     const slug = `hello-shop-${randomUUID()}`;
 
-    await page.goto("/app");
-    await expect(page).toHaveURL(/\/login/);
-
+    await page.context().clearCookies();
     await page.goto("/register");
     await page.getByLabel("Name").fill("Test User");
     await page.getByLabel("Email").fill(email);

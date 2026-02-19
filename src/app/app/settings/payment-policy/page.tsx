@@ -143,6 +143,8 @@ export default async function PaymentPolicyPage() {
             topDepositWaived: policy?.topDepositWaived ?? false,
             topDepositAmountCents: policy?.topDepositAmountCents ?? null,
             excludeRiskFromOffers: policy?.excludeRiskFromOffers ?? false,
+            excludeHighNoShowFromOffers:
+              policy?.excludeHighNoShowFromOffers ?? false,
             baseDepositAmountCents: policy?.depositAmountCents ?? null,
           }}
         />

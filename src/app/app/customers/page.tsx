@@ -39,13 +39,13 @@ export default async function CustomersPage() {
           <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-muted/50 text-left">
               <tr>
-                <th className="px-4 py-2 font-medium">Customer</th>
-                <th className="px-4 py-2 font-medium">Contact</th>
-                <th className="px-4 py-2 font-medium">Tier</th>
-                <th className="px-4 py-2 font-medium">Score</th>
-                <th className="px-4 py-2 font-medium">Reliability</th>
-                <th className="px-4 py-2 font-medium">Last Updated</th>
-                <th className="px-4 py-2 font-medium">Details</th>
+                <th scope="col" className="px-4 py-2 font-medium">Customer</th>
+                <th scope="col" className="px-4 py-2 font-medium">Contact</th>
+                <th scope="col" className="px-4 py-2 font-medium">Tier</th>
+                <th scope="col" className="px-4 py-2 font-medium">Score</th>
+                <th scope="col" className="px-4 py-2 font-medium">Reliability</th>
+                <th scope="col" className="px-4 py-2 font-medium">Last Updated</th>
+                <th scope="col" className="px-4 py-2 font-medium">Details</th>
               </tr>
             </thead>
             <tbody>
@@ -60,7 +60,7 @@ export default async function CustomersPage() {
                   </td>
                   <td className="px-4 py-3">
                     {customer.score !== null ? (
-                      <span className="font-medium">{customer.score}</span>
+                      <span className="font-medium tabular-nums">{customer.score}</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}

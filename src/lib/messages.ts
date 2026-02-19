@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { checkReminderAlreadySent } from "@/lib/queries/messages";
 import {
   messageDedup,
   messageLog,
@@ -12,6 +13,10 @@ const BOOKING_TEMPLATE_KEY = "booking_confirmation";
 const DEFAULT_TEMPLATE_VERSION = 1;
 const DEFAULT_TEMPLATE_BODY =
   "Booked with {{shop_name}}: {{date}} at {{time}} ({{timezone}}). Paid {{amount}}. Policy: see booking link. {{manage_link}}Reply STOP to opt out.";
+const REMINDER_TEMPLATE_KEY = "appointment_reminder_24h";
+const DEFAULT_REMINDER_TEMPLATE_VERSION = 1;
+const DEFAULT_REMINDER_TEMPLATE_BODY =
+  "Reminder: Your appointment tomorrow at {{time}} at {{shop_name}}. {{manage_link}}Reply STOP to opt out.";
 
 const hashBody = (body: string) =>
   createHash("sha256").update(body).digest("hex");
@@ -68,6 +73,47 @@ const ensureBookingTemplate = async () => {
 
   if (retry.length === 0) {
     throw new Error("Message template missing");
+  }
+
+  return retry[0];
+};
+
+const ensureReminderTemplate = async () => {
+  const existing = await db
+    .select()
+    .from(messageTemplates)
+    .where(eq(messageTemplates.key, REMINDER_TEMPLATE_KEY))
+    .orderBy(desc(messageTemplates.version))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return existing[0];
+  }
+
+  const [created] = await db
+    .insert(messageTemplates)
+    .values({
+      key: REMINDER_TEMPLATE_KEY,
+      version: DEFAULT_REMINDER_TEMPLATE_VERSION,
+      channel: "sms",
+      bodyTemplate: DEFAULT_REMINDER_TEMPLATE_BODY,
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  if (created) {
+    return created;
+  }
+
+  const retry = await db
+    .select()
+    .from(messageTemplates)
+    .where(eq(messageTemplates.key, REMINDER_TEMPLATE_KEY))
+    .orderBy(desc(messageTemplates.version))
+    .limit(1);
+
+  if (retry.length === 0) {
+    throw new Error("Reminder template missing");
   }
 
   return retry[0];
@@ -202,5 +248,119 @@ export const sendBookingConfirmationSMS = async (appointmentId: string) => {
       errorCode,
       errorMessage: (error as Error).message ?? "SMS send failed",
     });
+  }
+};
+
+export type ReminderSendResult =
+  | "sent"
+  | "already_sent"
+  | "consent_missing";
+
+export const sendAppointmentReminderSMS = async (params: {
+  appointmentId: string;
+  shopId: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  startsAt: Date;
+  bookingUrl: string | null;
+  shopName: string;
+  shopTimezone: string;
+}): Promise<ReminderSendResult> => {
+  const {
+    appointmentId,
+    shopId,
+    customerId,
+    customerName,
+    customerPhone,
+    startsAt,
+    bookingUrl,
+    shopName,
+    shopTimezone,
+  } = params;
+
+  const alreadySent = await checkReminderAlreadySent(appointmentId);
+  if (alreadySent) {
+    return "already_sent";
+  }
+
+  const prefs = await db.query.customerContactPrefs.findFirst({
+    where: (table, { eq }) => eq(table.customerId, customerId),
+  });
+
+  const template = await ensureReminderTemplate();
+  if (!template) {
+    throw new Error("Failed to load or create reminder template");
+  }
+
+  const timeFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: shopTimezone,
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+
+  const renderedBody = renderTemplate(template.bodyTemplate, {
+    customer_name: customerName,
+    shop_name: shopName,
+    time: timeFormatter.format(startsAt),
+    manage_link: bookingUrl ? `Manage: ${bookingUrl} ` : "",
+  });
+  const bodyHash = hashBody(renderedBody);
+
+  const baseLog = {
+    shopId,
+    appointmentId,
+    customerId,
+    channel: "sms" as const,
+    purpose: "appointment_reminder_24h" as const,
+    toPhone: customerPhone,
+    provider: "twilio",
+    bodyHash,
+    templateId: template.id,
+    templateKey: template.key,
+    templateVersion: template.version,
+    renderedBody,
+    retryCount: 0,
+  };
+
+  if (!prefs?.smsOptIn) {
+    await db.insert(messageLog).values({
+      ...baseLog,
+      status: "failed",
+      errorCode: "consent_missing",
+      errorMessage: "SMS opt-in not found",
+    });
+    return "consent_missing";
+  }
+
+  try {
+    const { sid } = await sendTwilioSms({
+      to: customerPhone,
+      body: renderedBody,
+    });
+
+    await db.insert(messageLog).values({
+      ...baseLog,
+      status: "sent",
+      providerMessageId: sid,
+      sentAt: new Date(),
+    });
+
+    return "sent";
+  } catch (error) {
+    const errorCode =
+      error && typeof error === "object" && "code" in error
+        ? String((error as { code?: string | number }).code)
+        : undefined;
+
+    await db.insert(messageLog).values({
+      ...baseLog,
+      status: "failed",
+      retryCount: 1,
+      errorCode,
+      errorMessage: (error as Error).message ?? "SMS send failed",
+    });
+
+    throw error;
   }
 };

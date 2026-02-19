@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NoShowRiskBadge } from "@/components/appointments/no-show-risk-badge";
 import { ReconcilePaymentsButton } from "@/components/payments/reconcile-button";
 import {
   getBookingSettingsForShop,
@@ -66,19 +67,19 @@ export default async function AppointmentsPage() {
           <p className="text-xs font-medium uppercase text-muted-foreground">
             Settled (7d)
           </p>
-          <p className="text-2xl font-semibold">{outcomeSummary.settled}</p>
+          <p className="text-2xl font-semibold tabular-nums">{outcomeSummary.settled}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-xs font-medium uppercase text-muted-foreground">
             Voided (7d)
           </p>
-          <p className="text-2xl font-semibold">{outcomeSummary.voided}</p>
+          <p className="text-2xl font-semibold tabular-nums">{outcomeSummary.voided}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-xs font-medium uppercase text-muted-foreground">
             Unresolved (7d)
           </p>
-          <p className="text-2xl font-semibold">{outcomeSummary.unresolved}</p>
+          <p className="text-2xl font-semibold tabular-nums">{outcomeSummary.unresolved}</p>
         </div>
       </div>
 
@@ -91,13 +92,14 @@ export default async function AppointmentsPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left">
               <tr>
-                <th className="px-4 py-2 font-medium">Start</th>
-                <th className="px-4 py-2 font-medium">Customer</th>
-                <th className="px-4 py-2 font-medium">Payment</th>
-                <th className="px-4 py-2 font-medium">Outcome</th>
-                <th className="px-4 py-2 font-medium">Resolved</th>
-                <th className="px-4 py-2 font-medium">Created</th>
-                <th className="px-4 py-2 font-medium">Details</th>
+                <th scope="col" className="px-4 py-2 font-medium">Start</th>
+                <th scope="col" className="px-4 py-2 font-medium">Customer</th>
+                <th scope="col" className="px-4 py-2 font-medium">Payment</th>
+                <th scope="col" className="px-4 py-2 font-medium">Outcome</th>
+                <th scope="col" className="px-4 py-2 font-medium">No-Show Risk</th>
+                <th scope="col" className="px-4 py-2 font-medium">Resolved</th>
+                <th scope="col" className="px-4 py-2 font-medium">Created</th>
+                <th scope="col" className="px-4 py-2 font-medium">Details</th>
               </tr>
             </thead>
             <tbody>
@@ -127,6 +129,21 @@ export default async function AppointmentsPage() {
                     <span className="capitalize">
                       {appointment.financialOutcome}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <NoShowRiskBadge
+                      risk={appointment.noShowRisk}
+                      score={appointment.noShowScore}
+                      stats={
+                        appointment.noShowStatsTotalAppointments !== null
+                          ? {
+                              completed: appointment.noShowStatsCompleted ?? 0,
+                              noShows: appointment.noShowStatsNoShows ?? 0,
+                              totalAppointments: appointment.noShowStatsTotalAppointments,
+                            }
+                          : null
+                      }
+                    />
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {appointment.resolvedAt
@@ -166,11 +183,11 @@ export default async function AppointmentsPage() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left">
                 <tr>
-                  <th className="px-4 py-2 font-medium">Time</th>
-                  <th className="px-4 py-2 font-medium">Status</th>
-                  <th className="px-4 py-2 font-medium">Opened</th>
-                  <th className="px-4 py-2 font-medium">Recovered Booking</th>
-                  <th className="px-4 py-2 font-medium">Details</th>
+                  <th scope="col" className="px-4 py-2 font-medium">Time</th>
+                  <th scope="col" className="px-4 py-2 font-medium">Status</th>
+                  <th scope="col" className="px-4 py-2 font-medium">Opened</th>
+                  <th scope="col" className="px-4 py-2 font-medium">Recovered Booking</th>
+                  <th scope="col" className="px-4 py-2 font-medium">Details</th>
                 </tr>
               </thead>
               <tbody>

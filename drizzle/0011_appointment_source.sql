@@ -1,5 +1,5 @@
-ALTER TABLE "appointments" ADD COLUMN "source" text;
-ALTER TABLE "appointments" ADD COLUMN "source_slot_opening_id" uuid;
+ALTER TABLE "appointments" ADD COLUMN IF NOT EXISTS "source" text;
+ALTER TABLE "appointments" ADD COLUMN IF NOT EXISTS "source_slot_opening_id" uuid;
 
 DO $$ BEGIN
   ALTER TABLE "appointments"

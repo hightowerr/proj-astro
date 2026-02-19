@@ -15,6 +15,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { calculateCancellationEligibility } from "@/lib/cancellation";
 import type { CancellationResponse } from "@/types/cancellation";
@@ -82,6 +90,8 @@ export function ManageBookingView({
   token,
 }: ManageBookingViewProps) {
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const eligibility = calculateCancellationEligibility(
     appointment.startsAt,
@@ -104,12 +114,9 @@ export function ManageBookingView({
     "h:mm a zzz"
   );
 
-  const handleCancel = async () => {
-    if (!confirm("Are you sure you want to cancel this appointment?")) {
-      return;
-    }
-
+  const handleCancelConfirm = async () => {
     setIsCancelling(true);
+    setCancelError(null);
 
     try {
       const response = await fetch(`/api/manage/${token}/cancel`, {
@@ -127,13 +134,14 @@ export function ManageBookingView({
 
       window.location.reload();
     } catch (error) {
-      console.error("Cancellation error:", error);
-      alert(
+      setCancelError(
         error instanceof Error
           ? error.message
           : "Failed to cancel appointment. Please try again."
       );
       setIsCancelling(false);
+    } finally {
+      setShowConfirmDialog(false);
     }
   };
 
@@ -141,7 +149,7 @@ export function ManageBookingView({
     if (appointment.status === "cancelled") {
       return (
         <Badge variant="destructive" className="flex items-center gap-1">
-          <XCircle className="h-3 w-3" />
+          <XCircle className="h-3 w-3" aria-hidden="true" />
           Cancelled
         </Badge>
       );
@@ -149,7 +157,7 @@ export function ManageBookingView({
     if (appointment.status === "ended") {
       return (
         <Badge variant="secondary" className="flex items-center gap-1">
-          <CheckCircle className="h-3 w-3" />
+          <CheckCircle className="h-3 w-3" aria-hidden="true" />
           Completed
         </Badge>
       );
@@ -157,14 +165,14 @@ export function ManageBookingView({
     if (appointment.status === "pending") {
       return (
         <Badge variant="secondary" className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
+          <Clock className="h-3 w-3" aria-hidden="true" />
           Pending payment
         </Badge>
       );
     }
     return (
       <Badge variant="default" className="flex items-center gap-1">
-        <CheckCircle className="h-3 w-3" />
+        <CheckCircle className="h-3 w-3" aria-hidden="true" />
         Confirmed
       </Badge>
     );
@@ -215,7 +223,7 @@ export function ManageBookingView({
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden="true" />
             <div>
               <p className="text-sm text-muted-foreground">Date & time</p>
               <p className="font-medium">{appointmentTimeFormatted}</p>
@@ -226,7 +234,7 @@ export function ManageBookingView({
           </div>
 
           <div className="flex items-start gap-3">
-            <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden="true" />
             <div>
               <p className="text-sm text-muted-foreground">Location</p>
               <p className="font-medium">{shop.name}</p>
@@ -234,7 +242,7 @@ export function ManageBookingView({
           </div>
 
           <div className="flex items-start gap-3">
-            <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <User className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden="true" />
             <div>
               <p className="text-sm text-muted-foreground">Customer</p>
               <p className="font-medium">{customer.fullName}</p>
@@ -244,7 +252,7 @@ export function ManageBookingView({
           </div>
 
           <div className="flex items-start gap-3">
-            <CreditCard className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <CreditCard className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden="true" />
             <div>
               <p className="text-sm text-muted-foreground">Payment</p>
               {payment ? (
@@ -273,7 +281,7 @@ export function ManageBookingView({
           <h2 className="text-xl font-semibold">Cancellation policy</h2>
 
           <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <Clock className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden="true" />
             <div>
               <p className="text-sm text-muted-foreground">
                 Cancellation deadline
@@ -296,9 +304,9 @@ export function ManageBookingView({
             }`}
           >
             {eligibility.isEligibleForRefund ? (
-              <CheckCircle className="h-5 w-5 text-emerald-600 mt-0.5" />
+              <CheckCircle className="h-5 w-5 text-emerald-600 mt-0.5" aria-hidden="true" />
             ) : (
-              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" aria-hidden="true" />
             )}
             <div className="flex-1">
               <p className="font-semibold mb-1">
@@ -317,7 +325,7 @@ export function ManageBookingView({
           <div className="flex items-start gap-3">
             {appointment.financialOutcome === "refunded" ? (
               <>
-                <CheckCircle className="h-6 w-6 text-green-600 mt-0.5" />
+                <CheckCircle className="h-6 w-6 text-green-600 mt-0.5" aria-hidden="true" />
                 <div>
                   <h3 className="font-semibold text-lg mb-1">Refund Processed</h3>
                   <p className="text-sm text-muted-foreground">
@@ -337,7 +345,7 @@ export function ManageBookingView({
               </>
             ) : (
               <>
-                <AlertCircle className="h-6 w-6 text-amber-600 mt-0.5" />
+                <AlertCircle className="h-6 w-6 text-amber-600 mt-0.5" aria-hidden="true" />
                 <div>
                   <h3 className="font-semibold text-lg mb-1">
                     Appointment Cancelled
@@ -356,18 +364,22 @@ export function ManageBookingView({
 
       {appointment.status === "booked" && (
         <div className="flex flex-col gap-4">
+          {cancelError ? (
+            <p className="text-sm text-destructive" role="alert">{cancelError}</p>
+          ) : null}
+
           <Button
             variant="destructive"
             size="lg"
             className="w-full"
-            onClick={handleCancel}
+            onClick={() => setShowConfirmDialog(true)}
             disabled={isCancelling}
           >
-            {isCancelling ? "Processing..." : "Cancel appointment"}
+            Cancel appointment
           </Button>
 
           <p className="text-xs text-center text-muted-foreground">
-            By clicking "Cancel appointment", you understand that{" "}
+            By clicking &ldquo;Cancel appointment&rdquo;, you understand that{" "}
             {eligibility.isEligibleForRefund
               ? "you will receive a full refund"
               : "your deposit will be retained per the cancellation policy"}
@@ -375,6 +387,35 @@ export function ManageBookingView({
           </p>
         </div>
       )}
+
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel appointment?</DialogTitle>
+            <DialogDescription>
+              {eligibility.isEligibleForRefund
+                ? `You will receive a full refund of ${payment ? formatCurrency(payment.amountCents, payment.currency) : ""} to your original payment method.`
+                : "Your deposit will be retained per the cancellation policy. This action cannot be undone."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              disabled={isCancelling}
+            >
+              Keep appointment
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelConfirm}
+              disabled={isCancelling}
+            >
+              {isCancelling ? "Processing…" : "Cancel appointment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

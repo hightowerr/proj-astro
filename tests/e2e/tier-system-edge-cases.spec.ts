@@ -32,6 +32,7 @@ const nextWeekdayAt = (hourUtc: number, minuteUtc = 0) => {
 
 test.describe("Tier system edge cases", () => {
   test.skip(!shouldRun, "Requires POSTGRES_URL and CRON_SECRET");
+  const recomputeLockId = String(900000 + Math.floor(Math.random() * 100000));
 
   test("new customer with no score falls back to base policy", async () => {
     process.env.STRIPE_MOCKED = "true";
@@ -177,11 +178,14 @@ test.describe("Tier system edge cases", () => {
   });
 
   test("recompute endpoint returns processed count and error metadata shape", async ({ page }) => {
-    const response = await page.request.post("/api/jobs/recompute-scores", {
+    const response = await page.request.post(
+      `/api/jobs/recompute-scores?lockId=${recomputeLockId}`,
+      {
       headers: {
         "x-cron-secret": process.env.CRON_SECRET ?? "",
       },
-    });
+      }
+    );
 
     expect(response.ok()).toBeTruthy();
 

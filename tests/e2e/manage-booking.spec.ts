@@ -194,12 +194,12 @@ test.describe("Manage Booking Page", () => {
   }) => {
     await goToManagePage(page, fixture.token);
 
-    page.on("dialog", async (dialog) => {
-      expect(dialog.message()).toContain("Are you sure");
-      await dialog.accept();
-    });
-
     await page.getByRole("button", { name: "Cancel appointment" }).click();
+    const confirmDialog = page.getByRole("dialog");
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog
+      .getByRole("button", { name: "Cancel appointment" })
+      .click();
 
     await page.waitForLoadState("networkidle");
     await expect(page.getByText("Refund Processed")).toBeVisible();
@@ -263,11 +263,12 @@ test.describe("Manage Booking Page", () => {
 
     await goToManagePage(page, fixture.token);
 
-    page.on("dialog", async (dialog) => {
-      await dialog.accept();
-    });
-
     await page.getByRole("button", { name: "Cancel appointment" }).click();
+    const confirmDialog = page.getByRole("dialog");
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog
+      .getByRole("button", { name: "Cancel appointment" })
+      .click();
     await page.waitForLoadState("networkidle");
 
     await expect(page.getByText("Appointment Cancelled")).toBeVisible();

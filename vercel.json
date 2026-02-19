@@ -11,6 +11,14 @@
     {
       "path": "/api/jobs/recompute-scores",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/jobs/recompute-no-show-stats",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/jobs/send-reminders",
+      "schedule": "0 * * * *"
     }
   ]
 }

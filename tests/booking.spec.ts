@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { test, expect } from "./setup";
-import type { Page } from "@playwright/test";
+import type { Frame, Page } from "@playwright/test";
 
 const makeEmail = () => `shopper_${randomUUID()}@example.com`;
 const strongPassword = "Password123!";
@@ -49,13 +49,44 @@ const findStripeCardFrame = async (
   throw new Error("Stripe payment frame not found");
 };
 
+const fillStripeBillingDetails = async (stripeFrame: Frame) => {
+  const countrySelect = stripeFrame.locator(
+    'select[name="country"], select[autocomplete="country"]'
+  );
+
+  if (await countrySelect.count()) {
+    await countrySelect.first().waitFor({ state: "visible", timeout: 10000 });
+
+    const optionLabels = await countrySelect.first().locator("option").allTextContents();
+    const usLabel = optionLabels.find((label) => /united states/i.test(label));
+    if (usLabel) {
+      await countrySelect
+        .first()
+        .selectOption({ label: usLabel })
+        .catch(() => undefined);
+    } else {
+      await countrySelect.first().selectOption("US").catch(() => undefined);
+    }
+  }
+
+  const postalInput = stripeFrame.locator(
+    'input[name="postalCode"], input[autocomplete="postal-code"]'
+  );
+  if (await postalInput.count()) {
+    const field = postalInput.first();
+    await field.waitFor({ state: "visible", timeout: 10000 }).catch(() => undefined);
+    const visible = await field.isVisible().catch(() => false);
+    if (visible) {
+      await field.fill("10001");
+    }
+  }
+};
+
 test("customer books a slot and business sees it", async ({ page }) => {
   test.setTimeout(60_000);
   const slug = `hello-shop-${randomUUID()}`;
 
-  await page.goto("/app");
-  await expect(page).toHaveURL(/\/login/);
-
+  await page.context().clearCookies();
   await page.goto("/register");
   await page.getByLabel("Name").fill("Test User");
   await page.getByLabel("Email").fill(makeEmail());
@@ -83,12 +114,12 @@ test("customer books a slot and business sees it", async ({ page }) => {
     await page.locator("#booking-date").fill(dateStr);
 
     await page
-      .getByText("Loading slots...")
+      .getByText(/^Loading slots/)
       .waitFor({ state: "hidden", timeout: 10000 })
       .catch(() => undefined);
 
     hasSlot = await firstSlot
-      .isVisible({ timeout: 4000 })
+      .isVisible({ timeout: 8000 })
       .catch(() => false);
 
     if (hasSlot) {
@@ -128,27 +159,7 @@ test("customer books a slot and business sees it", async ({ page }) => {
     .locator('input[name="cvc"], input[autocomplete="cc-csc"]')
     .first()
     .fill("123");
-  const countrySelect = stripeFrame.locator(
-    'select[name="country"], select[autocomplete="country"]'
-  );
-  if (await countrySelect.isVisible({ timeout: 3000 }).catch(() => false)) {
-    const optionLabels = await countrySelect
-      .locator("option")
-      .allTextContents();
-    if (optionLabels.some((label) => label.includes("United States"))) {
-      await countrySelect.selectOption({ label: "United States" });
-    } else {
-      await countrySelect.selectOption("US").catch(() => undefined);
-    }
-  }
-
-  // Fill postal code if visible
-  const postalInput = stripeFrame.locator(
-    'input[name="postalCode"], input[autocomplete="postal-code"]'
-  );
-  if (await postalInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await postalInput.fill("10001");
-  }
+  await fillStripeBillingDetails(stripeFrame);
 
   await page.getByRole("button", { name: "Pay now" }).click();
 

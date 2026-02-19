@@ -45,12 +45,13 @@ const runRecomputeWithRetry = async (
     ok: () => boolean;
     json: () => Promise<unknown>;
   }>,
+  lockId: string,
   attempts = 6
 ) => {
   let lastPayload: unknown = null;
 
   for (let i = 0; i < attempts; i += 1) {
-    const response = await post("/api/jobs/recompute-scores", {
+    const response = await post(`/api/jobs/recompute-scores?lockId=${lockId}`, {
       headers: {
         "x-cron-secret": process.env.CRON_SECRET ?? "",
       },
@@ -76,6 +77,7 @@ const runRecomputeWithRetry = async (
 
 test.describe("Tier system full flow", () => {
   test.skip(!shouldRun, "Requires POSTGRES_URL and CRON_SECRET");
+  const recomputeLockId = String(910000 + Math.floor(Math.random() * 100000));
 
   test("recompute -> tier pricing -> offer prioritization", async ({ page }) => {
     process.env.STRIPE_MOCKED = "true";
@@ -221,7 +223,10 @@ test.describe("Tier system full flow", () => {
       resolutionReason: "no_show",
     });
 
-    await runRecomputeWithRetry((url, options) => page.request.post(url, options));
+    await runRecomputeWithRetry(
+      (url, options) => page.request.post(url, options),
+      recomputeLockId
+    );
 
     const scores = await db
       .select({

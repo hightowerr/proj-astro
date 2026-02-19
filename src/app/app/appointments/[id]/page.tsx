@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
+import { CustomerHistoryCard } from "@/components/appointments/customer-history-card";
 import { db } from "@/lib/db";
-import { getBookingSettingsForShop } from "@/lib/queries/appointments";
+import {
+  getBookingSettingsForShop,
+  getCustomerAppointmentHistory,
+} from "@/lib/queries/appointments";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments, customers, messageLog, payments } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
@@ -39,6 +43,7 @@ export default async function AppointmentDetailPage({
   const appointmentRows = await db
     .select({
       id: appointments.id,
+      customerId: appointments.customerId,
       startsAt: appointments.startsAt,
       endsAt: appointments.endsAt,
       status: appointments.status,
@@ -66,7 +71,7 @@ export default async function AppointmentDetailPage({
   }
 
   const appointment = appointmentRows[0];
-  const [settings, messages] = await Promise.all([
+  const [settings, messages, customerHistoryRows] = await Promise.all([
     getBookingSettingsForShop(shop.id),
     db
       .select({
@@ -88,7 +93,11 @@ export default async function AppointmentDetailPage({
         and(eq(messageLog.shopId, shop.id), eq(messageLog.appointmentId, id))
       )
       .orderBy(desc(messageLog.createdAt)),
+    getCustomerAppointmentHistory(appointment.customerId, shop.id, 6),
   ]);
+  const customerHistory = customerHistoryRows
+    .filter((row) => row.id !== appointment.id)
+    .slice(0, 5);
   const timezone = settings?.timezone ?? "UTC";
 
   const formatter = new Intl.DateTimeFormat("en-US", {
@@ -158,6 +167,12 @@ export default async function AppointmentDetailPage({
           {appointment.customerEmail ?? appointment.customerPhone}
         </p>
       </div>
+
+      <CustomerHistoryCard
+        customerName={appointment.customerName}
+        history={customerHistory}
+        timezone={timezone}
+      />
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Messages</h2>

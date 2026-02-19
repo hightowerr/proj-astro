@@ -3,6 +3,9 @@ import { test as base } from "@playwright/test";
 
 export const test = base.extend({
   page: async ({ page }, use) => {
+    // Ensure each test starts from a clean auth cookie state.
+    await page.context().clearCookies();
+
     // Hide Next.js dev overlay to prevent it from blocking clicks
     await page.addInitScript(() => {
       // Hide the dev overlay portal

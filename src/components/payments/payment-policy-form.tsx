@@ -46,8 +46,8 @@ export function PaymentPolicyForm({ action, initial }: PaymentPolicyFormProps) {
         </p>
       </div>
 
-      <div className="space-y-2">
-        <Label>Payment mode</Label>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">Payment mode</legend>
         <div className="space-y-2">
           <label className="flex items-center gap-2">
             <input
@@ -83,7 +83,7 @@ export function PaymentPolicyForm({ action, initial }: PaymentPolicyFormProps) {
             <span className="text-sm">No payment required</span>
           </label>
         </div>
-      </div>
+      </fieldset>
 
       {paymentMode !== "none" && (
         <div className="space-y-2">
@@ -107,7 +107,7 @@ export function PaymentPolicyForm({ action, initial }: PaymentPolicyFormProps) {
       )}
 
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Saving..." : "Save policy"}
+        {isSubmitting ? "Saving…" : "Save policy"}
       </Button>
     </form>
   );

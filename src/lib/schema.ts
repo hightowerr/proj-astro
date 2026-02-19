@@ -115,6 +115,7 @@ export const paymentModeEnum = pgEnum("payment_mode", [
 ]);
 
 export const tierEnum = pgEnum("tier", ["top", "neutral", "risk"]);
+export const noShowRiskEnum = pgEnum("no_show_risk", ["low", "medium", "high"]);
 
 export const appointmentPaymentStatusEnum = pgEnum(
   "appointment_payment_status",
@@ -150,6 +151,9 @@ export const messageChannelEnum = pgEnum("message_channel", ["sms"]);
 
 export const messagePurposeEnum = pgEnum("message_purpose", [
   "booking_confirmation",
+  "cancellation_confirmation",
+  "slot_recovery_offer",
+  "appointment_reminder_24h",
 ]);
 
 export const messageStatusEnum = pgEnum("message_status", [
@@ -239,6 +243,9 @@ export const shopPolicies = pgTable(
     topDepositWaived: boolean("top_deposit_waived").default(false).notNull(),
     topDepositAmountCents: integer("top_deposit_amount_cents"),
     excludeRiskFromOffers: boolean("exclude_risk_from_offers")
+      .default(false)
+      .notNull(),
+    excludeHighNoShowFromOffers: boolean("exclude_high_no_show_from_offers")
       .default(false)
       .notNull(),
     resolutionGraceMinutes: integer("resolution_grace_minutes")
@@ -337,6 +344,43 @@ export const customerScores = pgTable(
   ]
 );
 
+export const customerNoShowStats = pgTable(
+  "customer_no_show_stats",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    totalAppointments: integer("total_appointments").default(0).notNull(),
+    noShowCount: integer("no_show_count").default(0).notNull(),
+    lateCancelCount: integer("late_cancel_count").default(0).notNull(),
+    onTimeCancelCount: integer("on_time_cancel_count").default(0).notNull(),
+    completedCount: integer("completed_count").default(0).notNull(),
+    lastNoShowAt: timestamp("last_no_show_at", { withTimezone: true }),
+    computedAt: timestamp("computed_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("customer_no_show_stats_customer_shop_idx").on(
+      table.customerId,
+      table.shopId
+    ),
+    index("customer_no_show_stats_shop_id_idx").on(table.shopId),
+    index("customer_no_show_stats_customer_id_idx").on(table.customerId),
+  ]
+);
+
 export const customerContactPrefs = pgTable(
   "customer_contact_prefs",
   {
@@ -379,6 +423,9 @@ export const appointments = pgTable(
     financialOutcome: appointmentFinancialOutcomeEnum("financial_outcome")
       .default("unresolved")
       .notNull(),
+    noShowScore: integer("no_show_score"),
+    noShowRisk: noShowRiskEnum("no_show_risk"),
+    noShowComputedAt: timestamp("no_show_computed_at", { withTimezone: true }),
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
     resolutionReason: text("resolution_reason"),
     lastEventId: uuid("last_event_id").references((): any => appointmentEvents.id, {
@@ -407,6 +454,7 @@ export const appointments = pgTable(
     index("appointments_customer_id_idx").on(table.customerId),
     index("appointments_shop_ends_idx").on(table.shopId, table.endsAt),
     index("appointments_financial_outcome_idx").on(table.financialOutcome),
+    index("appointments_no_show_risk_idx").on(table.noShowRisk),
     index("appointments_source_slot_opening_id_idx").on(
       table.sourceSlotOpeningId
     ),

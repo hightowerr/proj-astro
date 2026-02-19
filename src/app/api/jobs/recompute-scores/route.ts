@@ -46,7 +46,13 @@ export async function POST(req: Request) {
   const locked = lockResult[0]?.locked === true;
 
   if (!locked) {
-    return Response.json({ skipped: true, reason: "locked" });
+    return Response.json({
+      skipped: true,
+      reason: "locked",
+      processed: 0,
+      errors: 0,
+      errorDetails: [],
+    });
   }
 
   try {

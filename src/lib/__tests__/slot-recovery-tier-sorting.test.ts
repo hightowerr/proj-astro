@@ -30,6 +30,7 @@ const { getEligibleCustomers, getEffectiveScore, getTierSortPriority } = slotRec
 const {
   appointments,
   customerContactPrefs,
+  customerNoShowStats,
   customerScores,
   customers,
   shopPolicies,
@@ -103,6 +104,24 @@ const seedCandidate = async (input: {
   }
 
   return customer.id;
+};
+
+const seedNoShowStats = async (input: {
+  customerId: string;
+  shopId: string;
+  noShowCount: number;
+  completedCount: number;
+}) => {
+  await db.insert(customerNoShowStats).values({
+    customerId: input.customerId,
+    shopId: input.shopId,
+    totalAppointments: input.noShowCount + input.completedCount,
+    noShowCount: input.noShowCount,
+    lateCancelCount: 0,
+    onTimeCancelCount: 0,
+    completedCount: input.completedCount,
+    computedAt: new Date(),
+  });
 };
 
 beforeEach(async () => {
@@ -351,5 +370,105 @@ describeIf("getEligibleCustomers tier prioritization", () => {
 
     expect(run1.map((customer) => customer.id)).toEqual(run2.map((customer) => customer.id));
     expect(run2.map((customer) => customer.id)).toEqual(run3.map((customer) => customer.id));
+  });
+
+  it("excludes customers with 2+ no-shows when policy is enabled", async () => {
+    await db
+      .update(shopPolicies)
+      .set({ excludeHighNoShowFromOffers: true })
+      .where(eq(shopPolicies.shopId, shopId));
+
+    await seedNoShowStats({
+      customerId: riskCustomerId,
+      shopId,
+      noShowCount: 2,
+      completedCount: 0,
+    });
+
+    const slotOpening = await db.query.slotOpenings.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, slotOpeningId),
+    });
+
+    if (!slotOpening) {
+      throw new Error("Slot opening not found");
+    }
+
+    const eligible = await getEligibleCustomers(slotOpening);
+    expect(eligible.some((customer) => customer.id === riskCustomerId)).toBe(false);
+  });
+
+  it("keeps customers with 1 no-show when policy is enabled", async () => {
+    await db
+      .update(shopPolicies)
+      .set({ excludeHighNoShowFromOffers: true })
+      .where(eq(shopPolicies.shopId, shopId));
+
+    await seedNoShowStats({
+      customerId: riskCustomerId,
+      shopId,
+      noShowCount: 1,
+      completedCount: 0,
+    });
+
+    const slotOpening = await db.query.slotOpenings.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, slotOpeningId),
+    });
+
+    if (!slotOpening) {
+      throw new Error("Slot opening not found");
+    }
+
+    const eligible = await getEligibleCustomers(slotOpening);
+    expect(eligible.some((customer) => customer.id === riskCustomerId)).toBe(true);
+  });
+
+  it("prioritizes higher completed attendance when score and tier are tied", async () => {
+    const highAttendanceId = await seedCandidate({
+      shopId,
+      fullName: "Attendance High",
+      phone: "+12025550131",
+      email: "attendance-high-slot-recovery@example.com",
+      score: 60,
+      tier: "neutral",
+      computedAt: new Date("2026-01-06T00:00:00.000Z"),
+    });
+    const lowAttendanceId = await seedCandidate({
+      shopId,
+      fullName: "Attendance Low",
+      phone: "+12025550132",
+      email: "attendance-low-slot-recovery@example.com",
+      score: 60,
+      tier: "neutral",
+      computedAt: new Date("2026-01-06T00:00:00.000Z"),
+    });
+
+    await seedNoShowStats({
+      customerId: highAttendanceId,
+      shopId,
+      noShowCount: 0,
+      completedCount: 10,
+    });
+    await seedNoShowStats({
+      customerId: lowAttendanceId,
+      shopId,
+      noShowCount: 0,
+      completedCount: 2,
+    });
+
+    const slotOpening = await db.query.slotOpenings.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, slotOpeningId),
+    });
+
+    if (!slotOpening) {
+      throw new Error("Slot opening not found");
+    }
+
+    const eligible = await getEligibleCustomers(slotOpening);
+    const highIndex = eligible.findIndex((customer) => customer.id === highAttendanceId);
+    const lowIndex = eligible.findIndex((customer) => customer.id === lowAttendanceId);
+
+    expect(highIndex).toBeGreaterThan(-1);
+    expect(lowIndex).toBeGreaterThan(-1);
+    expect(highIndex).toBeLessThan(lowIndex);
   });
 });

@@ -5,6 +5,7 @@ import { acquireLock, isInCooldown, releaseLock, setCooldown } from "@/lib/redis
 import {
   appointments,
   customerContactPrefs,
+  customerNoShowStats,
   customerScores,
   customers,
   payments,
@@ -131,10 +132,12 @@ export function getEffectiveScore(score: number | null): number {
  * - no prior offer for this slot
  * - not in Redis cooldown
  * - optionally excludes risk-tier customers per shop policy
+ * - optionally excludes customers with high no-show counts per shop policy
  *
  * Ordering is deterministic:
  * - top tier first, then neutral/null tier, then risk tier
  * - within each tier: higher score first (null score defaults to 50)
+ * - then higher completed attendance count first
  * - final tie-breaker by customer id ascending
  */
 export async function getEligibleCustomers(
@@ -143,12 +146,15 @@ export async function getEligibleCustomers(
   const [shopPolicy] = await db
     .select({
       excludeRiskFromOffers: shopPolicies.excludeRiskFromOffers,
+      excludeHighNoShowFromOffers: shopPolicies.excludeHighNoShowFromOffers,
     })
     .from(shopPolicies)
     .where(eq(shopPolicies.shopId, slotOpening.shopId))
     .limit(1);
 
   const excludeRiskFromOffers = shopPolicy?.excludeRiskFromOffers ?? false;
+  const excludeHighNoShowFromOffers =
+    shopPolicy?.excludeHighNoShowFromOffers ?? false;
 
   const candidates = await db
     .select({
@@ -158,6 +164,9 @@ export async function getEligibleCustomers(
       tier: customerScores.tier,
       score: customerScores.score,
       computedAt: customerScores.computedAt,
+      noShowCount: customerNoShowStats.noShowCount,
+      completedCount: customerNoShowStats.completedCount,
+      noShowComputedAt: customerNoShowStats.computedAt,
     })
     .from(customers)
     .innerJoin(customerContactPrefs, eq(customerContactPrefs.customerId, customers.id))
@@ -166,6 +175,13 @@ export async function getEligibleCustomers(
       and(
         eq(customerScores.customerId, customers.id),
         eq(customerScores.shopId, slotOpening.shopId)
+      )
+    )
+    .leftJoin(
+      customerNoShowStats,
+      and(
+        eq(customerNoShowStats.customerId, customers.id),
+        eq(customerNoShowStats.shopId, slotOpening.shopId)
       )
     )
     .leftJoin(
@@ -180,6 +196,9 @@ export async function getEligibleCustomers(
         sql`${customers.phone} <> ''`,
         excludeRiskFromOffers
           ? sql`(${customerScores.tier} is null or ${customerScores.tier} <> 'risk')`
+          : sql`true`,
+        excludeHighNoShowFromOffers
+          ? sql`(${customerNoShowStats.noShowCount} is null or ${customerNoShowStats.noShowCount} < 2)`
           : sql`true`
       )
     )
@@ -191,6 +210,7 @@ export async function getEligibleCustomers(
         else 2
       end`,
       sql`coalesce(${customerScores.score}, 50) desc`,
+      sql`coalesce(${customerNoShowStats.completedCount}, 0) desc`,
       sql`${customerScores.computedAt} desc nulls last`,
       asc(customers.id)
     )

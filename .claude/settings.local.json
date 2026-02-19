@@ -21,7 +21,12 @@
       "Bash(pnpm test:*)",
       "Bash(ls:*)",
       "Bash(pnpm lint:*)",
-      "Bash(pnpm typecheck:*)"
+      "Bash(pnpm typecheck:*)",
+      "Bash(grep:*)",
+      "Skill(web-design-guidelines)",
+      "Bash(python3:*)",
+      "Skill(vercel-react-best-practices)",
+      "Skill(frontend-design)"
     ]
   },
   "enableAllProjectMcpServers": true,

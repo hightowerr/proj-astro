@@ -64,6 +64,48 @@
       "when": 1770715535284,
       "tag": "0008_outcome_resolution",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1770715536284,
+      "tag": "0009_cancellation_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1770715537284,
+      "tag": "0010_slot_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1770715538284,
+      "tag": "0011_appointment_source",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1770715539284,
+      "tag": "0012_customer_scoring",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1770715540284,
+      "tag": "0013_no_show_infra",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1770715541284,
+      "tag": "0014_no_show_offer_policy",
+      "breakpoints": true
     }
   ]
 }

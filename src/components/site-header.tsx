@@ -18,7 +18,7 @@ export function SiteHeader() {
           className="container mx-auto px-4 py-4 flex justify-between items-center"
           aria-label="Main navigation"
         >
-          <h1 className="text-2xl font-bold">
+          <div className="text-2xl font-bold">
             <Link
               href="/"
               className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
@@ -34,7 +34,7 @@ export function SiteHeader() {
                 Starter Kit
               </span>
             </Link>
-          </h1>
+          </div>
           <div className="flex items-center gap-4" role="group" aria-label="User actions">
             <UserProfile />
             <ModeToggle />

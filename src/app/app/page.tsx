@@ -87,6 +87,7 @@ export default async function AppHomePage() {
               id="shop-name"
               name="name"
               type="text"
+              autoComplete="organization"
               required
               className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
             />
@@ -99,6 +100,7 @@ export default async function AppHomePage() {
               id="shop-slug"
               name="slug"
               type="text"
+              autoComplete="off"
               required
               className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
             />
@@ -107,7 +109,7 @@ export default async function AppHomePage() {
             type="submit"
             className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
           >
-            Create
+            Create shop
           </button>
         </form>
       )}

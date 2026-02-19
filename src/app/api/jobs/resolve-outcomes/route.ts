@@ -1,9 +1,10 @@
-import { and, asc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { backfillCancelledOutcome, resolveFinancialOutcome } from "@/lib/outcomes";
 import {
   appointmentEvents,
   appointments,
+  customerNoShowStats,
   payments,
   shopPolicies,
 } from "@/lib/schema";
@@ -88,9 +89,11 @@ export async function POST(req: Request) {
       .select({
         id: appointments.id,
         shopId: appointments.shopId,
+        customerId: appointments.customerId,
         paymentRequired: appointments.paymentRequired,
         policyVersionId: appointments.policyVersionId,
         endsAt: appointments.endsAt,
+        status: appointments.status,
         paymentId: payments.id,
         paymentStatus: payments.status,
         graceMinutes: shopPolicies.resolutionGraceMinutes,
@@ -101,7 +104,7 @@ export async function POST(req: Request) {
       .where(
         and(
           eq(appointments.financialOutcome, "unresolved"),
-          ne(appointments.status, "cancelled"),
+          eq(appointments.status, "booked"),
           sql`${appointments.endsAt} <= now() - (${shopPolicies.resolutionGraceMinutes} * interval '1 minute')`
         )
       )
@@ -111,6 +114,7 @@ export async function POST(req: Request) {
     let resolved = 0;
     let skipped = 0;
     let backfilled = 0;
+    let noShowsDetected = 0;
     const errors: string[] = [];
 
     for (const appointment of candidates) {
@@ -122,25 +126,27 @@ export async function POST(req: Request) {
           });
         const resolvedAt = new Date();
 
-        const didResolve = await db.transaction(async (tx) => {
+        const outcome = await db.transaction(async (tx) => {
           const updated = await tx
             .update(appointments)
             .set({
               financialOutcome,
               resolvedAt,
               resolutionReason,
+              status: "ended",
               updatedAt: new Date(),
             })
             .where(
               and(
                 eq(appointments.id, appointment.id),
-                eq(appointments.financialOutcome, "unresolved")
+                eq(appointments.financialOutcome, "unresolved"),
+                eq(appointments.status, "booked")
               )
             )
             .returning({ id: appointments.id });
 
           if (updated.length === 0) {
-            return false;
+            return { resolved: false, noShowDetected: false } as const;
           }
 
           const [event] = await tx
@@ -168,11 +174,28 @@ export async function POST(req: Request) {
               .where(eq(appointments.id, appointment.id));
           }
 
-          return true;
+          const shouldRecordNoShow =
+            appointment.status === "booked" && financialOutcome === "voided";
+
+          if (shouldRecordNoShow) {
+            await detectAndRecordNoShow(tx, {
+              customerId: appointment.customerId,
+              shopId: appointment.shopId,
+              noShowAt: appointment.endsAt,
+            });
+          }
+
+          return {
+            resolved: true,
+            noShowDetected: shouldRecordNoShow,
+          } as const;
         });
 
-        if (didResolve) {
+        if (outcome.resolved) {
           resolved += 1;
+          if (outcome.noShowDetected) {
+            noShowsDetected += 1;
+          }
         } else {
           skipped += 1;
         }
@@ -278,9 +301,43 @@ export async function POST(req: Request) {
       resolved,
       skipped,
       backfilled,
+      noShowsDetected,
       errors,
     });
   } finally {
     await db.execute(sql`select pg_advisory_unlock(${lockId})`);
   }
+}
+
+async function detectAndRecordNoShow(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  params: {
+    customerId: string;
+    shopId: string;
+    noShowAt: Date;
+  }
+): Promise<void> {
+  const { customerId, shopId, noShowAt } = params;
+
+  await tx
+    .insert(customerNoShowStats)
+    .values({
+      customerId,
+      shopId,
+      totalAppointments: 1,
+      noShowCount: 1,
+      lateCancelCount: 0,
+      onTimeCancelCount: 0,
+      completedCount: 0,
+      lastNoShowAt: noShowAt,
+      computedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [customerNoShowStats.customerId, customerNoShowStats.shopId],
+      set: {
+        noShowCount: sql`${customerNoShowStats.noShowCount} + 1`,
+        lastNoShowAt: noShowAt,
+        updatedAt: new Date(),
+      },
+    });
 }

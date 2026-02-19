@@ -1,5 +1,5 @@
 import { toZonedTime } from "date-fns-tz";
-import { and, asc, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lt, lte, sql } from "drizzle-orm";
 import {
   computeEndsAt,
   formatDateInTimeZone,
@@ -9,14 +9,23 @@ import {
   parseTimeToMinutes,
 } from "@/lib/booking";
 import { db } from "@/lib/db";
+import {
+  assignNoShowRisk,
+  calculateNoShowScore,
+  countNoShowsLast90Days,
+} from "@/lib/no-show-scoring";
+import { getNoShowStats, scanAppointmentsByOutcome } from "@/lib/queries/no-show-scoring";
 import { loadCustomerScoreTx } from "@/lib/queries/scoring";
 import {
   appointments,
+  bookingSettings,
   customerContactPrefs,
+  customerNoShowStats,
   customers,
   payments,
   policyVersions,
   shopPolicies,
+  shops,
   slotOpenings,
 } from "@/lib/schema";
 import { getStripeClient, normalizeStripePaymentStatus, stripeIsMocked } from "@/lib/stripe";
@@ -27,6 +36,10 @@ const DEFAULT_PAYMENT_POLICY = {
   paymentMode: "deposit" as const,
   depositAmountCents: 2000,
 };
+const DEFAULT_BOOKING_SETTINGS = {
+  timezone: "UTC",
+  slotMinutes: 60,
+} as const;
 
 export class SlotTakenError extends Error {
   constructor() {
@@ -68,10 +81,42 @@ export type Availability = {
   slots: { startsAt: Date; endsAt: Date }[];
 };
 
-export const getBookingSettingsForShop = async (shopId: string) => {
-  return await db.query.bookingSettings.findFirst({
+export type CustomerAppointmentHistoryItem = {
+  id: string;
+  startsAt: Date;
+  endsAt: Date;
+  status: typeof appointments.$inferSelect.status;
+  financialOutcome: typeof appointments.$inferSelect.financialOutcome;
+  resolutionReason: string | null;
+  createdAt: Date;
+};
+
+type BookingSettingsTx = Pick<typeof db, "query" | "insert">;
+
+const ensureBookingSettings = async (tx: BookingSettingsTx, shopId: string) => {
+  const existing = await tx.query.bookingSettings.findFirst({
     where: (table, { eq }) => eq(table.shopId, shopId),
   });
+  if (existing) {
+    return existing;
+  }
+
+  await tx
+    .insert(bookingSettings)
+    .values({
+      shopId,
+      timezone: DEFAULT_BOOKING_SETTINGS.timezone,
+      slotMinutes: DEFAULT_BOOKING_SETTINGS.slotMinutes,
+    })
+    .onConflictDoNothing();
+
+  return await tx.query.bookingSettings.findFirst({
+    where: (table, { eq }) => eq(table.shopId, shopId),
+  });
+};
+
+export const getBookingSettingsForShop = async (shopId: string) => {
+  return await ensureBookingSettings(db, shopId);
 };
 
 export const getAvailabilityForDate = async (
@@ -147,6 +192,98 @@ export const getAvailabilityForDate = async (
       return slot.startsAt.getTime() > now.getTime();
     }),
   };
+};
+
+/**
+ * Returns a customer's recent appointments at a given shop.
+ * Used on appointment detail page for risk-score explainability.
+ */
+export const getCustomerAppointmentHistory = async (
+  customerId: string,
+  shopId: string,
+  limit: number = 5
+): Promise<CustomerAppointmentHistoryItem[]> => {
+  const boundedLimit = Math.max(1, Math.min(25, Math.floor(limit)));
+
+  return await db
+    .select({
+      id: appointments.id,
+      startsAt: appointments.startsAt,
+      endsAt: appointments.endsAt,
+      status: appointments.status,
+      financialOutcome: appointments.financialOutcome,
+      resolutionReason: appointments.resolutionReason,
+      createdAt: appointments.createdAt,
+    })
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.customerId, customerId),
+        eq(appointments.shopId, shopId)
+      )
+    )
+    .orderBy(desc(appointments.startsAt))
+    .limit(boundedLimit);
+};
+
+export type HighRiskReminderCandidate = {
+  appointmentId: string;
+  shopId: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  startsAt: Date;
+  endsAt: Date;
+  bookingUrl: string | null;
+  shopName: string;
+  shopTimezone: string;
+};
+
+/**
+ * Finds booked high-risk appointments in the reminder window (23h..25h).
+ */
+export const findHighRiskAppointments = async (): Promise<
+  HighRiskReminderCandidate[]
+> => {
+  const now = Date.now();
+  const windowStart = new Date(now + 23 * 60 * 60 * 1000);
+  const windowEnd = new Date(now + 25 * 60 * 60 * 1000);
+
+  const rows = await db
+    .select({
+      appointmentId: appointments.id,
+      shopId: appointments.shopId,
+      customerId: appointments.customerId,
+      customerName: customers.fullName,
+      customerPhone: customers.phone,
+      startsAt: appointments.startsAt,
+      endsAt: appointments.endsAt,
+      bookingUrl: appointments.bookingUrl,
+      shopName: shops.name,
+      shopTimezone: bookingSettings.timezone,
+    })
+    .from(appointments)
+    .innerJoin(customers, eq(appointments.customerId, customers.id))
+    .innerJoin(
+      customerContactPrefs,
+      eq(appointments.customerId, customerContactPrefs.customerId)
+    )
+    .innerJoin(shops, eq(appointments.shopId, shops.id))
+    .leftJoin(bookingSettings, eq(appointments.shopId, bookingSettings.shopId))
+    .where(
+      and(
+        eq(appointments.status, "booked"),
+        eq(appointments.noShowRisk, "high"),
+        gte(appointments.startsAt, windowStart),
+        lte(appointments.startsAt, windowEnd),
+        eq(customerContactPrefs.smsOptIn, true)
+      )
+    );
+
+  return rows.map((row) => ({
+    ...row,
+    shopTimezone: row.shopTimezone ?? "UTC",
+  }));
 };
 
 type DbLike = Pick<typeof db, "query" | "insert" | "update">;
@@ -294,6 +431,51 @@ const ensureShopPolicy = async (tx: DbLike, shopId: string) => {
   return retry;
 };
 
+export const updateNoShowScoreAtBooking = async (input: {
+  appointmentId: string;
+  customerId: string;
+  shopId: string;
+  startsAt: Date;
+  shopTimezone: string;
+  paymentRequired: boolean;
+}): Promise<void> => {
+  const { appointmentId, customerId, shopId, startsAt, shopTimezone, paymentRequired } = input;
+  const stats = await getNoShowStats(customerId, shopId);
+
+  if (!stats || stats.totalAppointments === 0) {
+    await db
+      .update(appointments)
+      .set({
+        noShowScore: 50,
+        noShowRisk: "medium",
+        noShowComputedAt: new Date(),
+      })
+      .where(eq(appointments.id, appointmentId));
+    return;
+  }
+
+  const { recencyBuckets } = await scanAppointmentsByOutcome(customerId, shopId, 180);
+  const leadTimeHours = (startsAt.getTime() - Date.now()) / (1000 * 60 * 60);
+  const appointmentHour = toZonedTime(startsAt, shopTimezone).getHours();
+
+  const score = calculateNoShowScore(recencyBuckets, {
+    leadTimeHours,
+    appointmentHour,
+    paymentRequired,
+  });
+  const noShowsLast90Days = countNoShowsLast90Days(recencyBuckets);
+  const risk = assignNoShowRisk(score, noShowsLast90Days);
+
+  await db
+    .update(appointments)
+    .set({
+      noShowScore: score,
+      noShowRisk: risk,
+      noShowComputedAt: new Date(),
+    })
+    .where(eq(appointments.id, appointmentId));
+};
+
 export const createAppointment = async (input: {
   shopId: string;
   startsAt: Date;
@@ -314,9 +496,7 @@ export const createAppointment = async (input: {
         throw new InvalidSlotError("Cannot book appointments in the past.");
       }
 
-      const settings = await tx.query.bookingSettings.findFirst({
-        where: (table, { eq }) => eq(table.shopId, input.shopId),
-      });
+      const settings = await ensureBookingSettings(tx, input.shopId);
 
       if (!settings) {
         throw new Error("Booking settings not found");
@@ -499,8 +679,20 @@ export const createAppointment = async (input: {
         currency,
         paymentRequired,
         bookingUrl,
+        shopTimezone: settings.timezone,
       };
     });
+
+    try {
+      await updateNoShowScoreAtBooking({
+        appointmentId: created.appointment.id,
+        customerId: created.customer.id,
+        shopId: created.appointment.shopId,
+        startsAt: created.appointment.startsAt,
+        shopTimezone: created.shopTimezone,
+        paymentRequired: created.paymentRequired,
+      });
+    } catch {}
 
     if (!created.paymentRequired || !created.payment) {
       return {
@@ -616,6 +808,9 @@ export const listAppointmentsForShop = async (shopId: string) => {
       paymentStatus: appointments.paymentStatus,
       paymentRequired: appointments.paymentRequired,
       financialOutcome: appointments.financialOutcome,
+      noShowScore: appointments.noShowScore,
+      noShowRisk: appointments.noShowRisk,
+      noShowComputedAt: appointments.noShowComputedAt,
       resolvedAt: appointments.resolvedAt,
       createdAt: appointments.createdAt,
       customerName: customers.fullName,
@@ -623,15 +818,25 @@ export const listAppointmentsForShop = async (shopId: string) => {
       customerPhone: customers.phone,
       paymentAmountCents: payments.amountCents,
       paymentCurrency: payments.currency,
+      noShowStatsTotalAppointments: customerNoShowStats.totalAppointments,
+      noShowStatsNoShows: customerNoShowStats.noShowCount,
+      noShowStatsCompleted: customerNoShowStats.completedCount,
     })
     .from(appointments)
     .innerJoin(customers, eq(appointments.customerId, customers.id))
     .leftJoin(payments, eq(payments.appointmentId, appointments.id))
+    .leftJoin(
+      customerNoShowStats,
+      and(
+        eq(customerNoShowStats.customerId, appointments.customerId),
+        eq(customerNoShowStats.shopId, appointments.shopId)
+      )
+    )
     .where(
       and(
         eq(appointments.shopId, shopId),
         gte(appointments.endsAt, sevenDaysAgo),
-        inArray(appointments.status, ["booked", "pending"])
+        inArray(appointments.status, ["booked", "pending", "ended"])
       )
     )
     .orderBy(asc(appointments.startsAt));
