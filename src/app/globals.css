@@ -32,10 +32,44 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-bg-dark: #1a1d21;
+  --color-bg-dark-secondary: #24282e;
+  --color-primary: #3d8b8b;
+  --color-primary-light: #5ba3a3;
+  --color-primary-dark: #2a6b6b;
+  --color-accent-peach: #e8c4b8;
+  --color-accent-coral: #f4a58a;
+  --color-text-muted: #6b7280;
+  --color-text-light-muted: #a1a5ab;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.6s ease-out forwards;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 :root {

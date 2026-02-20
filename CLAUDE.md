@@ -261,6 +261,16 @@ The resolver job MUST:
 
 See: `docs/shaping/slice-5-v5-implementation-plan.md`
 
+### 5. Next.js 16 Proxy Convention (CRITICAL)
+- Do not create `src/middleware.ts`.
+- Route protection must use `src/proxy.ts` only.
+- Next.js 16 treats middleware as deprecated and will error if both files exist.
+
+### 6. Next.js 16 Dynamic Import Convention (CRITICAL)
+- Do not use `dynamic(..., { ssr: false })` directly in App Router server entry files (`page.tsx`, `layout.tsx`, etc.).
+- If `ssr: false` is required, place it in a client wrapper component (for example `src/components/landing/hero-section-client.tsx`).
+- Keep server entry files importing the client wrapper instead (for example `src/app/page.tsx` imports `HeroSectionClient`).
+
 ## Documentation
 
 - **Shaping docs:** `docs/shaping/` - Implementation plans with breadboards

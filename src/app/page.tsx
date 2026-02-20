@@ -1,174 +1,84 @@
-"use client";
-
-import Link from "next/link";
-import { Video, Shield, Database, Palette, Bot } from "lucide-react";
-import { SetupChecklist } from "@/components/setup-checklist";
-import { StarterPromptModal } from "@/components/starter-prompt-modal";
-import { Button } from "@/components/ui/button";
-import { useDiagnostics } from "@/hooks/use-diagnostics";
+import CtaSection from "@/components/landing/cta-section";
+import FaqSection from "@/components/landing/faq-section";
+import { FeatureSection } from "@/components/landing/feature-section";
+import FeaturesCarousel from "@/components/landing/features-carousel";
+import { FloatCard } from "@/components/landing/float-card";
+import { HeroSectionClient } from "@/components/landing/hero-section-client";
+import { HowItWorksSectionClient } from "@/components/landing/how-it-works-section-client";
+import PricingSection from "@/components/landing/pricing-section";
 
 export default function Home() {
-  const { isAuthReady, isAiReady, loading } = useDiagnostics();
   return (
-    <main className="flex-1 container mx-auto px-4 py-12">
-      <div className="max-w-4xl mx-auto text-center space-y-8">
-        <div className="space-y-4">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10">
-              <Bot className="h-7 w-7 text-primary" />
-            </div>
-            <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
-              Starter Kit
-            </h1>
-          </div>
-          <h2 className="text-2xl font-semibold text-muted-foreground">
-            Complete Boilerplate for AI Applications
-          </h2>
-          <p className="text-xl text-muted-foreground">
-            A complete agentic coding boilerplate with authentication, database, AI
-            integration, and modern tooling for building AI-powered applications
-          </p>
-        </div>
+    <main>
+      <HeroSectionClient />
+      <HowItWorksSectionClient />
 
-        {/* YouTube Tutorial Video */}
-        <div className="space-y-4">
-          <h3 className="text-2xl font-semibold flex items-center justify-center gap-2">
-            <Video className="h-6 w-6" />
-            Video Tutorial
-          </h3>
-          <p className="text-muted-foreground">
-            Watch the complete walkthrough of this agentic coding boilerplate:
-          </p>
-          <div className="relative w-full max-w-3xl mx-auto">
-            <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg border">
-              <iframe
-                className="absolute top-0 left-0 w-full h-full"
-                src="https://www.youtube.com/embed/JQ86N3WOAh4"
-                title="Agentic Coding Boilerplate Tutorial"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
+      <section className="bg-bg-dark py-24">
+        <div className="mx-auto max-w-7xl space-y-24 px-4 sm:px-6 lg:px-8">
+          <FeatureSection
+            title="Know your clients before they walk in"
+            description="Astro scores every client on show-up history, cancellation patterns, and deposit behaviour. Risk clients are flagged before they cost you money."
+            imageSrc="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80"
+            imageAlt="Stylist reviewing client booking details"
+            imagePosition="right"
+          >
+            <FloatCard
+              value="94%"
+              label="client show-up rate"
+              className="top-6 right-6"
+              delay={0}
+            />
+            <FloatCard
+              value="3x"
+              label="fewer no-shows with risk flagging"
+              className="bottom-6 left-6"
+              delay={0.2}
+            />
+          </FeatureSection>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-          <div className="p-6 border rounded-lg">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Authentication
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Better Auth with Google OAuth integration
-            </p>
-          </div>
-          <div className="p-6 border rounded-lg">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              Database
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Drizzle ORM with PostgreSQL setup
-            </p>
-          </div>
-          <div className="p-6 border rounded-lg">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Bot className="h-4 w-4" />
-              AI Ready
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Vercel AI SDK with OpenRouter integration
-            </p>
-          </div>
-          <div className="p-6 border rounded-lg">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              UI Components
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              shadcn/ui with Tailwind CSS
-            </p>
-          </div>
-        </div>
+          <FeatureSection
+            title="Never lose revenue when someone cancels"
+            description="When a booking is cancelled, Astro automatically offers the slot to your best available clients in priority order. Your calendar fills itself."
+            imageSrc="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800&q=80"
+            imageAlt="Busy salon with fully booked schedule"
+            imagePosition="left"
+          >
+            <FloatCard
+              value="8 min"
+              label="average time to fill a cancelled slot"
+              className="top-6 left-6"
+              delay={0}
+            />
+            <FloatCard
+              value="£240"
+              label="avg. weekly recovery"
+              className="right-6 bottom-6"
+              delay={0.2}
+            />
+          </FeatureSection>
 
-        <div className="space-y-6 mt-12">
-          <SetupChecklist />
-
-          <h3 className="text-2xl font-semibold">Next Steps</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-            <div className="p-4 border rounded-lg">
-              <h4 className="font-medium mb-2">
-                1. Set up environment variables
-              </h4>
-              <p className="text-sm text-muted-foreground mb-2">
-                Copy <code>.env.example</code> to <code>.env.local</code> and
-                configure:
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>POSTGRES_URL (PostgreSQL connection string)</li>
-                <li>GOOGLE_CLIENT_ID (OAuth credentials)</li>
-                <li>GOOGLE_CLIENT_SECRET (OAuth credentials)</li>
-                <li>OPENROUTER_API_KEY (for AI functionality)</li>
-              </ul>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <h4 className="font-medium mb-2">2. Set up your database</h4>
-              <p className="text-sm text-muted-foreground mb-2">
-                Run database migrations:
-              </p>
-              <div className="space-y-2">
-                <code className="text-sm bg-muted p-2 rounded block">
-                  npm run db:generate
-                </code>
-                <code className="text-sm bg-muted p-2 rounded block">
-                  npm run db:migrate
-                </code>
-              </div>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <h4 className="font-medium mb-2">3. Try the features</h4>
-              <div className="space-y-2">
-                {loading || !isAuthReady ? (
-                  <Button size="sm" className="w-full" disabled={true}>
-                    View Dashboard
-                  </Button>
-                ) : (
-                  <Button asChild size="sm" className="w-full">
-                    <Link href="/dashboard">View Dashboard</Link>
-                  </Button>
-                )}
-                {loading || !isAiReady ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    disabled={true}
-                  >
-                    Try AI Chat
-                  </Button>
-                ) : (
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
-                    <Link href="/chat">Try AI Chat</Link>
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <h4 className="font-medium mb-2">4. Start building</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Customize the components, add your own pages, and build your
-                application on top of this solid foundation.
-              </p>
-              <StarterPromptModal />
-            </div>
-          </div>
+          <FeatureSection
+            title="Get paid before they even show up"
+            description="Deposits are collected at booking time via Stripe. No-shows can't cost you - you've already been paid. Refunds for eligible cancellations are automatic."
+            imageSrc="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80"
+            imageAlt="Client paying via phone at salon"
+            imagePosition="right"
+          >
+            <FloatCard value="£0" label="owed after a no-show" className="top-6 right-6" delay={0} />
+            <FloatCard
+              value="100%"
+              label="deposit collection at booking"
+              className="bottom-6 left-6"
+              delay={0.2}
+            />
+          </FeatureSection>
         </div>
-      </div>
+      </section>
+
+      <FeaturesCarousel />
+      <PricingSection />
+      <FaqSection />
+      <CtaSection />
     </main>
   );
 }
