@@ -1,27 +1,27 @@
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
-import { SignInButton } from "@/components/auth/sign-in-button"
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { SignInButton } from "@/components/auth/sign-in-button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { auth } from "@/lib/auth"
+} from "@/components/ui/card";
+import { auth } from "@/lib/auth";
 
-export default async function LoginPage({
+export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string }>
+  searchParams: Promise<{ reset?: string }>;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await auth.api.getSession({ headers: await headers() });
 
   if (session) {
-    redirect("/app")
+    redirect("/app");
   }
 
-  const { reset } = await searchParams
+  const { reset } = await searchParams;
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
@@ -40,5 +40,5 @@ export default async function LoginPage({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
