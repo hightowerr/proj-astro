@@ -1,78 +1,18 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "Agentic Coding Boilerplate",
-    template: "%s | Agentic Coding Boilerplate",
-  },
-  description:
-    "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling - perfect for building AI-powered applications and autonomous agents by Leon van Zyl",
-  keywords: [
-    "Next.js",
-    "React",
-    "TypeScript",
-    "AI",
-    "OpenRouter",
-    "Boilerplate",
-    "Authentication",
-    "PostgreSQL",
-  ],
-  authors: [{ name: "Leon van Zyl" }],
-  creator: "Leon van Zyl",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    siteName: "Agentic Coding Boilerplate",
-    title: "Agentic Coding Boilerplate",
-    description:
-      "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Agentic Coding Boilerplate",
-    description:
-      "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
-
-// JSON-LD structured data for SEO
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Agentic Coding Boilerplate",
-  description:
-    "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling",
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "Any",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-  author: {
-    "@type": "Person",
-    name: "Leon van Zyl",
-  },
+  title: "Astro",
+  description: "Stop losing money to no-shows. Smart booking for beauty professionals.",
 };
 
 export default function RootLayout({
@@ -81,29 +21,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning style={{ colorScheme: "light dark" }}>
-      <head>
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090b" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SiteHeader />
-          <main id="main-content">{children}</main>
-          <SiteFooter />
-          <Toaster richColors position="top-right" />
-        </ThemeProvider>
+    <html lang="en" style={{ colorScheme: "dark" }}>
+      <body className={`${inter.className} bg-bg-dark text-white antialiased`}>
+        <SiteHeader />
+        <main id="main-content" className="pt-16">
+          {children}
+        </main>
+        <SiteFooter />
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
