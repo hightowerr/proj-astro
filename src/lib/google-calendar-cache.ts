@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getDayStartEndUtc } from "@/lib/booking";
+import { overlapsWithCalendarConflictBuffer } from "@/lib/calendar-conflict-rules";
 import { getAuthClient, getCalendarConnection } from "@/lib/google-calendar";
 import { getRedisClient } from "@/lib/redis";
 
@@ -318,7 +319,14 @@ export function filterSlotsForConflicts(
     const slotEnd = slot.endsAt.getTime();
 
     for (const interval of timedIntervals) {
-      if (interval.start < slotEnd && interval.end > slotStart) {
+      if (
+        overlapsWithCalendarConflictBuffer({
+          slotStartMs: slotStart,
+          slotEndMs: slotEnd,
+          eventStartMs: interval.start,
+          eventEndMs: interval.end,
+        })
+      ) {
         return false;
       }
     }

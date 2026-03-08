@@ -309,6 +309,35 @@ describe("google-calendar-cache", () => {
     ]);
   });
 
+  it("applies the +/- 5 minute buffer zone when filtering availability", () => {
+    const slots = [
+      {
+        startsAt: new Date("2026-03-15T11:00:00.000Z"),
+        endsAt: new Date("2026-03-15T12:00:00.000Z"),
+      },
+      {
+        startsAt: new Date("2026-03-15T12:00:00.000Z"),
+        endsAt: new Date("2026-03-15T13:00:00.000Z"),
+      },
+    ];
+
+    const filtered = filterSlotsForConflicts(slots, [
+      {
+        id: "evt-buffer",
+        summary: "Quick Call",
+        start: { dateTime: "2026-03-15T10:56:00.000Z" },
+        end: { dateTime: "2026-03-15T11:00:00.000Z" },
+      },
+    ]);
+
+    expect(filtered).toEqual([
+      {
+        startsAt: new Date("2026-03-15T12:00:00.000Z"),
+        endsAt: new Date("2026-03-15T13:00:00.000Z"),
+      },
+    ]);
+  });
+
   it("blocks the full day when an all-day event exists", () => {
     const slots = [
       {

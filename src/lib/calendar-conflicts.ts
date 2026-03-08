@@ -1,5 +1,6 @@
 import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import { formatDateInTimeZone } from "@/lib/booking";
+import { overlapsWithCalendarConflictBuffer } from "@/lib/calendar-conflict-rules";
 import { db } from "@/lib/db";
 import {
   type CalendarEvent,
@@ -8,7 +9,6 @@ import {
 } from "@/lib/google-calendar-cache";
 import { appointments, bookingSettings, calendarConflictAlerts } from "@/lib/schema";
 
-const CONFLICT_BUFFER_MS = 5 * 60 * 1000;
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 type ConflictEventDetails = {
@@ -169,9 +169,12 @@ export async function validateBookingConflict(input: {
         continue;
       }
 
-      const overlaps =
-        eventStart < bookingEnd + CONFLICT_BUFFER_MS &&
-        eventEnd > bookingStart - CONFLICT_BUFFER_MS;
+      const overlaps = overlapsWithCalendarConflictBuffer({
+        slotStartMs: bookingStart,
+        slotEndMs: bookingEnd,
+        eventStartMs: eventStart,
+        eventEndMs: eventEnd,
+      });
 
       if (overlaps) {
         throw new CalendarConflictError(
