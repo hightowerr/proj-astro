@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { completeShopOnboarding } from "../helpers/shop-onboarding";
 import { test, expect } from "../setup";
 import type { Frame, Page } from "@playwright/test";
 
@@ -112,10 +113,7 @@ const createShop = async (page: Page) => {
 
   await expect(page).toHaveURL(/\/app/, { timeout: 15000 });
 
-  await page.getByLabel("Shop name").fill("Hello Shop");
-  await page.getByLabel("Shop URL slug").fill(slug);
-  await page.getByRole("button", { name: "Create" }).click();
-  await expect(page.getByText(slug).first()).toBeVisible({ timeout: 15000 });
+  await completeShopOnboarding(page, { slug });
 
   return slug;
 };

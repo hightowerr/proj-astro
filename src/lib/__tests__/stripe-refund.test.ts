@@ -55,6 +55,7 @@ const makeAppointment = (): typeof appointments.$inferSelect => {
     source: "web",
     sourceSlotOpeningId: null,
     bookingUrl: null,
+    calendarEventId: null,
     createdAt: now,
     updatedAt: now,
   };

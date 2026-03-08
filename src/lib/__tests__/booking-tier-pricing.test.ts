@@ -1,6 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const createCalendarEventMock = vi.fn(async () => `evt-${randomUUID()}`);
+const invalidateCalendarCacheMock = vi.fn(async () => {});
+
+vi.mock("@/lib/google-calendar", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/google-calendar")>();
+  return {
+    ...actual,
+    createCalendarEvent: createCalendarEventMock,
+    invalidateCalendarCache: invalidateCalendarCacheMock,
+  };
+});
 
 const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
 if (!hasPostgresUrl) {
@@ -49,6 +61,10 @@ beforeEach(async () => {
   if (!hasPostgresUrl) {
     return;
   }
+
+  createCalendarEventMock.mockClear();
+  createCalendarEventMock.mockImplementation(async () => `evt-${randomUUID()}`);
+  invalidateCalendarCacheMock.mockClear();
 
   userId = randomUUID();
   await insertUser(userId);
@@ -195,6 +211,8 @@ describeIf("createAppointment tier pricing", () => {
     expect(result.payment).toBeNull();
     expect(result.clientSecret).toBeNull();
     expect(result.policyVersion?.depositAmountCents).toBe(0);
+    expect(result.appointment.calendarEventId).toBeTruthy();
+    expect(createCalendarEventMock).toHaveBeenCalledTimes(1);
   });
 
   it("uses base deposit for neutral tier customers", async () => {
@@ -213,6 +231,8 @@ describeIf("createAppointment tier pricing", () => {
     expect(result.amountCents).toBe(2000);
     expect(result.payment?.amountCents).toBe(2000);
     expect(result.policyVersion?.depositAmountCents).toBe(2000);
+    expect(result.appointment.calendarEventId).toBeNull();
+    expect(createCalendarEventMock).not.toHaveBeenCalled();
   });
 
   it("uses risk override deposit for risk tier customers", async () => {
@@ -231,6 +251,8 @@ describeIf("createAppointment tier pricing", () => {
     expect(result.amountCents).toBe(5000);
     expect(result.payment?.amountCents).toBe(5000);
     expect(result.policyVersion?.depositAmountCents).toBe(5000);
+    expect(result.appointment.calendarEventId).toBeNull();
+    expect(createCalendarEventMock).not.toHaveBeenCalled();
   });
 
   it("treats customers without a score as neutral default", async () => {
@@ -249,5 +271,7 @@ describeIf("createAppointment tier pricing", () => {
     expect(result.amountCents).toBe(2000);
     expect(result.payment?.amountCents).toBe(2000);
     expect(result.policyVersion?.depositAmountCents).toBe(2000);
+    expect(result.appointment.calendarEventId).toBeNull();
+    expect(createCalendarEventMock).not.toHaveBeenCalled();
   });
 });

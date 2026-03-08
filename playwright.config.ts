@@ -16,6 +16,7 @@ const webServerCommand =
 const webServerEnv = Object.fromEntries(
   Object.entries({
     ...process.env,
+    PLAYWRIGHT: "true",
     TWILIO_TEST_MODE: process.env.TWILIO_TEST_MODE ?? "true",
     TWILIO_TEST_FROM_NUMBER:
       process.env.TWILIO_TEST_FROM_NUMBER ?? "+15005550006",

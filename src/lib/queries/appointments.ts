@@ -1,5 +1,5 @@
 import { toZonedTime } from "date-fns-tz";
-import { and, asc, desc, eq, gte, inArray, lt, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, sql } from "drizzle-orm";
 import {
   computeEndsAt,
   formatDateInTimeZone,
@@ -9,6 +9,16 @@ import {
   parseTimeToMinutes,
 } from "@/lib/booking";
 import { db } from "@/lib/db";
+import {
+  CalendarEventCreationError,
+  createCalendarEvent,
+  invalidateCalendarCache,
+  NoCalendarConnectionError,
+} from "@/lib/google-calendar";
+import {
+  fetchCalendarEventsWithCache,
+  filterSlotsForConflicts,
+} from "@/lib/google-calendar-cache";
 import {
   assignNoShowRisk,
   calculateNoShowScore,
@@ -181,16 +191,35 @@ export const getAvailabilityForDate = async (
 
   const now = new Date();
   const isToday = dateStr === todayStr;
+  let availableSlots = slots.filter((slot) => {
+    if (bookedTimes.has(slot.startsAt.getTime())) return false;
+    if (!isToday) return true;
+    return slot.startsAt.getTime() > now.getTime();
+  });
+
+  try {
+    const calendarEvents = await fetchCalendarEventsWithCache(
+      shopId,
+      dateStr,
+      settings.timezone
+    );
+
+    if (calendarEvents.length > 0) {
+      availableSlots = filterSlotsForConflicts(availableSlots, calendarEvents);
+    }
+  } catch (error) {
+    console.error("[availability] Calendar filtering failed; returning base availability", {
+      shopId,
+      date: dateStr,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 
   return {
     date: dateStr,
     timezone: settings.timezone,
     slotMinutes: settings.slotMinutes,
-    slots: slots.filter((slot) => {
-      if (bookedTimes.has(slot.startsAt.getTime())) return false;
-      if (!isToday) return true;
-      return slot.startsAt.getTime() > now.getTime();
-    }),
+    slots: availableSlots,
   };
 };
 
@@ -634,6 +663,67 @@ export const createAppointment = async (input: {
         throw new Error("Failed to create appointment");
       }
 
+      let calendarEventId: string | null = null;
+      if (!paymentRequired) {
+        try {
+          const shop = await tx.query.shops.findFirst({
+            where: (table, { eq }) => eq(table.id, input.shopId),
+            columns: { name: true },
+          });
+
+          const calendarEventInput: Parameters<typeof createCalendarEvent>[0] = {
+            shopId: input.shopId,
+            customerName: customer.fullName,
+            startsAt: appointment.startsAt,
+            endsAt: appointment.endsAt,
+            bookingUrl: bookingUrl ?? null,
+          };
+          if (shop?.name) {
+            calendarEventInput.shopName = shop.name;
+          }
+
+          calendarEventId = await createCalendarEvent(calendarEventInput);
+        } catch (error) {
+          if (error instanceof NoCalendarConnectionError) {
+            console.warn("[booking] No active calendar connection, skipping sync", {
+              shopId: input.shopId,
+            });
+          } else if (error instanceof CalendarEventCreationError) {
+            console.error("[booking] Calendar sync failed; rolling back booking", {
+              shopId: input.shopId,
+              message: error.message,
+            });
+            throw error;
+          } else {
+            console.error("[booking] Unexpected calendar sync error", {
+              shopId: input.shopId,
+              message: error instanceof Error ? error.message : "Unknown error",
+            });
+            throw new CalendarEventCreationError("Failed to create calendar event", {
+              cause: error,
+            });
+          }
+        }
+      }
+
+      let appointmentWithCalendar = appointment;
+      if (calendarEventId) {
+        const [updatedAppointment] = await tx
+          .update(appointments)
+          .set({
+            calendarEventId,
+            updatedAt: new Date(),
+          })
+          .where(eq(appointments.id, appointment.id))
+          .returning();
+
+        if (!updatedAppointment) {
+          throw new Error("Failed to persist calendar event ID");
+        }
+
+        appointmentWithCalendar = updatedAppointment;
+      }
+
       let payment = null;
       if (paymentRequired) {
         if (!policyVersion) {
@@ -671,7 +761,7 @@ export const createAppointment = async (input: {
       }
 
       return {
-        appointment,
+        appointment: appointmentWithCalendar,
         customer,
         payment,
         policyVersion,
@@ -682,6 +772,14 @@ export const createAppointment = async (input: {
         shopTimezone: settings.timezone,
       };
     });
+
+    if (created.appointment.calendarEventId) {
+      const dateStr = formatDateInTimeZone(
+        created.appointment.startsAt,
+        created.shopTimezone
+      );
+      await invalidateCalendarCache(input.shopId, dateStr);
+    }
 
     try {
       await updateNoShowScoreAtBooking({
@@ -788,6 +886,10 @@ export const createAppointment = async (input: {
       clientSecret: paymentIntent.client_secret,
     };
   } catch (error) {
+    if (error instanceof CalendarEventCreationError) {
+      throw new Error("Failed to create booking - calendar sync error");
+    }
+
     if (isUniqueViolation(error)) {
       throw new SlotTakenError();
     }
@@ -840,6 +942,130 @@ export const listAppointmentsForShop = async (shopId: string) => {
       )
     )
     .orderBy(asc(appointments.startsAt));
+};
+
+export const syncAppointmentCalendarEvent = async (appointmentId: string) => {
+  const appointment = await db.query.appointments.findFirst({
+    where: (table, { eq }) => eq(table.id, appointmentId),
+    columns: {
+      id: true,
+      shopId: true,
+      customerId: true,
+      startsAt: true,
+      endsAt: true,
+      status: true,
+      paymentStatus: true,
+      paymentRequired: true,
+      bookingUrl: true,
+      calendarEventId: true,
+    },
+  });
+
+  if (!appointment) {
+    return false;
+  }
+
+  if (appointment.calendarEventId || appointment.status !== "booked") {
+    return false;
+  }
+
+  if (appointment.paymentRequired && appointment.paymentStatus !== "paid") {
+    return false;
+  }
+
+  const [shop, customer, settings] = await Promise.all([
+    db.query.shops.findFirst({
+      where: (table, { eq }) => eq(table.id, appointment.shopId),
+      columns: { name: true },
+    }),
+    db.query.customers.findFirst({
+      where: (table, { eq }) => eq(table.id, appointment.customerId),
+      columns: { fullName: true },
+    }),
+    db.query.bookingSettings.findFirst({
+      where: (table, { eq }) => eq(table.shopId, appointment.shopId),
+      columns: { timezone: true },
+    }),
+  ]);
+
+  if (!customer) {
+    console.warn("[calendar] Skipping sync because customer was not found", {
+      appointmentId: appointment.id,
+      customerId: appointment.customerId,
+    });
+    return false;
+  }
+
+  let calendarEventId: string;
+  try {
+    const calendarEventInput: Parameters<typeof createCalendarEvent>[0] = {
+      shopId: appointment.shopId,
+      customerName: customer.fullName,
+      startsAt: appointment.startsAt,
+      endsAt: appointment.endsAt,
+      bookingUrl: appointment.bookingUrl ?? null,
+    };
+    if (shop?.name) {
+      calendarEventInput.shopName = shop.name;
+    }
+
+    calendarEventId = await createCalendarEvent(calendarEventInput);
+  } catch (error) {
+    if (error instanceof NoCalendarConnectionError) {
+      console.warn("[calendar] No active calendar connection, skipping sync", {
+        appointmentId: appointment.id,
+        shopId: appointment.shopId,
+      });
+      return false;
+    }
+
+    if (error instanceof CalendarEventCreationError) {
+      console.error("[calendar] Failed to sync appointment after payment", {
+        appointmentId: appointment.id,
+        shopId: appointment.shopId,
+        message: error.message,
+      });
+      return false;
+    }
+
+    console.error("[calendar] Unexpected sync error after payment", {
+      appointmentId: appointment.id,
+      shopId: appointment.shopId,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    return false;
+  }
+
+  const [updatedAppointment] = await db
+    .update(appointments)
+    .set({
+      calendarEventId,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(appointments.id, appointment.id),
+        isNull(appointments.calendarEventId),
+        eq(appointments.status, "booked"),
+        appointment.paymentRequired ? eq(appointments.paymentStatus, "paid") : sql`true`
+      )
+    )
+    .returning({
+      id: appointments.id,
+      shopId: appointments.shopId,
+      startsAt: appointments.startsAt,
+    });
+
+  if (!updatedAppointment) {
+    return false;
+  }
+
+  const dateStr = formatDateInTimeZone(
+    updatedAppointment.startsAt,
+    settings?.timezone ?? "UTC"
+  );
+  await invalidateCalendarCache(updatedAppointment.shopId, dateStr);
+  return true;
 };
 
 export const getOutcomeSummaryForShop = async (shopId: string) => {

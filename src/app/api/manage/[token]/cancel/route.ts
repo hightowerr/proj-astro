@@ -1,6 +1,12 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
+import { formatDateInTimeZone } from "@/lib/booking";
 import { calculateCancellationEligibility } from "@/lib/cancellation";
 import { db } from "@/lib/db";
+import {
+  autoResolveAlert,
+  deleteCalendarEvent,
+} from "@/lib/google-calendar";
+import { invalidateCalendarCache } from "@/lib/google-calendar-cache";
 import { validateToken } from "@/lib/manage-tokens";
 import {
   appointments,
@@ -11,6 +17,7 @@ import {
   shops,
 } from "@/lib/schema";
 import { createSlotOpeningFromCancellation } from "@/lib/slot-recovery";
+import { getStripeClient, stripeIsMocked } from "@/lib/stripe";
 import { processRefund } from "@/lib/stripe-refund";
 
 export const runtime = "nodejs";
@@ -52,7 +59,7 @@ export async function POST(_request: Request, { params }: CancelParams) {
 
     const timezone = row.timezone ?? "UTC";
 
-    if (row.appointment.status !== "booked") {
+    if (!["booked", "pending"].includes(row.appointment.status)) {
       return Response.json(
         {
           error: "Cannot cancel appointment",
@@ -71,6 +78,178 @@ export async function POST(_request: Request, { params }: CancelParams) {
       row.policy.refundBeforeCutoff
     );
 
+    const deleteCalendarEventIfExists = async () => {
+      const calendarEventId = row.appointment.calendarEventId;
+      if (!calendarEventId) {
+        console.warn("[cancel] No calendar event id; skipping calendar cleanup", {
+          appointmentId: row.appointment.id,
+          shopId: row.appointment.shopId,
+        });
+        return;
+      }
+
+      const deleted = await deleteCalendarEvent({
+        shopId: row.appointment.shopId,
+        calendarEventId,
+      });
+
+      if (!deleted) {
+        console.error("[cancel] Calendar event deletion did not succeed", {
+          appointmentId: row.appointment.id,
+          shopId: row.appointment.shopId,
+          calendarEventId,
+        });
+        return;
+      }
+
+      console.warn("[cancel] Calendar event deleted", {
+        appointmentId: row.appointment.id,
+        shopId: row.appointment.shopId,
+        calendarEventId,
+      });
+
+      try {
+        await autoResolveAlert(row.appointment.shopId, calendarEventId);
+      } catch (error) {
+        console.error("[cancel] Auto-resolve alert stub failed", {
+          appointmentId: row.appointment.id,
+          shopId: row.appointment.shopId,
+          calendarEventId,
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+
+      try {
+        const dateStr = formatDateInTimeZone(row.appointment.startsAt, timezone);
+        await invalidateCalendarCache(row.appointment.shopId, dateStr);
+      } catch (error) {
+        console.error("[cancel] Calendar cache invalidation failed", {
+          appointmentId: row.appointment.id,
+          shopId: row.appointment.shopId,
+          calendarEventId,
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    };
+
+    const cancelPaymentIntentIfNeeded = async () => {
+      const paymentIntentId = row.payment?.stripePaymentIntentId;
+      if (!paymentIntentId) {
+        return;
+      }
+
+      if (row.payment?.status === "succeeded" || row.payment?.status === "canceled") {
+        return;
+      }
+
+      if (stripeIsMocked()) {
+        return;
+      }
+
+      try {
+        const stripe = getStripeClient();
+        await stripe.paymentIntents.cancel(paymentIntentId);
+      } catch (error) {
+        console.error("[cancel] Failed to cancel payment intent", {
+          appointmentId: row.appointment.id,
+          paymentIntentId,
+          error,
+        });
+      }
+    };
+
+    if (row.appointment.status === "pending") {
+      const now = new Date();
+
+      const updateResult = await db.transaction(async (tx) => {
+        const [updatedAppointment] = await tx
+          .update(appointments)
+          .set({
+            status: "cancelled",
+            cancelledAt: now,
+            cancellationSource: "customer",
+            paymentStatus: "failed",
+            financialOutcome: "voided",
+            resolutionReason: "cancelled_no_payment_captured",
+            resolvedAt: now,
+            updatedAt: now,
+          })
+          .where(
+            and(
+              eq(appointments.id, appointmentId),
+              eq(appointments.status, "pending")
+            )
+          )
+          .returning({ id: appointments.id });
+
+        if (!updatedAppointment) {
+          return { updated: false } as const;
+        }
+
+        if (row.payment?.id) {
+          await tx
+            .update(payments)
+            .set({
+              status: "canceled",
+              updatedAt: now,
+            })
+            .where(
+              and(
+                eq(payments.id, row.payment.id),
+                inArray(payments.status, [
+                  "requires_payment_method",
+                  "requires_action",
+                  "processing",
+                  "failed",
+                ])
+              )
+            );
+        }
+
+        const [event] = await tx
+          .insert(appointmentEvents)
+          .values({
+            shopId: row.appointment.shopId,
+            appointmentId,
+            type: "cancelled",
+            occurredAt: now,
+            meta: {
+              reason: "cancelled_no_payment_captured",
+              cancelledAt: now.toISOString(),
+            },
+          })
+          .returning({ id: appointmentEvents.id });
+
+        if (event?.id) {
+          await tx
+            .update(appointments)
+            .set({ lastEventId: event.id, updatedAt: now })
+            .where(eq(appointments.id, appointmentId));
+        }
+
+        return { updated: true } as const;
+      });
+
+      if (!updateResult.updated) {
+        return Response.json({
+          success: true,
+          refunded: false,
+          amount: 0,
+          message: "Booking was already cancelled.",
+        });
+      }
+
+      await cancelPaymentIntentIfNeeded();
+      await deleteCalendarEventIfExists();
+
+      return Response.json({
+        success: true,
+        refunded: false,
+        amount: 0,
+        message: "Booking cancelled. No payment was taken.",
+      });
+    }
+
     if (eligibility.isEligibleForRefund) {
       if (!row.payment) {
         return Response.json(
@@ -84,6 +263,8 @@ export async function POST(_request: Request, { params }: CancelParams) {
         payment: row.payment,
         cutoffTime: eligibility.cutoffTime,
       });
+
+      await deleteCalendarEventIfExists();
 
       await createSlotOpeningFromCancellation(row.appointment, row.payment);
 
@@ -154,6 +335,8 @@ export async function POST(_request: Request, { params }: CancelParams) {
         message: "Appointment cancelled. Deposit retained per cancellation policy.",
       });
     }
+
+    await deleteCalendarEventIfExists();
 
     await createSlotOpeningFromCancellation(row.appointment, row.payment);
 

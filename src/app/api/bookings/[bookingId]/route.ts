@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { createManageToken } from "@/lib/manage-tokens";
 import { appointments, payments } from "@/lib/schema";
 import { getStripeClient, stripeIsMocked } from "@/lib/stripe";
 
@@ -45,6 +46,16 @@ export async function GET(
 
   if (row.paymentRequired && !row.paymentId) {
     return Response.json({ error: "Payment record missing" }, { status: 404 });
+  }
+
+  let manageToken: string | null = null;
+  try {
+    manageToken = await createManageToken(row.appointmentId);
+  } catch (error) {
+    console.error("Failed to create manage token for booking resume", {
+      bookingId: row.appointmentId,
+      error,
+    });
   }
 
   let clientSecret: string | null = null;
@@ -92,5 +103,6 @@ export async function GET(
     paymentRequired: row.paymentRequired,
     clientSecret,
     bookingUrl: row.bookingUrl,
+    manageToken,
   });
 }

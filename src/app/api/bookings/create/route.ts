@@ -1,10 +1,16 @@
-import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { z } from "zod";
+import { computeEndsAt } from "@/lib/booking";
 import { buildBookingBaseUrl } from "@/lib/booking-url";
+import {
+  CalendarConflictError,
+  validateBookingConflict,
+} from "@/lib/calendar-conflicts";
 import { createManageToken } from "@/lib/manage-tokens";
+import { normalizePhoneNumber } from "@/lib/phone";
 import {
   createAppointment,
   InvalidSlotError,
+  getBookingSettingsForShop,
   ShopClosedError,
   SlotTakenError,
 } from "@/lib/queries/appointments";
@@ -22,14 +28,6 @@ const createBookingSchema = z.object({
 });
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
-
-const normalizePhone = (phone: string) => {
-  const parsed = parsePhoneNumberFromString(phone);
-  if (!parsed || !parsed.isValid()) {
-    throw new Error("Invalid phone number format.");
-  }
-  return parsed.number;
-};
 
 export async function POST(req: Request) {
   let body: unknown;
@@ -60,7 +58,7 @@ export async function POST(req: Request) {
   let phone: string;
   let email: string;
   try {
-    phone = normalizePhone(parsed.data.customer.phone);
+    phone = normalizePhoneNumber(parsed.data.customer.phone);
     email = normalizeEmail(parsed.data.customer.email);
   } catch (error) {
     return Response.json(
@@ -84,6 +82,25 @@ export async function POST(req: Request) {
     if (typeof parsed.data.customer.smsOptIn === "boolean") {
       customerData.smsOptIn = parsed.data.customer.smsOptIn;
     }
+
+    const bookingSettings = await getBookingSettingsForShop(shop.id);
+    if (!bookingSettings) {
+      throw new Error("Booking settings not found");
+    }
+
+    const endsAt = computeEndsAt({
+      startsAt,
+      timeZone: bookingSettings.timezone,
+      slotMinutes: bookingSettings.slotMinutes,
+    });
+
+    await validateBookingConflict({
+      shopId: shop.id,
+      startsAt,
+      endsAt,
+      timezone: bookingSettings.timezone,
+    });
+
     const result = await createAppointment({
       shopId: shop.id,
       startsAt,
@@ -126,6 +143,24 @@ export async function POST(req: Request) {
       manageToken,
     });
   } catch (error) {
+    if (error instanceof CalendarConflictError) {
+      return Response.json({ error: error.message }, { status: 409 });
+    }
+
+    if (
+      error instanceof Error &&
+      error.message.includes("calendar sync error")
+    ) {
+      return Response.json(
+        {
+          error: "Failed to create booking",
+          details:
+            "Could not sync with calendar. Please try again or contact support.",
+        },
+        { status: 500 }
+      );
+    }
+
     if (error instanceof SlotTakenError) {
       return Response.json({ error: "Slot taken" }, { status: 409 });
     }

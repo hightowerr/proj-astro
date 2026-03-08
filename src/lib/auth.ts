@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "./db"
 
+const isPlaywrightE2E = process.env.PLAYWRIGHT === "true"
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -15,7 +17,8 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
-    sendOnSignUp: true,
+    // E2E tests use a dev server and expect immediate post-signup access.
+    sendOnSignUp: !isPlaywrightE2E,
     sendVerificationEmail: async ({ user, url }) => {
       // Log verification URL to terminal (no email integration yet)
       // eslint-disable-next-line no-console

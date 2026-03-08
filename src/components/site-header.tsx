@@ -74,57 +74,61 @@ export function SiteHeader() {
         </nav>
       </header>
 
-      <button
-        type="button"
-        aria-label="Close menu overlay"
-        className={`fixed inset-0 z-40 bg-black/50 ${reduceMotion ? "" : "transition-opacity duration-300"} ${drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
-        onClick={() => setDrawerOpen(false)}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Mobile navigation"
-        className={`bg-bg-dark-secondary fixed top-0 right-0 bottom-0 z-50 w-72 transform p-6 ${drawerOpen ? "translate-x-0" : "translate-x-full"} ${drawerTransitionClass}`}
-      >
-        <div className="mb-8 flex items-center justify-between">
-          <Link
-            href="/"
-            className="text-xl font-bold text-white"
-            onClick={() => setDrawerOpen(false)}
-          >
-            Astro
-          </Link>
+      {drawerOpen ? (
+        <>
           <button
             type="button"
+            aria-label="Close menu overlay"
+            className={`fixed inset-0 z-40 bg-black/50 ${reduceMotion ? "" : "transition-opacity duration-300"} opacity-100`}
             onClick={() => setDrawerOpen(false)}
-            className="rounded-md p-2 text-white"
-            aria-label="Close menu"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation"
+            className={`bg-bg-dark-secondary fixed top-0 right-0 bottom-0 z-50 w-72 transform p-6 translate-x-0 ${drawerTransitionClass}`}
           >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+            <div className="mb-8 flex items-center justify-between">
+              <Link
+                href="/"
+                className="text-xl font-bold text-white"
+                onClick={() => setDrawerOpen(false)}
+              >
+                Astro
+              </Link>
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(false)}
+                className="rounded-md p-2 text-white"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-        <div className="flex flex-col gap-4">
-          {navLinks.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="text-text-light-muted text-sm font-medium transition-colors duration-200 hover:text-white"
-              onClick={() => setDrawerOpen(false)}
-            >
-              {item.label}
-            </Link>
-          ))}
+            <div className="flex flex-col gap-4">
+              {navLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="text-text-light-muted text-sm font-medium transition-colors duration-200 hover:text-white"
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
 
-          <Link
-            href="#pricing"
-            className="bg-accent-coral text-bg-dark hover:bg-accent-peach mt-2 inline-flex w-full justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200"
-            onClick={() => setDrawerOpen(false)}
-          >
-            Book a Demo
-          </Link>
-        </div>
-      </div>
+              <Link
+                href="#pricing"
+                className="bg-accent-coral text-bg-dark hover:bg-accent-peach mt-2 inline-flex w-full justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200"
+                onClick={() => setDrawerOpen(false)}
+              >
+                Book a Demo
+              </Link>
+            </div>
+          </div>
+        </>
+      ) : null}
     </>
   );
 }

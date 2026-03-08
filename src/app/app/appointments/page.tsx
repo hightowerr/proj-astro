@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NoShowRiskBadge } from "@/components/appointments/no-show-risk-badge";
+import { ConflictAlertBanner } from "@/components/conflicts/conflict-alert-banner";
 import { ReconcilePaymentsButton } from "@/components/payments/reconcile-button";
 import {
   getBookingSettingsForShop,
@@ -7,6 +8,7 @@ import {
   listSlotOpeningsForShop,
   listAppointmentsForShop,
 } from "@/lib/queries/appointments";
+import { getConflictCount } from "@/lib/queries/calendar-conflicts";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { requireAuth } from "@/lib/session";
 
@@ -25,11 +27,12 @@ export default async function AppointmentsPage() {
     );
   }
 
-  const [settings, appointments, outcomeSummary, slotOpenings] = await Promise.all([
+  const [settings, appointments, outcomeSummary, slotOpenings, conflictCount] = await Promise.all([
     getBookingSettingsForShop(shop.id),
     listAppointmentsForShop(shop.id),
     getOutcomeSummaryForShop(shop.id),
     listSlotOpeningsForShop(shop.id),
+    getConflictCount(shop.id),
   ]);
   const timezone = settings?.timezone ?? "UTC";
 
@@ -61,6 +64,8 @@ export default async function AppointmentsPage() {
         </div>
         <ReconcilePaymentsButton />
       </header>
+
+      <ConflictAlertBanner conflictCount={conflictCount} shopId={shop.id} />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border p-4">

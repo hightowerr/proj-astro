@@ -12,6 +12,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { CancellationResponse } from "@/types/cancellation";
 
 type Slot = { startsAt: string; endsAt: string };
 
@@ -22,6 +23,9 @@ type AvailabilityResponse = {
   slots: Slot[];
 };
 type AvailabilityErrorResponse = {
+  error?: string;
+};
+type BookingErrorResponse = {
   error?: string;
 };
 
@@ -52,6 +56,10 @@ type BookingResponse = {
   manageToken?: string | null;
 };
 
+type BookingErrorState = {
+  message: string;
+};
+
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
@@ -70,6 +78,10 @@ function PaymentStep({
   bookingUrl,
   returnUrl,
   onSuccess,
+  onBack,
+  onCancel,
+  isCancelling,
+  cancelError,
 }: {
   amountCents: number;
   currency: string;
@@ -78,6 +90,10 @@ function PaymentStep({
   bookingUrl?: string | null;
   returnUrl?: string | null;
   onSuccess: () => void;
+  onBack: () => void;
+  onCancel?: (() => Promise<void>) | undefined;
+  isCancelling?: boolean;
+  cancelError?: string | null;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -149,13 +165,40 @@ function PaymentStep({
             .
           </p>
         ) : null}
-        <Button type="submit" disabled={!stripe || !elements || isPaying}>
+        <Button
+          type="submit"
+          disabled={!stripe || !elements || isPaying || Boolean(isCancelling)}
+        >
           {isPaying
             ? "Processing…"
             : paymentError
               ? "Pay again"
               : "Pay now"}
         </Button>
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            disabled={isPaying || Boolean(isCancelling)}
+          >
+            Back to details
+          </Button>
+          {onCancel ? (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                void onCancel();
+              }}
+              disabled={isPaying || Boolean(isCancelling)}
+            >
+              {isCancelling ? "Cancelling…" : "Cancel booking"}
+            </Button>
+          ) : null}
+        </div>
+        {cancelError ? <p className="text-sm text-destructive">{cancelError}</p> : null}
       </form>
     </div>
   );
@@ -176,7 +219,7 @@ export function BookingForm({
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<BookingErrorState | null>(null);
   const [availabilityError, setAvailabilityError] = useState<string | null>(
     null
   );
@@ -193,6 +236,10 @@ export function BookingForm({
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [smsOptIn, setSmsOptIn] = useState(false);
+  const [isCancellingBooking, setIsCancellingBooking] = useState(false);
+  const [cancelBookingError, setCancelBookingError] = useState<string | null>(null);
+  const [cancelBookingMessage, setCancelBookingMessage] = useState<string | null>(null);
+  const [showPaymentDetails, setShowPaymentDetails] = useState(false);
 
   const timeFormatter = useMemo(
     () =>
@@ -279,6 +326,8 @@ export function BookingForm({
       setResumeLoading(true);
       setError(null);
       setAvailabilityError(null);
+      setCancelBookingError(null);
+      setCancelBookingMessage(null);
       setManageToken(null);
 
       try {
@@ -292,7 +341,7 @@ export function BookingForm({
           const data = (await res.json().catch(() => null)) as
             | { error?: string }
             | null;
-          setError(data?.error ?? "Failed to resume booking");
+          setError({ message: data?.error ?? "Failed to resume booking" });
           return;
         }
 
@@ -309,17 +358,18 @@ export function BookingForm({
         }
 
         if (!data.clientSecret) {
-          setError("Payment cannot be resumed. Please contact the business.");
+          setError({ message: "Payment cannot be resumed. Please contact the business." });
           return;
         }
 
         setPaymentAmountCents(data.amountCents);
         setPaymentCurrency(data.currency);
+        setShowPaymentDetails(false);
         setClientSecret(data.clientSecret);
       } catch (err) {
         if ((err as { name?: string }).name !== "AbortError") {
           setResumeFailed(true);
-          setError("Failed to resume booking");
+          setError({ message: "Failed to resume booking" });
         }
       } finally {
         if (active) {
@@ -336,12 +386,71 @@ export function BookingForm({
     };
   }, [resumeAppointmentId, shouldResume]);
 
+  const clearResumeQueryParam = () => {
+    if (typeof window === "undefined") return;
+    const currentUrl = new URL(window.location.href);
+    if (!currentUrl.searchParams.has("appointment")) return;
+    currentUrl.searchParams.delete("appointment");
+    window.history.replaceState(
+      null,
+      "",
+      `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`
+    );
+  };
+
+  const handleCancelBooking = async () => {
+    if (!manageToken) {
+      setCancelBookingError("Manage link missing. Please refresh the page and try again.");
+      return;
+    }
+
+    setIsCancellingBooking(true);
+    setCancelBookingError(null);
+
+    try {
+      const response = await fetch(`/api/manage/${manageToken}/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = (await response.json().catch(() => null)) as
+        | CancellationResponse
+        | null;
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error ?? "Failed to cancel booking.");
+      }
+
+      setCancelBookingMessage(data.message);
+      setClientSecret(null);
+      setShowPaymentDetails(false);
+      setManageToken(null);
+      setBookingUrl(null);
+      setSelectedSlot(null);
+      setResumeFailed(true);
+      setError(null);
+      setAvailabilityError(null);
+      setRefreshToken((value) => value + 1);
+      clearResumeQueryParam();
+    } catch (cancelError) {
+      setCancelBookingError(
+        cancelError instanceof Error ? cancelError.message : "Failed to cancel booking."
+      );
+    } finally {
+      setIsCancellingBooking(false);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setCancelBookingMessage(null);
+    setCancelBookingError(null);
 
     if (!selectedSlot) {
-      setError("Please select a time slot before confirming.");
+      setError({ message: "Please select a time slot before confirming." });
       return;
     }
 
@@ -366,7 +475,12 @@ export function BookingForm({
       });
 
       if (res.status === 409) {
-        setError("That slot was just taken. Please pick another.");
+        const data = (await res.json().catch(() => null)) as
+          | BookingErrorResponse
+          | null;
+        setError({
+          message: data?.error ?? "That slot was just taken. Please pick another.",
+        });
         setSelectedSlot(null);
         setRefreshToken((value) => value + 1);
         return;
@@ -374,9 +488,9 @@ export function BookingForm({
 
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as
-          | { error?: string }
+          | BookingErrorResponse
           | null;
-        setError(data?.error ?? "Failed to create booking");
+        setError({ message: data?.error ?? "Failed to create booking" });
         return;
       }
 
@@ -413,18 +527,19 @@ export function BookingForm({
 
       if (paymentsEnabled && data.paymentRequired) {
         if (!data.clientSecret) {
-          setError("Payment could not be initialized.");
+          setError({ message: "Payment could not be initialized." });
           return;
         }
         setPaymentAmountCents(data.amountCents);
         setPaymentCurrency(data.currency);
         setClientSecret(data.clientSecret);
+        setShowPaymentDetails(false);
         return;
       }
 
       setSuccess(true);
     } catch {
-      setError("Failed to create booking");
+      setError({ message: "Failed to create booking" });
     } finally {
       setIsSubmitting(false);
     }
@@ -490,6 +605,46 @@ export function BookingForm({
       );
     }
 
+    if (showPaymentDetails) {
+      return (
+        <div className="rounded-lg border p-4 space-y-3">
+          <p className="text-sm font-medium">Booking details</p>
+          <p className="text-sm text-muted-foreground">
+            {slotLabel} ({timezone})
+          </p>
+          <div className="grid gap-1 text-sm text-muted-foreground">
+            {fullName ? <p>Name: {fullName}</p> : null}
+            {phone ? <p>Phone: {phone}</p> : null}
+            {email ? <p>Email: {email}</p> : null}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              onClick={() => setShowPaymentDetails(false)}
+              disabled={isCancellingBooking}
+            >
+              Return to payment
+            </Button>
+            {manageToken ? (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  void handleCancelBooking();
+                }}
+                disabled={isCancellingBooking}
+              >
+                {isCancellingBooking ? "Cancelling…" : "Cancel booking"}
+              </Button>
+            ) : null}
+          </div>
+          {cancelBookingError ? (
+            <p className="text-sm text-destructive">{cancelBookingError}</p>
+          ) : null}
+        </div>
+      );
+    }
+
     return (
       <Elements stripe={stripePromise} options={{ clientSecret }}>
         <PaymentStep
@@ -500,6 +655,12 @@ export function BookingForm({
           bookingUrl={bookingUrl}
           returnUrl={bookingUrl}
           onSuccess={() => setSuccess(true)}
+          onBack={() => {
+            setShowPaymentDetails(true);
+          }}
+          isCancelling={isCancellingBooking}
+          cancelError={cancelBookingError}
+          {...(manageToken ? { onCancel: handleCancelBooking } : {})}
         />
       </Elements>
     );
@@ -507,6 +668,12 @@ export function BookingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {cancelBookingMessage ? (
+        <div className="rounded-md border border-emerald-600/30 bg-emerald-500/5 p-3">
+          <p className="text-sm text-emerald-700">{cancelBookingMessage}</p>
+        </div>
+      ) : null}
+
       <div className="space-y-2">
         <Label htmlFor="booking-date">Date</Label>
         <Input
@@ -607,7 +774,14 @@ export function BookingForm({
         </Label>
       </div>
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
+          <p className="text-sm text-destructive">{error.message}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Please select a different time slot and try again.
+          </p>
+        </div>
+      ) : null}
 
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Booking…" : "Confirm booking"}

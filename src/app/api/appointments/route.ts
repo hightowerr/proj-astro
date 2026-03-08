@@ -1,7 +1,7 @@
-import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { z } from "zod";
 import { buildBookingBaseUrl } from "@/lib/booking-url";
 import { createManageToken } from "@/lib/manage-tokens";
+import { normalizePhoneNumber } from "@/lib/phone";
 import {
   createAppointment,
   InvalidSlotError,
@@ -22,14 +22,6 @@ const createAppointmentSchema = z.object({
 });
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
-
-const normalizePhone = (phone: string) => {
-  const parsed = parsePhoneNumberFromString(phone);
-  if (!parsed || !parsed.isValid()) {
-    throw new Error("Invalid phone number format.");
-  }
-  return parsed.number;
-};
 
 export async function POST(req: Request) {
   let body: unknown;
@@ -60,7 +52,7 @@ export async function POST(req: Request) {
   let phone: string;
   let email: string;
   try {
-    phone = normalizePhone(parsed.data.customer.phone);
+    phone = normalizePhoneNumber(parsed.data.customer.phone);
     email = normalizeEmail(parsed.data.customer.email);
   } catch (error) {
     return Response.json(

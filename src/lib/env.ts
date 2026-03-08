@@ -16,6 +16,8 @@ const serverEnvSchema = z.object({
   // OAuth
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_REDIRECT_URI: z.string().url().optional(),
+  CALENDAR_ENCRYPTION_KEY: z.string().optional(),
 
   // AI
   OPENROUTER_API_KEY: z.string().optional(),
@@ -55,6 +57,11 @@ const clientEnvSchema = z.object({
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
+export type GoogleCalendarOAuthEnv = {
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
+  GOOGLE_REDIRECT_URI: string;
+};
 
 /**
  * Validates and returns server-side environment variables.
@@ -94,6 +101,47 @@ export function getClientEnv(): ClientEnv {
   }
 
   return parsed.data;
+}
+
+/**
+ * Returns Google Calendar OAuth configuration when the feature is configured.
+ */
+export function getGoogleCalendarOAuthEnv(): GoogleCalendarOAuthEnv {
+  const schema = z.object({
+    GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
+    GOOGLE_CLIENT_SECRET: z.string().min(1, "GOOGLE_CLIENT_SECRET is required"),
+    GOOGLE_REDIRECT_URI: z.string().url("GOOGLE_REDIRECT_URI must be a valid URL"),
+  });
+
+  const parsed = schema.safeParse({
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+  });
+
+  if (!parsed.success) {
+    throw new Error("Google Calendar OAuth is not configured");
+  }
+
+  return parsed.data;
+}
+
+export function getCalendarEncryptionKey(): string {
+  const parsed = z
+    .object({
+      CALENDAR_ENCRYPTION_KEY: z
+        .string()
+        .min(1, "CALENDAR_ENCRYPTION_KEY is required"),
+    })
+    .safeParse({
+      CALENDAR_ENCRYPTION_KEY: process.env.CALENDAR_ENCRYPTION_KEY,
+    });
+
+  if (!parsed.success) {
+    throw new Error("Calendar encryption key is not configured");
+  }
+
+  return parsed.data.CALENDAR_ENCRYPTION_KEY;
 }
 
 /**
@@ -138,8 +186,16 @@ export function checkEnv(): void {
   }
 
   // Check optional variables and warn
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-    warnings.push("Google OAuth is not configured. Social login will be disabled.");
+  if (
+    !process.env.GOOGLE_CLIENT_ID ||
+    !process.env.GOOGLE_CLIENT_SECRET ||
+    !process.env.GOOGLE_REDIRECT_URI
+  ) {
+    warnings.push("Google OAuth is not fully configured. Social login/calendar OAuth will be disabled.");
+  }
+
+  if (!process.env.CALENDAR_ENCRYPTION_KEY) {
+    warnings.push("CALENDAR_ENCRYPTION_KEY is not set. Google Calendar token storage will be disabled.");
   }
 
   if (!process.env.OPENROUTER_API_KEY) {

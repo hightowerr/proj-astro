@@ -2,6 +2,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { sendBookingConfirmationSMS } from "@/lib/messages";
+import { syncAppointmentCalendarEvent } from "@/lib/queries/appointments";
 import {
   appointments,
   payments,
@@ -61,14 +62,19 @@ const handlePaymentIntent = async (
     .set(paymentUpdate)
     .where(eq(payments.id, payment.id));
 
-  await tx
+  const [updatedAppointment] = await tx
     .update(appointments)
     .set({
       paymentStatus: appointmentUpdates.paymentStatus,
       status: appointmentUpdates.status,
       updatedAt: new Date(),
     })
-    .where(eq(appointments.id, payment.appointmentId));
+    .where(and(eq(appointments.id, payment.appointmentId), eq(appointments.status, "pending")))
+    .returning({ id: appointments.id });
+
+  if (!updatedAppointment) {
+    return null;
+  }
 
   return payment.appointmentId;
 };
@@ -185,6 +191,7 @@ export async function POST(req: Request) {
   }
 
   let appointmentToNotify: string | null = null;
+  let appointmentToSyncCalendar: string | null = null;
   let slotOpeningToRetry: string | null = null;
 
   try {
@@ -211,6 +218,17 @@ export async function POST(req: Request) {
           "succeeded",
           { incrementAttempts: true }
         );
+
+        if (appointmentToNotify) {
+          appointmentToSyncCalendar = appointmentToNotify;
+        } else {
+          const existingPayment = await tx.query.payments.findFirst({
+            where: (table, { eq: whereEq }) =>
+              whereEq(table.stripePaymentIntentId, intent.id),
+            columns: { appointmentId: true },
+          });
+          appointmentToSyncCalendar = existingPayment?.appointmentId ?? null;
+        }
         return;
       }
 
@@ -251,6 +269,17 @@ export async function POST(req: Request) {
       error,
     });
     return Response.json({ error: "Webhook handler failed" }, { status: 500 });
+  }
+
+  if (appointmentToSyncCalendar) {
+    try {
+      await syncAppointmentCalendarEvent(appointmentToSyncCalendar);
+    } catch (error) {
+      console.error("Failed to sync calendar event after payment success", {
+        appointmentId: appointmentToSyncCalendar,
+        error,
+      });
+    }
   }
 
   if (appointmentToNotify) {

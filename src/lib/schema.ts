@@ -171,6 +171,7 @@ export const shops = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    businessType: text("business_type"),
     status: shopStatusEnum("status").default("draft").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -184,6 +185,39 @@ export const shops = pgTable(
     uniqueIndex("shops_owner_user_id_unique").on(table.ownerUserId),
     uniqueIndex("shops_slug_unique").on(table.slug),
     index("shops_status_idx").on(table.status),
+  ]
+);
+
+export const calendarConnections = pgTable(
+  "calendar_connections",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    calendarId: text("calendar_id").notNull(),
+    calendarName: text("calendar_name").notNull(),
+    accessTokenEncrypted: text("access_token_encrypted").notNull(),
+    refreshTokenEncrypted: text("refresh_token_encrypted").notNull(),
+    tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true }).notNull(),
+    encryptionKeyId: text("encryption_key_id").notNull().default("default"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("calendar_connections_one_active_per_shop")
+      .on(table.shopId)
+      .where(sql`${table.deletedAt} IS NULL`),
+    index("idx_calendar_connections_shop_id")
+      .on(table.shopId)
+      .where(sql`${table.deletedAt} IS NULL`),
+    index("idx_calendar_connections_deleted")
+      .on(table.deletedAt)
+      .where(sql`${table.deletedAt} IS NOT NULL`),
   ]
 );
 
@@ -437,6 +471,7 @@ export const appointments = pgTable(
       { onDelete: "set null" }
     ),
     bookingUrl: text("booking_url"),
+    calendarEventId: text("calendar_event_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -458,6 +493,9 @@ export const appointments = pgTable(
     index("appointments_source_slot_opening_id_idx").on(
       table.sourceSlotOpeningId
     ),
+    index("idx_appointments_calendar_event_id")
+      .on(table.calendarEventId)
+      .where(sql`${table.calendarEventId} IS NOT NULL`),
     check(
       "appointments_cancellation_source_check",
       sql`${table.cancellationSource} in ('customer', 'system', 'admin')`
@@ -468,6 +506,75 @@ export const appointments = pgTable(
     ),
   ]
 );
+
+export const calendarConflictAlerts = pgTable(
+  "calendar_conflict_alerts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .references(() => appointments.id, { onDelete: "cascade" }),
+    calendarEventId: text("calendar_event_id").notNull(),
+    eventSummary: text("event_summary"),
+    eventStart: timestamp("event_start", { withTimezone: true }).notNull(),
+    eventEnd: timestamp("event_end", { withTimezone: true }).notNull(),
+    severity: text("severity")
+      .notNull()
+      .$type<"full" | "high" | "partial" | "all_day">(),
+    status: text("status")
+      .notNull()
+      .default("pending")
+      .$type<
+        | "pending"
+        | "dismissed"
+        | "resolved"
+        | "auto_resolved_past"
+        | "auto_resolved_cancelled"
+      >(),
+    detectedAt: timestamp("detected_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    resolvedBy: text("resolved_by").$type<
+      "user" | "system_cancelled" | "system_past"
+    >(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("calendar_conflict_alerts_appointment_event_unique").on(
+      table.appointmentId,
+      table.calendarEventId
+    ),
+    index("idx_conflict_alerts_shop_status")
+      .on(table.shopId, table.status)
+      .where(sql`${table.status} = 'pending'`),
+    index("idx_conflict_alerts_created_at").on(table.createdAt),
+    check(
+      "calendar_conflict_alerts_severity_check",
+      sql`${table.severity} in ('full', 'high', 'partial', 'all_day')`
+    ),
+    check(
+      "calendar_conflict_alerts_status_check",
+      sql`${table.status} in ('pending', 'dismissed', 'resolved', 'auto_resolved_past', 'auto_resolved_cancelled')`
+    ),
+    check(
+      "calendar_conflict_alerts_resolved_by_check",
+      sql`${table.resolvedBy} is null or ${table.resolvedBy} in ('user', 'system_cancelled', 'system_past')`
+    ),
+  ]
+);
+
+export type CalendarConflictAlert = typeof calendarConflictAlerts.$inferSelect;
+export type NewCalendarConflictAlert = typeof calendarConflictAlerts.$inferInsert;
 
 export const appointmentEvents = pgTable(
   "appointment_events",

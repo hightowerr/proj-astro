@@ -21,6 +21,11 @@ const DEFAULT_POLICY = {
   depositAmountCents: 2000,
 };
 
+const getFormString = (formData: FormData, key: string) => {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : undefined;
+};
+
 export default async function PaymentPolicyPage() {
   const session = await requireAuth();
   const shop = await getShopByOwnerId(session.user.id);
@@ -65,9 +70,9 @@ export default async function PaymentPolicyPage() {
     "use server";
 
     const parsed = policySchema.safeParse({
-      currency: formData.get("currency"),
-      paymentMode: formData.get("paymentMode"),
-      depositAmount: formData.get("depositAmount"),
+      currency: getFormString(formData, "currency"),
+      paymentMode: getFormString(formData, "paymentMode"),
+      depositAmount: getFormString(formData, "depositAmount"),
     });
 
     if (!parsed.success) {

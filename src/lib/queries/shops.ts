@@ -63,6 +63,7 @@ export const createShop = async (input: {
   ownerUserId: string;
   name: string;
   slug: string;
+  businessType?: string | null;
   status?: typeof shops.$inferInsert.status;
   timezone?: string;
   slotMinutes?: number;
@@ -92,6 +93,7 @@ export const createShop = async (input: {
         ownerUserId: input.ownerUserId,
         name: input.name,
         slug: input.slug,
+        businessType: input.businessType ?? null,
         status: input.status ?? "active",
       })
       .onConflictDoNothing()
@@ -105,6 +107,14 @@ export const createShop = async (input: {
       if (retry) {
         await ensureDefaults(tx, retry.id, config);
         return retry;
+      }
+
+      const slugConflict = await tx.query.shops.findFirst({
+        where: (table, { eq }) => eq(table.slug, input.slug),
+      });
+
+      if (slugConflict) {
+        throw new Error("This shop URL is already taken");
       }
 
       throw new Error("Shop could not be created");

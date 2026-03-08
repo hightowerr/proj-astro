@@ -41,6 +41,9 @@
   --color-accent-coral: #f4a58a;
   --color-text-muted: #6b7280;
   --color-text-light-muted: #a1a5ab;
+  --color-success-green: #10b981;
+  --color-error-red: #ef4444;
+  --color-warning-amber: #f59e0b;
   --animate-float: float 6s ease-in-out infinite;
   --animate-fade-up: fade-up 0.6s ease-out forwards;
   --radius-sm: calc(var(--radius) - 4px);

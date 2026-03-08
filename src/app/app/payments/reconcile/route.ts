@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { syncAppointmentCalendarEvent } from "@/lib/queries/appointments";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments, payments } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
@@ -74,7 +75,7 @@ export async function POST() {
 
       const appointmentUpdate = mapAppointmentUpdate(normalized);
 
-      await db.transaction(async (tx) => {
+      const appointmentUpdated = await db.transaction(async (tx) => {
         await tx
           .update(payments)
           .set({
@@ -83,15 +84,27 @@ export async function POST() {
           })
           .where(eq(payments.id, payment.id));
 
-        await tx
+        const [updatedAppointment] = await tx
           .update(appointments)
           .set({
             paymentStatus: appointmentUpdate.paymentStatus,
             status: appointmentUpdate.status,
             updatedAt: new Date(),
           })
-          .where(eq(appointments.id, payment.appointmentId));
+          .where(
+            and(
+              eq(appointments.id, payment.appointmentId),
+              eq(appointments.status, "pending")
+            )
+          )
+          .returning({ id: appointments.id });
+
+        return Boolean(updatedAppointment);
       });
+
+      if (appointmentUpdated && appointmentUpdate.status === "booked") {
+        await syncAppointmentCalendarEvent(payment.appointmentId);
+      }
 
       updated += 1;
     } catch (error) {

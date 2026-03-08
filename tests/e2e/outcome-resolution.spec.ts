@@ -9,6 +9,7 @@ import {
   shops,
   user,
 } from "../../src/lib/schema";
+import { completeShopOnboarding } from "../helpers/shop-onboarding";
 import { test, expect } from "../setup";
 import type { Page } from "@playwright/test";
 
@@ -68,10 +69,7 @@ test.describe("Outcome Resolution", () => {
 
     await expect(page).toHaveURL(/\/app/, { timeout: 15000 });
 
-    await page.getByLabel("Shop name").fill("Hello Shop");
-    await page.getByLabel("Shop URL slug").fill(slug);
-    await page.getByRole("button", { name: "Create" }).click();
-    await expect(page.getByText(slug).first()).toBeVisible({ timeout: 15000 });
+    await completeShopOnboarding(page, { slug });
 
     return slug;
   };

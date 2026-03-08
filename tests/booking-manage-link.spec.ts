@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { completeShopOnboarding } from "./helpers/shop-onboarding";
 import { test, expect } from "./setup";
 
 const makeEmail = () => `shopper_${randomUUID()}@example.com`;
@@ -40,10 +41,7 @@ test.describe("Booking manage link", () => {
 
     await expect(page).toHaveURL(/\/app/, { timeout: 15000 });
 
-    await page.getByLabel("Shop name").fill("Hello Shop");
-    await page.getByLabel("Shop URL slug").fill(slug);
-    await page.getByRole("button", { name: "Create" }).click();
-    await expect(page.getByText(slug).first()).toBeVisible({ timeout: 15000 });
+    await completeShopOnboarding(page, { slug });
 
     const shop = await db.query.shops.findFirst({
       where: (table, { eq }) => eq(table.slug, slug),

@@ -28,6 +28,15 @@ import {
 
 let mockEvent: Stripe.Event | null = null;
 const fetchMock = vi.fn();
+const syncAppointmentCalendarEventMock = vi.fn();
+
+vi.mock("@/lib/queries/appointments", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/queries/appointments")>();
+  return {
+    ...actual,
+    syncAppointmentCalendarEvent: syncAppointmentCalendarEventMock,
+  };
+});
 
 vi.mock("@/lib/stripe", () => ({
   stripeIsMocked: () => true,
@@ -85,6 +94,8 @@ beforeEach(async () => {
   userId = randomUUID();
   fetchMock.mockReset();
   fetchMock.mockResolvedValue(new Response(null, { status: 200 }));
+  syncAppointmentCalendarEventMock.mockReset();
+  syncAppointmentCalendarEventMock.mockResolvedValue(true);
   vi.stubGlobal("fetch", fetchMock);
   await insertUser(userId);
 });
@@ -342,6 +353,7 @@ describe("Stripe webhook handler", () => {
     expect(paymentRow?.attempts).toBe(1);
     expect(appointmentRow?.paymentStatus).toBe("paid");
     expect(appointmentRow?.status).toBe("booked");
+    expect(syncAppointmentCalendarEventMock).toHaveBeenCalledWith(appointmentId);
   });
 
   it("marks payment failed on payment_intent.payment_failed", async () => {
@@ -377,6 +389,7 @@ describe("Stripe webhook handler", () => {
     expect(paymentRow?.status).toBe("failed");
     expect(appointmentRow?.paymentStatus).toBe("failed");
     expect(appointmentRow?.status).toBe("pending");
+    expect(syncAppointmentCalendarEventMock).not.toHaveBeenCalled();
   });
 
   it("reopens slot recovery flow and triggers next offer on payment failure", async () => {

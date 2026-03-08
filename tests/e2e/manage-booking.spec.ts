@@ -129,6 +129,24 @@ const goToManagePage = async (page: Page, token: string) => {
   ).toBeVisible();
 };
 
+const openCancelDialog = async (page: Page) => {
+  const confirmDialog = page.getByRole("dialog");
+
+  await expect(async () => {
+    const isOpen = await confirmDialog.isVisible().catch(() => false);
+    if (!isOpen) {
+      await page
+        .getByRole("button", { name: "Cancel appointment" })
+        .first()
+        .click();
+    }
+
+    expect(await confirmDialog.isVisible().catch(() => false)).toBe(true);
+  }).toPass({ timeout: 10000 });
+
+  return confirmDialog;
+};
+
 test.describe("Manage Booking Page", () => {
   test.skip(!shouldRun, "POSTGRES_URL not set");
 
@@ -194,9 +212,7 @@ test.describe("Manage Booking Page", () => {
   }) => {
     await goToManagePage(page, fixture.token);
 
-    await page.getByRole("button", { name: "Cancel appointment" }).click();
-    const confirmDialog = page.getByRole("dialog");
-    await expect(confirmDialog).toBeVisible();
+    const confirmDialog = await openCancelDialog(page);
     await confirmDialog
       .getByRole("button", { name: "Cancel appointment" })
       .click();
@@ -263,9 +279,7 @@ test.describe("Manage Booking Page", () => {
 
     await goToManagePage(page, fixture.token);
 
-    await page.getByRole("button", { name: "Cancel appointment" }).click();
-    const confirmDialog = page.getByRole("dialog");
-    await expect(confirmDialog).toBeVisible();
+    const confirmDialog = await openCancelDialog(page);
     await confirmDialog
       .getByRole("button", { name: "Cancel appointment" })
       .click();
