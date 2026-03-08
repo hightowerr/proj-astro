@@ -30,6 +30,12 @@ const parseLockId = (req: Request) => {
   return parsed;
 };
 
+const parseShopId = (req: Request) => {
+  const url = new URL(req.url);
+  const shopId = url.searchParams.get("shopId");
+  return shopId && shopId.trim().length > 0 ? shopId : null;
+};
+
 export async function POST(req: Request) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
@@ -42,6 +48,7 @@ export async function POST(req: Request) {
   }
 
   const lockId = parseLockId(req);
+  const shopIdFilter = parseShopId(req);
   const lockResult = await db.execute(sql`select pg_try_advisory_lock(${lockId}) as locked`);
   const locked = lockResult[0]?.locked === true;
 
@@ -59,7 +66,9 @@ export async function POST(req: Request) {
     let processed = 0;
     const errors: Array<{ customerId: string; shopId: string; error: string }> = [];
 
-    const allShops = await db.select({ id: shops.id }).from(shops);
+    const allShops = shopIdFilter
+      ? [{ id: shopIdFilter }]
+      : await db.select({ id: shops.id }).from(shops);
 
     for (const shop of allShops) {
       const shopCustomers = await db

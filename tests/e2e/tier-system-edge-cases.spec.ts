@@ -178,8 +178,9 @@ test.describe("Tier system edge cases", () => {
   });
 
   test("recompute endpoint returns processed count and error metadata shape", async ({ page }) => {
+    const scopedShopId = randomUUID();
     const response = await page.request.post(
-      `/api/jobs/recompute-scores?lockId=${recomputeLockId}`,
+      `/api/jobs/recompute-scores?lockId=${recomputeLockId}&shopId=${scopedShopId}`,
       {
       headers: {
         "x-cron-secret": process.env.CRON_SECRET ?? "",

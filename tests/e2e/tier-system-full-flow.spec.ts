@@ -46,12 +46,18 @@ const runRecomputeWithRetry = async (
     json: () => Promise<unknown>;
   }>,
   lockId: string,
+  shopId?: string,
   attempts = 6
 ) => {
   let lastPayload: unknown = null;
 
   for (let i = 0; i < attempts; i += 1) {
-    const response = await post(`/api/jobs/recompute-scores?lockId=${lockId}`, {
+    const params = new URLSearchParams({ lockId });
+    if (shopId) {
+      params.set("shopId", shopId);
+    }
+
+    const response = await post(`/api/jobs/recompute-scores?${params.toString()}`, {
       headers: {
         "x-cron-secret": process.env.CRON_SECRET ?? "",
       },
@@ -225,7 +231,8 @@ test.describe("Tier system full flow", () => {
 
     await runRecomputeWithRetry(
       (url, options) => page.request.post(url, options),
-      recomputeLockId
+      recomputeLockId,
+      shop.id
     );
 
     const scores = await db

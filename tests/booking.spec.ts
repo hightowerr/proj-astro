@@ -138,7 +138,18 @@ test("customer books a slot and business sees it", async ({ page }) => {
   let hasSlot = false;
 
   for (let attempt = 0; attempt < 7; attempt += 1) {
+    const availabilityResponse = page.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return (
+        response.request().method() === "GET" &&
+        url.pathname === "/api/availability" &&
+        url.searchParams.get("shop") === slug &&
+        url.searchParams.get("date") === dateStr
+      );
+    });
+
     await page.locator("#booking-date").fill(dateStr);
+    await availabilityResponse;
 
     await page
       .getByText(/^Loading slots/)
