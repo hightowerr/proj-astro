@@ -688,19 +688,14 @@ export const createAppointment = async (input: {
             console.warn("[booking] No active calendar connection, skipping sync", {
               shopId: input.shopId,
             });
-          } else if (error instanceof CalendarEventCreationError) {
-            console.error("[booking] Calendar sync failed; rolling back booking", {
-              shopId: input.shopId,
-              message: error.message,
-            });
-            throw error;
           } else {
-            console.error("[booking] Unexpected calendar sync error", {
+            console.error("[booking] Calendar sync failed; continuing without calendar event", {
               shopId: input.shopId,
               message: error instanceof Error ? error.message : "Unknown error",
-            });
-            throw new CalendarEventCreationError("Failed to create calendar event", {
-              cause: error,
+              kind:
+                error instanceof CalendarEventCreationError
+                  ? "calendar_event_creation"
+                  : "unexpected",
             });
           }
         }
