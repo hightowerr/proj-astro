@@ -1,5 +1,9 @@
 import { isNull, sql } from "drizzle-orm";
-import { cleanupOldAlerts, scanAndDetectConflicts } from "@/lib/calendar-conflicts";
+import {
+  cleanupOldAlerts,
+  debugScanConflictsForShop,
+  scanAndDetectConflicts,
+} from "@/lib/calendar-conflicts";
 import { db } from "@/lib/db";
 import { calendarConnections } from "@/lib/schema";
 
@@ -27,6 +31,27 @@ const parseLockId = (req: Request): number => {
   return parsed;
 };
 
+const parseDebugMode = (req: Request): boolean => {
+  const url = new URL(req.url);
+  const debug = url.searchParams.get("debug");
+  return debug === "1" || debug === "true";
+};
+
+const parseDebugLimit = (req: Request): number => {
+  const url = new URL(req.url);
+  const raw = url.searchParams.get("debugLimit");
+  if (!raw) {
+    return 200;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return 200;
+  }
+
+  return Math.min(parsed, 1000);
+};
+
 export async function POST(req: Request) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
@@ -40,11 +65,25 @@ export async function POST(req: Request) {
 
   const startedAt = Date.now();
   const lockId = parseLockId(req);
+  const debugMode = parseDebugMode(req);
+  const debugLimit = parseDebugLimit(req);
   const lockResult = await db.execute(sql`select pg_try_advisory_lock(${lockId}) as locked`);
   const locked = lockResult[0]?.locked === true;
 
   if (!locked) {
-    return Response.json({ skipped: true, reason: "locked" });
+    return Response.json({
+      skipped: true,
+      reason: "locked",
+      ...(debugMode
+        ? {
+            debug: {
+              enabled: true,
+              decisionLimit: debugLimit,
+              shops: [],
+            },
+          }
+        : {}),
+    });
   }
 
   try {
@@ -61,6 +100,11 @@ export async function POST(req: Request) {
     let conflictsDetected = 0;
     let alertsCreated = 0;
     let alertsAutoResolved = 0;
+    const debugShops: Array<{
+      shopId: string;
+      error?: string;
+      report?: Awaited<ReturnType<typeof debugScanConflictsForShop>>;
+    }> = [];
 
     for (const row of shopRows) {
       try {
@@ -69,12 +113,34 @@ export async function POST(req: Request) {
         conflictsDetected += result.conflictsDetected;
         alertsCreated += result.alertsCreated;
         alertsAutoResolved += result.alertsAutoResolved;
+
+        if (debugMode) {
+          try {
+            const report = await debugScanConflictsForShop(row.shopId, debugLimit);
+            debugShops.push({ shopId: row.shopId, report });
+          } catch (error) {
+            debugShops.push({
+              shopId: row.shopId,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Failed generating debug report",
+            });
+          }
+        }
       } catch (error) {
         shopsErrored += 1;
         console.error("[scan-conflicts] Failed processing shop", {
           shopId: row.shopId,
           message: error instanceof Error ? error.message : "Unknown error",
         });
+        if (debugMode) {
+          debugShops.push({
+            shopId: row.shopId,
+            error:
+              error instanceof Error ? error.message : "Failed processing shop",
+          });
+        }
       }
     }
 
@@ -90,6 +156,15 @@ export async function POST(req: Request) {
       alertsAutoResolved,
       alertsCleaned,
       durationMs,
+      ...(debugMode
+        ? {
+            debug: {
+              enabled: true,
+              decisionLimit: debugLimit,
+              shops: debugShops,
+            },
+          }
+        : {}),
     });
   } catch (error) {
     console.error("[scan-conflicts] Job failed", {

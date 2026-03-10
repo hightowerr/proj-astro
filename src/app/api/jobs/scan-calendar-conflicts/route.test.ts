@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
   cleanupOldAlertsMock,
   dbMock,
+  debugScanConflictsForShopMock,
   executeMock,
   groupByMock,
   scanAndDetectConflictsMock,
@@ -19,6 +20,7 @@ const {
   return {
     executeMock,
     groupByMock,
+    debugScanConflictsForShopMock: vi.fn(),
     scanAndDetectConflictsMock: vi.fn(),
     cleanupOldAlertsMock: vi.fn(),
     dbMock: {
@@ -37,6 +39,7 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/lib/calendar-conflicts", () => ({
   scanAndDetectConflicts: scanAndDetectConflictsMock,
   cleanupOldAlerts: cleanupOldAlertsMock,
+  debugScanConflictsForShop: debugScanConflictsForShopMock,
 }));
 
 const { POST } = await import("./route");
@@ -59,6 +62,19 @@ describe("POST /api/jobs/scan-calendar-conflicts", () => {
       conflictsDetected: 2,
       alertsCreated: 1,
       alertsAutoResolved: 1,
+    });
+    debugScanConflictsForShopMock.mockResolvedValue({
+      shopId: "shop-1",
+      timezone: "UTC",
+      futureAppointmentCount: 1,
+      datesScanned: 1,
+      calendarEventsFetched: 1,
+      comparisons: 1,
+      overlapsDetected: 0,
+      decisionLimit: 200,
+      decisionsTruncated: false,
+      decisions: [],
+      dates: [],
     });
     cleanupOldAlertsMock.mockResolvedValue(3);
   });
@@ -158,5 +174,48 @@ describe("POST /api/jobs/scan-calendar-conflicts", () => {
     expect(body.success).toBe(true);
     expect(body.shopsProcessed).toBe(1);
     expect(body.shopsErrored).toBe(1);
+  });
+
+  it("returns debug report when debug mode is enabled", async () => {
+    debugScanConflictsForShopMock.mockResolvedValueOnce({
+      shopId: "shop-1",
+      timezone: "UTC",
+      futureAppointmentCount: 1,
+      datesScanned: 1,
+      calendarEventsFetched: 1,
+      comparisons: 1,
+      overlapsDetected: 0,
+      decisionLimit: 5,
+      decisionsTruncated: false,
+      decisions: [],
+      dates: [],
+    });
+
+    const request = new Request(
+      "http://localhost:3000/api/jobs/scan-calendar-conflicts?lockId=7654321&debug=1&debugLimit=5",
+      {
+        method: "POST",
+        headers: {
+          "x-cron-secret": "test-cron-secret",
+        },
+      }
+    );
+
+    const response = await POST(request);
+    const body = (await response.json()) as {
+      debug?: {
+        enabled: boolean;
+        decisionLimit: number;
+        shops: Array<{ shopId: string; report?: { decisionLimit: number } }>;
+      };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.debug?.enabled).toBe(true);
+    expect(body.debug?.decisionLimit).toBe(5);
+    expect(body.debug?.shops).toHaveLength(1);
+    expect(body.debug?.shops[0]?.shopId).toBe("shop-1");
+    expect(body.debug?.shops[0]?.report?.decisionLimit).toBe(5);
+    expect(debugScanConflictsForShopMock).toHaveBeenCalledWith("shop-1", 5);
   });
 });

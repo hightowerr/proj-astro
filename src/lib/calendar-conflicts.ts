@@ -18,6 +18,46 @@ type ConflictEventDetails = {
 };
 
 export type ConflictSeverity = "full" | "high" | "partial" | "all_day";
+export type ConflictDecisionReason =
+  | "skip_same_event_id"
+  | "skip_invalid_event_time"
+  | "skip_no_overlap"
+  | "overlap";
+
+export type ConflictDecision = {
+  appointmentId: string;
+  appointmentStart: string;
+  appointmentEnd: string;
+  eventId: string;
+  eventStart: string | null;
+  eventEnd: string | null;
+  allDay: boolean;
+  reason: ConflictDecisionReason;
+};
+
+export type ConflictDebugDateSummary = {
+  date: string;
+  appointmentCount: number;
+  calendarEventCount: number;
+  comparisons: number;
+  overlaps: number;
+  fetchError?: string;
+};
+
+export type ConflictShopDebugSummary = {
+  shopId: string;
+  timezone: string | null;
+  futureAppointmentCount: number;
+  datesScanned: number;
+  calendarEventsFetched: number;
+  comparisons: number;
+  overlapsDetected: number;
+  decisionLimit: number;
+  decisionsTruncated: boolean;
+  decisions: ConflictDecision[];
+  dates: ConflictDebugDateSummary[];
+  note?: string;
+};
 
 const sanitizeEventSummary = (summary: string | undefined): string => {
   const normalized = (summary ?? "").trim();
@@ -214,6 +254,150 @@ export async function hasCalendarConflict(input: {
     }
     return false;
   }
+}
+
+export async function debugScanConflictsForShop(
+  shopId: string,
+  decisionLimit = 200
+): Promise<ConflictShopDebugSummary> {
+  const settings = await db.query.bookingSettings.findFirst({
+    where: eq(bookingSettings.shopId, shopId),
+  });
+
+  if (!settings) {
+    return {
+      shopId,
+      timezone: null,
+      futureAppointmentCount: 0,
+      datesScanned: 0,
+      calendarEventsFetched: 0,
+      comparisons: 0,
+      overlapsDetected: 0,
+      decisionLimit,
+      decisionsTruncated: false,
+      decisions: [],
+      dates: [],
+      note: "Missing booking settings",
+    };
+  }
+
+  const now = new Date();
+  const timezone = settings.timezone ?? "UTC";
+  const futureAppointments = await db.query.appointments.findMany({
+    where: and(
+      eq(appointments.shopId, shopId),
+      eq(appointments.status, "booked"),
+      gte(appointments.startsAt, now)
+    ),
+    columns: {
+      id: true,
+      startsAt: true,
+      endsAt: true,
+      calendarEventId: true,
+    },
+  });
+
+  const appointmentsByDate = new Map<string, typeof futureAppointments>();
+  for (const appointment of futureAppointments) {
+    const dateStr = formatDateInTimeZone(appointment.startsAt, timezone);
+    const existing = appointmentsByDate.get(dateStr) ?? [];
+    existing.push(appointment);
+    appointmentsByDate.set(dateStr, existing);
+  }
+
+  const decisions: ConflictDecision[] = [];
+  const dates: ConflictDebugDateSummary[] = [];
+  let comparisons = 0;
+  let overlapsDetected = 0;
+  let calendarEventsFetched = 0;
+  let decisionsTruncated = false;
+
+  for (const [dateStr, dateAppointments] of appointmentsByDate) {
+    let calendarEvents: CalendarEvent[] = [];
+    let fetchError: string | undefined;
+    let dateComparisons = 0;
+    let dateOverlaps = 0;
+
+    try {
+      calendarEvents = await fetchCalendarEventsWithCache(shopId, dateStr, timezone);
+      calendarEventsFetched += calendarEvents.length;
+    } catch (error) {
+      fetchError = error instanceof Error ? error.message : "Unknown error";
+    }
+
+    for (const appointment of dateAppointments) {
+      for (const event of calendarEvents) {
+        const pushDecision = (reason: ConflictDecisionReason, allDay: boolean) => {
+          if (decisions.length < decisionLimit) {
+            decisions.push({
+              appointmentId: appointment.id,
+              appointmentStart: appointment.startsAt.toISOString(),
+              appointmentEnd: appointment.endsAt.toISOString(),
+              eventId: event.id,
+              eventStart: event.start.dateTime ?? event.start.date ?? null,
+              eventEnd: event.end.dateTime ?? event.end.date ?? null,
+              allDay,
+              reason,
+            });
+          } else {
+            decisionsTruncated = true;
+          }
+        };
+
+        comparisons += 1;
+        dateComparisons += 1;
+
+        if (appointment.calendarEventId && appointment.calendarEventId === event.id) {
+          pushDecision("skip_same_event_id", isAllDayEvent(event));
+          continue;
+        }
+
+        const eventStart = parseEventStart(event);
+        const eventEnd = parseEventEnd(event);
+        const allDay = isAllDayEvent(event);
+        if (!eventStart || !eventEnd || eventEnd <= eventStart) {
+          pushDecision("skip_invalid_event_time", allDay);
+          continue;
+        }
+
+        const hasOverlap = allDay
+          ? true
+          : eventStart.getTime() < appointment.endsAt.getTime() &&
+            eventEnd.getTime() > appointment.startsAt.getTime();
+
+        if (hasOverlap) {
+          overlapsDetected += 1;
+          dateOverlaps += 1;
+          pushDecision("overlap", allDay);
+        } else {
+          pushDecision("skip_no_overlap", allDay);
+        }
+      }
+    }
+
+    dates.push({
+      date: dateStr,
+      appointmentCount: dateAppointments.length,
+      calendarEventCount: calendarEvents.length,
+      comparisons: dateComparisons,
+      overlaps: dateOverlaps,
+      ...(fetchError ? { fetchError } : {}),
+    });
+  }
+
+  return {
+    shopId,
+    timezone,
+    futureAppointmentCount: futureAppointments.length,
+    datesScanned: appointmentsByDate.size,
+    calendarEventsFetched,
+    comparisons,
+    overlapsDetected,
+    decisionLimit,
+    decisionsTruncated,
+    decisions,
+    dates,
+  };
 }
 
 /**
