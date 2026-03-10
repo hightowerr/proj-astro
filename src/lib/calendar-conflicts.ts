@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import { formatDateInTimeZone } from "@/lib/booking";
 import { overlapsWithCalendarConflictBuffer } from "@/lib/calendar-conflict-rules";
 import { db } from "@/lib/db";
@@ -7,7 +7,12 @@ import {
   fetchCalendarEventsWithCache,
   isAllDayEvent,
 } from "@/lib/google-calendar-cache";
-import { appointments, bookingSettings, calendarConflictAlerts } from "@/lib/schema";
+import {
+  appointments,
+  bookingSettings,
+  calendarConflictAlerts,
+  calendarConnections,
+} from "@/lib/schema";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -47,6 +52,17 @@ export type ConflictDebugDateSummary = {
 export type ConflictShopDebugSummary = {
   shopId: string;
   timezone: string | null;
+  activeCalendarConnection: {
+    calendarId: string;
+    calendarName: string;
+  } | null;
+  appointmentStatusCounts: Record<string, number>;
+  upcomingAppointmentsSample: Array<{
+    id: string;
+    status: string;
+    startsAt: string;
+    endsAt: string;
+  }>;
   futureAppointmentCount: number;
   datesScanned: number;
   calendarEventsFetched: number;
@@ -260,6 +276,56 @@ export async function debugScanConflictsForShop(
   shopId: string,
   decisionLimit = 200
 ): Promise<ConflictShopDebugSummary> {
+  const now = new Date();
+  const sampleWindowStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const activeConnection = await db.query.calendarConnections.findFirst({
+    where: and(
+      eq(calendarConnections.shopId, shopId),
+      isNull(calendarConnections.deletedAt)
+    ),
+    columns: {
+      calendarId: true,
+      calendarName: true,
+    },
+  });
+
+  const statusRows = await db
+    .select({
+      status: appointments.status,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(appointments)
+    .where(eq(appointments.shopId, shopId))
+    .groupBy(appointments.status);
+
+  const appointmentStatusCounts: Record<string, number> = Object.fromEntries(
+    statusRows.map((row) => [row.status, row.count])
+  );
+
+  const upcomingRows = await db
+    .select({
+      id: appointments.id,
+      status: appointments.status,
+      startsAt: appointments.startsAt,
+      endsAt: appointments.endsAt,
+    })
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.shopId, shopId),
+        gte(appointments.startsAt, sampleWindowStart)
+      )
+    )
+    .orderBy(asc(appointments.startsAt))
+    .limit(10);
+
+  const upcomingAppointmentsSample = upcomingRows.map((row) => ({
+    id: row.id,
+    status: row.status,
+    startsAt: row.startsAt.toISOString(),
+    endsAt: row.endsAt.toISOString(),
+  }));
+
   const settings = await db.query.bookingSettings.findFirst({
     where: eq(bookingSettings.shopId, shopId),
   });
@@ -268,6 +334,14 @@ export async function debugScanConflictsForShop(
     return {
       shopId,
       timezone: null,
+      activeCalendarConnection: activeConnection
+        ? {
+            calendarId: activeConnection.calendarId,
+            calendarName: activeConnection.calendarName,
+          }
+        : null,
+      appointmentStatusCounts,
+      upcomingAppointmentsSample,
       futureAppointmentCount: 0,
       datesScanned: 0,
       calendarEventsFetched: 0,
@@ -281,7 +355,6 @@ export async function debugScanConflictsForShop(
     };
   }
 
-  const now = new Date();
   const timezone = settings.timezone ?? "UTC";
   const futureAppointments = await db.query.appointments.findMany({
     where: and(
@@ -388,6 +461,14 @@ export async function debugScanConflictsForShop(
   return {
     shopId,
     timezone,
+    activeCalendarConnection: activeConnection
+      ? {
+          calendarId: activeConnection.calendarId,
+          calendarName: activeConnection.calendarName,
+        }
+      : null,
+    appointmentStatusCounts,
+    upcomingAppointmentsSample,
     futureAppointmentCount: futureAppointments.length,
     datesScanned: appointmentsByDate.size,
     calendarEventsFetched,

@@ -117,6 +117,20 @@ export async function POST(req: Request) {
         if (debugMode) {
           try {
             const report = await debugScanConflictsForShop(row.shopId, debugLimit);
+            console.warn("[scan-conflicts][debug] shop report", {
+              shopId: row.shopId,
+              activeCalendarId: report.activeCalendarConnection?.calendarId ?? null,
+              activeCalendarName: report.activeCalendarConnection?.calendarName ?? null,
+              timezone: report.timezone,
+              appointmentStatusCounts: report.appointmentStatusCounts,
+              upcomingAppointmentsSample: report.upcomingAppointmentsSample,
+              futureAppointmentCount: report.futureAppointmentCount,
+              datesScanned: report.datesScanned,
+              calendarEventsFetched: report.calendarEventsFetched,
+              comparisons: report.comparisons,
+              overlapsDetected: report.overlapsDetected,
+              note: report.note ?? null,
+            });
             debugShops.push({ shopId: row.shopId, report });
           } catch (error) {
             debugShops.push({
