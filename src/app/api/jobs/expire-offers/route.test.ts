@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import postgres from "postgres";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
@@ -162,6 +163,12 @@ describeIf("POST /api/jobs/expire-offers", () => {
     fetchMock.mockReset();
     fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: true }), { status: 200 }));
 
+    // Clear tables to prevent interference from other tests
+    await db.delete(slotOffers);
+    await db.delete(slotOpenings);
+    await db.delete(shops);
+    await db.delete(user);
+
     await insertUser(userId);
   });
 
@@ -232,7 +239,11 @@ describeIf("POST /api/jobs/expire-offers", () => {
   });
 
   it("returns skipped when advisory lock is already held", async () => {
-    await db.execute(sql`select pg_advisory_lock(${LOCK_ID})`);
+    const connectionString = process.env.POSTGRES_URL!;
+    const client = postgres(connectionString);
+    
+    // Hold lock in a separate connection to ensure isolation
+    await client`select pg_advisory_lock(${LOCK_ID})`;
 
     try {
       const response = await POST(makeRequest());
@@ -245,7 +256,8 @@ describeIf("POST /api/jobs/expire-offers", () => {
       expect(body.skipped).toBe(true);
       expect(body.reason).toBe("locked");
     } finally {
-      await db.execute(sql`select pg_advisory_unlock(${LOCK_ID})`);
+      await client`select pg_advisory_unlock(${LOCK_ID})`;
+      await client.end();
     }
   });
 

@@ -20,11 +20,19 @@ export function FeatureSection({
 }: FeatureSectionProps) {
   const imageOrderClass = imagePosition === "left" ? "lg:order-1" : "lg:order-2";
   const textOrderClass = imagePosition === "left" ? "lg:order-2" : "lg:order-1";
+  const isUnsplashImage = imageSrc.startsWith("https://images.unsplash.com/");
 
   return (
     <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
       <div className={`relative aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl ${imageOrderClass}`}>
-        <Image src={imageSrc} alt={imageAlt} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+        <Image
+          src={imageSrc}
+          alt={imageAlt}
+          fill
+          unoptimized={isUnsplashImage}
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          className="object-cover"
+        />
         {children}
       </div>
 

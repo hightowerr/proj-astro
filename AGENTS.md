@@ -1,88 +1,240 @@
-# Repository Guidelines
+# CLAUDE.md
 
-## Project Structure & Module Organization
-- `src/app/`: Next.js App Router pages and API routes (for example, `src/app/api/jobs/*`).
-- `src/components/`: Reusable UI and feature components.
-- `src/lib/`: Core domain logic, integrations, DB access, and unit tests under `src/lib/__tests__/`.
-- `drizzle/`: SQL migrations and Drizzle metadata snapshots.
-- `tests/`: Playwright tests (`tests/**/*.spec.ts`) and shared setup (`tests/setup.ts`).
-- `docs/`: Requirements, shaping plans, and technical notes.
-- `public/`: Static assets.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build, Test, and Development Commands
-- `pnpm dev`: Start local Next.js dev server.
-- `pnpm build` / `pnpm start`: Build and run production build.
-- `pnpm lint`: Run ESLint.
-- `pnpm typecheck`: Run TypeScript checks (`tsc --noEmit`).
-- `pnpm test`: Run Vitest unit/integration tests in `src/**`.
-- `pnpm test:e2e`: Run Playwright specs in `tests/**`.
-- `pnpm db:migrate`: Apply Drizzle migrations.
-- `pnpm db:studio`: Open Drizzle Studio for local DB inspection.
+## Project Overview
 
-## Coding Style & Naming Conventions
-- TypeScript-first; use path alias `@/` for imports from `src`.
-- Prettier is canonical formatting (`2` spaces, double quotes, semicolons, `printWidth: 100`).
-- ESLint extends `next/core-web-vitals`; keep import order stable and avoid `console.log` (warn-level).
-- Components/utilities use kebab-case file names (for example, `manage-booking-view.tsx`).
-- Test files use `*.test.ts` (Vitest) and `*.spec.ts` (Playwright and some in-source specs).
+Booking/appointment management system with automated financial outcomes, refunds, and policy-driven resolution. Next.js 16, PostgreSQL, Stripe, Twilio SMS.
 
-## Testing Guidelines
-- Frameworks: Vitest (unit/integration) and Playwright (E2E).
-- Keep unit tests close to source (`src/**/__tests__` or `src/**/*.test.ts`).
-- Put browser/E2E flows in `tests/e2e/*.spec.ts`.
-- Prefer deterministic tests with explicit fixtures and cleanup.
-- Before opening a PR, run: `pnpm lint && pnpm typecheck && pnpm test`.
+## Required Environment Variables
 
-## Commit & Pull Request Guidelines
-- Follow conventional-style prefixes seen in history: `feat:`, `chore:`, `fix:` (imperative, concise scope).
-- Keep commits focused; avoid mixing schema, API, and UI changes without clear reason.
-- PRs should include what changed and why, linked issue/requirement context, and test evidence.
-- Include screenshots/GIFs for UI changes.
+**Setup**: Copy `env.example` to `.env` and fill in values.
 
-## Security & Configuration Tips
-- Never commit secrets. Use `.env`; keep `.env.example` updated with safe placeholders.
-- Important envs for scheduled/internal jobs: `CRON_SECRET`, `INTERNAL_SECRET`, `APP_URL`.
-- For local E2E, ensure DB and required provider/test-mode env variables are configured.
+**Core**:
+- `POSTGRES_URL` - PostgreSQL connection string
+  ```
+  # Example for local development:
+  POSTGRES_URL=postgresql://dev_user:dev_password@localhost:5432/postgres_dev
+  ```
+- `BETTER_AUTH_SECRET` - Better Auth session secret
+- `CRON_SECRET` - Authenticates cron job requests
+- `NEXT_PUBLIC_APP_URL` - Public app URL for links/redirects
+
+**Stripe** (from https://dashboard.stripe.com):
+- `STRIPE_SECRET_KEY` - Secret key for API calls
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Public key for client
+- `STRIPE_WEBHOOK_SECRET` - Webhook signature verification
+
+**Twilio** (from https://console.twilio.com):
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+- Optional: `TWILIO_TEST_MODE=true` for E2E tests (uses magic numbers)
+
+**Upstash Redis** (from https://console.upstash.com):
+- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+
+**Google Calendar** (optional, for conflict detection):
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+- `CALENDAR_ENCRYPTION_KEY` - Base64-encoded 32-byte key (`openssl rand -base64 32`)
+
+## Commands
+
+### Development
+```bash
+pnpm dev          # Start dev server (ask user first)
+pnpm build        # Build for production
+pnpm lint         # ESLint
+pnpm typecheck    # TypeScript check
+pnpm check        # Both lint and typecheck (run after changes)
+```
+
+### Testing
+```bash
+pnpm test                    # All unit tests (Vitest)
+pnpm test <file>             # Specific test file
+pnpm test:e2e                # All E2E tests (Playwright)
+pnpm test:e2e <spec-file>    # Specific E2E spec
+```
+
+### Database
+```bash
+pnpm db:generate  # Generate migrations from schema changes
+pnpm db:migrate   # Run pending migrations
+pnpm db:studio    # Open database GUI
+```
+
+## Architecture
+
+### Booking Lifecycle
+```
+Customer books → appointment + payment + token + SMS
+Customer cancels → before cutoff: refund | after cutoff: deposit retained
+Appointment ends → resolver auto-resolves outcome
+Outcomes: settled | voided | refunded | unresolved
+```
+
+### Key Abstractions
+
+**Policy Snapshots** (`src/lib/schema.ts` → `policyVersions`)
+Appointments capture policy at booking time. Never join to `shopPolicies` (current), always use `policyVersions` (snapshot).
+
+**Outcome Resolution** (`src/app/api/jobs/resolve-outcomes/route.ts`)
+Resolver job auto-determines outcomes after appointments end.
+
+**CRITICAL:** Resolver MUST skip cancelled appointments:
+```typescript
+.where(and(
+  eq(appointments.status, "booked"),  // REQUIRED
+  eq(appointments.financialOutcome, "unresolved"),
+  sql`${appointments.endsAt} <= now() - ...`
+))
+```
+
+**Token-Based Manage Links** (`src/lib/manage-tokens.ts`)
+Secure tokenized links (SHA256 hash, 90-day expiry). Raw tokens shown only once.
+
+**Idempotent Refunds** (`src/lib/stripe-refund.ts`)
+1. Check `payment.stripeRefundId` exists
+2. Stripe idempotency key: `refund-${appointmentId}`
+3. Handle "already refunded" errors
+
+**Tier System** (`src/lib/scoring.ts`)
+- `top`: score ≥ 80 and voidedLast90Days = 0
+- `risk`: score < 40 or voidedLast90Days ≥ 2
+- `neutral`: everything else (default)
+
+Pricing: `src/lib/tier-pricing.ts`, `src/lib/queries/appointments.ts`
+Slot recovery priority: `top` → `neutral/null` → `risk` (see `src/lib/slot-recovery.ts`)
+
+## Dashboard & Confirmation
+
+**Dashboard Queries** (`src/lib/queries/dashboard.ts`):
+- Summary cards: total appointments, confirmed, attention required
+- Attention required: appointments needing confirmation or action
+- All appointments table with filters
+
+**Confirmation System** (`src/lib/confirmation.ts`):
+- `confirmationStatus`: `pending`, `confirmed`, `needs_attention`
+- Manual confirmation by shop owner via dashboard
+- Integrated with no-show prediction risk levels
+
+**Dashboard Route** (`/app/dashboard`):
+- Protected route requiring shop owner authentication
+- Real-time appointment status tracking
+- Tier distribution charts and analytics
 
 ## Critical Rules
 
-### 1. ALWAYS Run Code Quality Checks
-After ANY code change:
-```bash
-pnpm lint && pnpm typecheck
-```
+1. **Always run after changes:** `pnpm lint && pnpm typecheck`
+2. **Never start dev server** - ask user for output
+3. **Database changes:** Use `db:generate` then `db:migrate` (never `db:push` in production)
+4. **Resolver safety:** Filter by `status='booked'` in WHERE clause
+5. **Next.js 16:** No `src/middleware.ts` (use `src/proxy.ts` only)
+6. **Next.js 16:** No `dynamic(..., {ssr: false})` in `page.tsx`/`layout.tsx` (use client wrapper)
+7. **Phone validation:** Always use `libphonenumber-js` for parsing/formatting phone numbers
+8. **Refunds:** Check `payment.stripeRefundId` exists before refunding to prevent duplicates
 
-### 2. NEVER Start Dev Server
-If you need dev server output, ask the user to provide it.
+## Cron Jobs & Background Processing
 
-### 3. Database Schema Changes
-```bash
-pnpm db:generate  # Generate migration
-# Review generated SQL in drizzle/
-pnpm db:migrate   # Run migration
-```
-Never use `db:push` in production. Use migrations.
+**CRON_SECRET Required**: All cron jobs require `x-cron-secret` header authentication.
 
-### 4. Resolver Safety (CRITICAL)
-The resolver job MUST:
-1. Filter by `status='booked'` in WHERE clause
-2. Never overwrite cancelled appointments
-3. Be idempotent (use conditional WHERE in UPDATE)
+**Key Jobs** (`src/app/api/jobs/`):
+- `resolve-outcomes` - Auto-resolve financial outcomes after appointments end
+- `offer-loop` - Process slot recovery offers in tier-sorted order
+- `expire-offers` - Expire unclaimed slot offers
+- `recompute-scores` - Recalculate customer tier scores
+- `recompute-no-show-stats` - Update no-show prediction statistics
+- `send-reminders` - Send appointment reminder messages
+- `scan-calendar-conflicts` - Detect calendar conflicts with Google Calendar
 
-See: `docs/shaping/slice-5-v5-implementation-plan.md`
+**PostgreSQL Advisory Locks**: Jobs use `pg_try_advisory_lock` to prevent concurrent execution. Lock IDs configurable via environment or query params (non-production only).
 
-### 5. Next.js 16 Proxy Convention (CRITICAL)
-- Do not create `src/middleware.ts`.
-- Route protection must use `src/proxy.ts` only.
-- Next.js 16 treats middleware as deprecated and will error if both files exist.
+**Redis-Based Locks**: Slot recovery uses Redis locks (`acquireLock`/`releaseLock`) with cooldown periods to prevent duplicate offers.
 
-### 6. Next.js 16 Dynamic Import Convention (CRITICAL)
-- Do not use `dynamic(..., { ssr: false })` directly in App Router server entry files (`page.tsx`, `layout.tsx`, etc.).
-- If `ssr: false` is required, place it in a client wrapper component (for example `src/components/landing/hero-section-client.tsx`).
-- Keep server entry files importing the client wrapper instead (for example `src/app/page.tsx` imports `HeroSectionClient`).
+## Customer Identification & Contact
+
+**Phone Numbers**: Primary customer identifier. Uses `libphonenumber-js` for validation/formatting. Mobile numbers required for SMS.
+
+**Manage Tokens** (`src/lib/manage-tokens.ts`):
+- SHA256-hashed tokens for customer self-service links
+- 90-day expiry from creation
+- Raw tokens shown only once (at booking confirmation)
+- URL pattern: `/manage/{token}`
+
+**Twilio SMS**:
+- Production: Real SMS delivery via `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+- Test mode: Set `TWILIO_TEST_MODE=true` for magic test numbers (no charges, no delivery)
+
+## Payment & Refund Flow
+
+**Stripe Integration** (`src/lib/stripe.ts`, `src/lib/stripe-refund.ts`):
+- Payment intents created at booking time
+- Webhooks handle payment status updates (`/api/stripe/webhook`)
+- Idempotent refunds use `refund-${appointmentId}` as idempotency key
+- Refund amount capped at original payment amount
+
+**Payment Policy Snapshots**:
+- Each appointment references `policyVersions.id` (frozen snapshot)
+- Policies include: deposit amount, cancel cutoff, refund eligibility
+- Tier overrides: different deposit amounts per tier (`top`/`neutral`/`risk`)
+
+## Slot Recovery System
+
+**Automatic Recovery** (`src/lib/slot-recovery.ts`):
+- Triggered on cancellation (if payment succeeded and slot is future)
+- Creates `slotOpening` record
+- Offer loop queries eligible customers sorted by tier
+- Tier priority: `top` → `neutral`/`null` → `risk`
+- Prevents duplicate offers via Redis locks and cooldown periods
+
+**Offer Lifecycle**:
+- `pending` → customer receives SMS with booking link
+- `accepted` → customer books the slot
+- `expired` → offer expires after TTL
+- `superseded` → slot filled by different customer
+
+## No-Show Prediction
+
+**Statistics** (`customerNoShowStats` table):
+- Tracks voided/settled counts, last activity
+- Updated by `recompute-no-show-stats` cron job
+- Risk levels: `low`, `medium`, `high`
+
+**Prediction Logic** (`src/lib/confirmation.ts`):
+- Based on historical voided vs settled ratio
+- Influences UI indicators and business decisions
+
+## Database Conventions
+
+**UUID vs Text IDs**:
+- ALWAYS use `uuid().primaryKey().defaultRandom()` for new tables
+- EXCEPT Better Auth tables (`user`, `session`, `account`, `verification`) which use `text("id")`
+
+**Timestamps**:
+- Use `timestamp("created_at").defaultNow().notNull()`
+- Use `timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull()`
+
+**Schema Changes**:
+1. Modify `src/lib/schema.ts`
+2. Run `pnpm db:generate` (creates migration in `drizzle/`)
+3. Review generated SQL in `drizzle/NNNN_*.sql`
+4. Run `pnpm db:migrate` (applies migration)
+
+**NEVER** use `db:push` in production (schema sync bypasses migrations).
+
+## Google Calendar Integration
+
+**Conflict Detection** (`/api/jobs/scan-calendar-conflicts`):
+- Caches Google Calendar events in database
+- Scans for overlaps between appointments and calendar events
+- Alerts shop owners to potential double-bookings
+
+**Event Caching** (`calendarEventCache` table):
+- Stores Google Calendar events with TTL
+- Reduces API calls to Google Calendar
+- Refreshes on-demand or via scheduled job
 
 ## Documentation
 
-- **Shaping docs:** `docs/shaping/` - Implementation plans with breadboards
-- **Requirements:** `docs/requirements/` - Vertical slice pitches
-- **README.md:** Setup, API keys, deployment, service configuration
+- `docs/shaping/` - Implementation plans
+- `docs/requirements/` - Vertical slice pitches
+- `README.md` - Setup, API keys, deployment

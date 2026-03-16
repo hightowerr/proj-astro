@@ -246,6 +246,42 @@ Notes:
 - In production/live flows, keep `TWILIO_TEST_MODE=false` and use your real
   `TWILIO_PHONE_NUMBER`.
 
+### Testing SMS Functionality Locally
+
+SMS requires customer consent to send. When creating test bookings, include `smsOptIn: true`:
+
+```typescript
+// Example booking request
+{
+  customer: {
+    fullName: "Test Customer",
+    phone: "+15551234567",
+    email: "test@example.com",
+    smsOptIn: true  // Required for SMS to work
+  }
+}
+```
+
+**Configure test mode** in `.env`:
+```bash
+TWILIO_TEST_MODE=true  # Uses magic test numbers, no real SMS sent
+```
+
+**Verify messages** in the database:
+```sql
+SELECT purpose, status, error_code, error_message
+FROM message_log
+WHERE appointment_id = 'your-appointment-id'
+ORDER BY created_at DESC;
+```
+
+**Common issue**: If you see "consent_missing: SMS opt-in not found" errors, ensure you're setting `smsOptIn: true` when creating bookings. The consent check happens at the application level before reaching Twilio.
+
+**Run diagnostic check**:
+```bash
+pnpm verify:sms  # Shows SMS configuration status and recent failures
+```
+
 ### Tier System (Slice 7)
 
 The tier system scores customers from `0-100` based on booking outcomes over a rolling

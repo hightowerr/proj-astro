@@ -154,7 +154,13 @@ export const messagePurposeEnum = pgEnum("message_purpose", [
   "cancellation_confirmation",
   "slot_recovery_offer",
   "appointment_reminder_24h",
+  "appointment_confirmation_request",
 ]);
+
+export const appointmentConfirmationStatusEnum = pgEnum(
+  "appointment_confirmation_status",
+  ["none", "pending", "confirmed", "expired"]
+);
 
 export const messageStatusEnum = pgEnum("message_status", [
   "queued",
@@ -460,6 +466,15 @@ export const appointments = pgTable(
     noShowScore: integer("no_show_score"),
     noShowRisk: noShowRiskEnum("no_show_risk"),
     noShowComputedAt: timestamp("no_show_computed_at", { withTimezone: true }),
+    confirmationStatus: appointmentConfirmationStatusEnum("confirmation_status")
+      .default("none")
+      .notNull(),
+    confirmationSentAt: timestamp("confirmation_sent_at", {
+      withTimezone: true,
+    }),
+    confirmationDeadline: timestamp("confirmation_deadline", {
+      withTimezone: true,
+    }),
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
     resolutionReason: text("resolution_reason"),
     lastEventId: uuid("last_event_id").references((): any => appointmentEvents.id, {
@@ -481,15 +496,20 @@ export const appointments = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("appointments_shop_starts_unique").on(
-      table.shopId,
-      table.startsAt
-    ),
+    uniqueIndex("appointments_shop_starts_unique")
+      .on(table.shopId, table.startsAt)
+      .where(sql`${table.status} in ('pending', 'booked')`),
     index("appointments_shop_id_idx").on(table.shopId),
     index("appointments_customer_id_idx").on(table.customerId),
     index("appointments_shop_ends_idx").on(table.shopId, table.endsAt),
     index("appointments_financial_outcome_idx").on(table.financialOutcome),
     index("appointments_no_show_risk_idx").on(table.noShowRisk),
+    index("appointments_confirmation_pending_idx")
+      .on(table.confirmationStatus, table.confirmationDeadline)
+      .where(sql`${table.confirmationStatus} = 'pending'`),
+    index("appointments_confirmation_none_idx")
+      .on(table.shopId, table.confirmationStatus, table.startsAt)
+      .where(sql`${table.confirmationStatus} = 'none'`),
     index("appointments_source_slot_opening_id_idx").on(
       table.sourceSlotOpeningId
     ),

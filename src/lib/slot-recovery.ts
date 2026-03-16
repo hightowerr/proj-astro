@@ -344,11 +344,24 @@ export async function findLatestOpenOffer(phone: string): Promise<OpenOffer | nu
 export async function acceptOffer(
   openOffer: OpenOffer
 ): Promise<{ bookingId: string; paymentUrl: string }> {
+  const startedAt = Date.now();
   const { offer, slotOpening, customer, shop } = openOffer;
   const lockKey = `slot_lock:${slotOpening.shopId}:${slotOpening.startsAt.toISOString()}`;
+  console.warn("[slot-recovery] accept start", {
+    slotOpeningId: slotOpening.id,
+    offerId: offer.id,
+    customerId: customer.id,
+    lockKey,
+  });
   const lock = await acquireLock(lockKey, 30);
 
   if (!lock.acquired) {
+    console.warn("[slot-recovery] lock not acquired", {
+      slotOpeningId: slotOpening.id,
+      offerId: offer.id,
+      customerId: customer.id,
+      durationMs: Date.now() - startedAt,
+    });
     throw new Error("SLOT_TAKEN");
   }
 
@@ -364,6 +377,12 @@ export async function acceptOffer(
       .limit(1);
 
     if (!fresh || fresh.slotStatus !== "open" || fresh.offerStatus !== "sent") {
+      console.warn("[slot-recovery] slot no longer available", {
+        slotOpeningId: slotOpening.id,
+        offerId: offer.id,
+        fresh,
+        durationMs: Date.now() - startedAt,
+      });
       throw new Error("SLOT_NO_LONGER_AVAILABLE");
     }
 
@@ -382,6 +401,15 @@ export async function acceptOffer(
       bookingBaseUrl,
       paymentsEnabled: true,
     });
+    console.warn("[slot-recovery] booking created", {
+      slotOpeningId: slotOpening.id,
+      offerId: offer.id,
+      bookingId: booking.appointment.id,
+      paymentRequired: booking.paymentRequired,
+      paymentStatus: booking.payment?.status ?? null,
+      hasClientSecret: Boolean(booking.clientSecret),
+      durationMs: Date.now() - startedAt,
+    });
 
     const [updatedSlot] = await db
       .update(slotOpenings)
@@ -393,6 +421,11 @@ export async function acceptOffer(
       .returning({ id: slotOpenings.id });
 
     if (!updatedSlot) {
+      console.warn("[slot-recovery] slot update lost race", {
+        slotOpeningId: slotOpening.id,
+        offerId: offer.id,
+        durationMs: Date.now() - startedAt,
+      });
       throw new Error("SLOT_NO_LONGER_AVAILABLE");
     }
 
@@ -407,6 +440,11 @@ export async function acceptOffer(
       .returning({ id: slotOffers.id });
 
     if (!updatedOffer) {
+      console.warn("[slot-recovery] offer update lost race", {
+        slotOpeningId: slotOpening.id,
+        offerId: offer.id,
+        durationMs: Date.now() - startedAt,
+      });
       throw new Error("SLOT_NO_LONGER_AVAILABLE");
     }
 
@@ -426,6 +464,12 @@ export async function acceptOffer(
     }
 
     await setCooldown(customer.id, 24 * 60 * 60);
+    console.warn("[slot-recovery] accept success", {
+      slotOpeningId: slotOpening.id,
+      offerId: offer.id,
+      bookingId: booking.appointment.id,
+      durationMs: Date.now() - startedAt,
+    });
 
     return {
       bookingId: booking.appointment.id,

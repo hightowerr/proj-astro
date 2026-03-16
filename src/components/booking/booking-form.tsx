@@ -36,6 +36,7 @@ type BookingFormProps = {
   slotMinutes: number;
   defaultDate: string;
   paymentsEnabled?: boolean;
+  forcePaymentSimulator?: boolean;
 };
 
 type BookingResponse = {
@@ -52,6 +53,7 @@ type BookingResponse = {
   currency: string;
   paymentRequired: boolean;
   clientSecret: string | null;
+  usePaymentSimulator?: boolean;
   bookingUrl?: string | null;
   manageToken?: string | null;
 };
@@ -61,7 +63,32 @@ type BookingErrorState = {
 };
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
+let stripePromise: ReturnType<typeof loadStripe> | null = null;
+const getStripePromise = () => {
+  if (!stripeKey) {
+    return null;
+  }
+
+  if (!stripePromise) {
+    stripePromise = loadStripe(stripeKey);
+  }
+
+  return stripePromise;
+};
+const shouldLogDiagnostics =
+  process.env.NEXT_PUBLIC_PLAYWRIGHT_STRIPE_BYPASS === "true" ||
+  process.env.NEXT_PUBLIC_PLAYWRIGHT === "true";
+
+const logBookingDiagnostic = (
+  event: string,
+  payload: Record<string, unknown> = {}
+) => {
+  if (!shouldLogDiagnostics) {
+    return;
+  }
+
+  console.warn(`[booking-form] ${event}`, payload);
+};
 
 const formatCurrency = (amountCents: number, currency: string) => {
   return new Intl.NumberFormat("en-US", {
@@ -75,6 +102,7 @@ function PaymentStep({
   currency,
   timezone,
   slotLabel,
+  usePaymentSimulator,
   bookingUrl,
   returnUrl,
   onSuccess,
@@ -87,6 +115,7 @@ function PaymentStep({
   currency: string;
   timezone: string;
   slotLabel: string;
+  usePaymentSimulator: boolean;
   bookingUrl?: string | null;
   returnUrl?: string | null;
   onSuccess: () => void;
@@ -99,12 +128,66 @@ function PaymentStep({
   const elements = useElements();
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [mockCardNumber, setMockCardNumber] = useState("");
+  const [mockExpiry, setMockExpiry] = useState("");
+  const [mockCvc, setMockCvc] = useState("");
+
+  useEffect(() => {
+    logBookingDiagnostic("payment-step-mounted", {
+      amountCents,
+      currency,
+      hasBookingUrl: Boolean(bookingUrl),
+      hasReturnUrl: Boolean(returnUrl),
+      usePaymentSimulator,
+    });
+  }, [amountCents, bookingUrl, currency, returnUrl, usePaymentSimulator]);
 
   const handlePayment = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPaymentError(null);
+    logBookingDiagnostic("payment-submit", {
+      usePaymentSimulator,
+      hasStripe: Boolean(stripe),
+      hasElements: Boolean(elements),
+      hasMockCardNumber: mockCardNumber.replace(/\s+/g, "").length >= 12,
+    });
+
+    if (usePaymentSimulator) {
+      const normalizedCard = mockCardNumber.replace(/\s+/g, "");
+      if (normalizedCard.length < 12) {
+        logBookingDiagnostic("payment-submit-blocked", {
+          reason: "mock-card-incomplete",
+        });
+        setPaymentError("Payment form is still loading.");
+        return;
+      }
+
+      setIsPaying(true);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      if (normalizedCard === "4000000000000002") {
+        logBookingDiagnostic("payment-submit-result", {
+          mode: "mock",
+          outcome: "failed",
+        });
+        setPaymentError("Payment failed.");
+        setIsPaying(false);
+        return;
+      }
+
+      logBookingDiagnostic("payment-submit-result", {
+        mode: "mock",
+        outcome: "succeeded",
+      });
+      onSuccess();
+      setIsPaying(false);
+      return;
+    }
 
     if (!stripe || !elements) {
+      logBookingDiagnostic("payment-submit-blocked", {
+        reason: "stripe-not-ready",
+      });
       setPaymentError("Payment form is still loading.");
       return;
     }
@@ -120,6 +203,11 @@ function PaymentStep({
       });
 
       if (error) {
+        logBookingDiagnostic("payment-submit-result", {
+          mode: "stripe",
+          outcome: "error",
+          message: error.message ?? "Payment failed.",
+        });
         setPaymentError(error.message ?? "Payment failed.");
         return;
       }
@@ -129,10 +217,18 @@ function PaymentStep({
         (paymentIntent.status === "succeeded" ||
           paymentIntent.status === "processing")
       ) {
+        logBookingDiagnostic("payment-submit-result", {
+          mode: "stripe",
+          outcome: paymentIntent.status,
+        });
         onSuccess();
         return;
       }
 
+      logBookingDiagnostic("payment-submit-result", {
+        mode: "stripe",
+        outcome: paymentIntent?.status ?? "unknown",
+      });
       setPaymentError("Payment requires additional confirmation.");
     } finally {
       setIsPaying(false);
@@ -140,7 +236,7 @@ function PaymentStep({
   };
 
   return (
-    <div className="space-y-6">
+        <div className="space-y-6">
       <div className="rounded-lg border p-4 space-y-1">
         <p className="text-sm font-medium">Payment due</p>
         <p className="text-2xl font-semibold">
@@ -152,7 +248,48 @@ function PaymentStep({
       </div>
 
       <form onSubmit={handlePayment} className="space-y-4">
-        <PaymentElement options={{ layout: "tabs" }} />
+        {usePaymentSimulator ? (
+          <div className="space-y-3 rounded-md border border-dashed p-3">
+            <p className="text-xs text-muted-foreground">Playwright payment simulator</p>
+            <div className="space-y-2">
+              <Label htmlFor="playwright-card-number">Card number</Label>
+              <Input
+                id="playwright-card-number"
+                name="playwrightCardNumber"
+                value={mockCardNumber}
+                onChange={(event) => setMockCardNumber(event.target.value)}
+                autoComplete="cc-number"
+                placeholder="4242 4242 4242 4242"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="playwright-card-expiry">Expiry</Label>
+                <Input
+                  id="playwright-card-expiry"
+                  name="playwrightCardExpiry"
+                  value={mockExpiry}
+                  onChange={(event) => setMockExpiry(event.target.value)}
+                  autoComplete="cc-exp"
+                  placeholder="12 / 34"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="playwright-card-cvc">CVC</Label>
+                <Input
+                  id="playwright-card-cvc"
+                  name="playwrightCardCvc"
+                  value={mockCvc}
+                  onChange={(event) => setMockCvc(event.target.value)}
+                  autoComplete="cc-csc"
+                  placeholder="123"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <PaymentElement options={{ layout: "tabs" }} />
+        )}
         {paymentError ? (
           <p className="text-sm text-destructive">{paymentError}</p>
         ) : null}
@@ -167,7 +304,13 @@ function PaymentStep({
         ) : null}
         <Button
           type="submit"
-          disabled={!stripe || !elements || isPaying || Boolean(isCancelling)}
+          disabled={
+            (usePaymentSimulator
+              ? mockCardNumber.replace(/\s+/g, "").length < 12
+              : !stripe || !elements) ||
+            isPaying ||
+            Boolean(isCancelling)
+          }
         >
           {isPaying
             ? "Processing…"
@@ -211,6 +354,7 @@ export function BookingForm({
   slotMinutes,
   defaultDate,
   paymentsEnabled = false,
+  forcePaymentSimulator = false,
 }: BookingFormProps) {
   const searchParams = useSearchParams();
   const resumeAppointmentId = searchParams.get("appointment");
@@ -226,6 +370,7 @@ export function BookingForm({
   const [success, setSuccess] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [usePaymentSimulator, setUsePaymentSimulator] = useState(false);
   const [bookingUrl, setBookingUrl] = useState<string | null>(null);
   const [manageToken, setManageToken] = useState<string | null>(null);
   const [resumeLoading, setResumeLoading] = useState(false);
@@ -295,8 +440,17 @@ export function BookingForm({
         const data = (await res.json()) as AvailabilityResponse;
         if (!active) return;
         setSlots(data.slots ?? []);
+        logBookingDiagnostic("availability-loaded", {
+          shopSlug,
+          date,
+          slotCount: data.slots?.length ?? 0,
+        });
       } catch (err) {
         if ((err as { name?: string }).name !== "AbortError") {
+          logBookingDiagnostic("availability-failed", {
+            shopSlug,
+            date,
+          });
           setAvailabilityError("Failed to load availability");
         }
       } finally {
@@ -331,6 +485,9 @@ export function BookingForm({
       setManageToken(null);
 
       try {
+        logBookingDiagnostic("resume-start", {
+          appointmentId: resumeAppointmentId,
+        });
         const res = await fetch(`/api/bookings/${resumeAppointmentId}`, {
           method: "GET",
           signal: controller.signal,
@@ -342,6 +499,11 @@ export function BookingForm({
             | { error?: string }
             | null;
           setError({ message: data?.error ?? "Failed to resume booking" });
+          logBookingDiagnostic("resume-failed-response", {
+            appointmentId: resumeAppointmentId,
+            status: res.status,
+            error: data?.error ?? "Failed to resume booking",
+          });
           return;
         }
 
@@ -351,6 +513,13 @@ export function BookingForm({
         setSelectedSlot(data.appointment.startsAt);
         setBookingUrl(data.bookingUrl ?? data.appointment.bookingUrl ?? null);
         setManageToken(data.manageToken ?? null);
+        logBookingDiagnostic("resume-success", {
+          appointmentId: resumeAppointmentId,
+          paymentRequired: data.paymentRequired,
+          paymentStatus: data.appointment.paymentStatus,
+          hasClientSecret: Boolean(data.clientSecret),
+          hasManageToken: Boolean(data.manageToken),
+        });
 
         if (!data.paymentRequired || data.appointment.paymentStatus === "paid") {
           setSuccess(true);
@@ -358,16 +527,25 @@ export function BookingForm({
         }
 
         if (!data.clientSecret) {
+          logBookingDiagnostic("resume-blocked", {
+            appointmentId: resumeAppointmentId,
+            reason: "missing-client-secret",
+          });
           setError({ message: "Payment cannot be resumed. Please contact the business." });
           return;
         }
 
         setPaymentAmountCents(data.amountCents);
         setPaymentCurrency(data.currency);
+        setUsePaymentSimulator(Boolean(data.usePaymentSimulator));
         setShowPaymentDetails(false);
         setClientSecret(data.clientSecret);
       } catch (err) {
         if ((err as { name?: string }).name !== "AbortError") {
+          logBookingDiagnostic("resume-failed-exception", {
+            appointmentId: resumeAppointmentId,
+            message: err instanceof Error ? err.message : "Unknown error",
+          });
           setResumeFailed(true);
           setError({ message: "Failed to resume booking" });
         }
@@ -456,6 +634,11 @@ export function BookingForm({
 
     try {
       setIsSubmitting(true);
+      logBookingDiagnostic("submit-start", {
+        shopSlug,
+        selectedSlot,
+        paymentsEnabled,
+      });
       const endpoint = paymentsEnabled
         ? "/api/bookings/create"
         : "/api/appointments";
@@ -478,6 +661,11 @@ export function BookingForm({
         const data = (await res.json().catch(() => null)) as
           | BookingErrorResponse
           | null;
+        logBookingDiagnostic("submit-conflict", {
+          shopSlug,
+          selectedSlot,
+          error: data?.error ?? "That slot was just taken. Please pick another.",
+        });
         setError({
           message: data?.error ?? "That slot was just taken. Please pick another.",
         });
@@ -490,6 +678,12 @@ export function BookingForm({
         const data = (await res.json().catch(() => null)) as
           | BookingErrorResponse
           | null;
+        logBookingDiagnostic("submit-failed-response", {
+          shopSlug,
+          selectedSlot,
+          status: res.status,
+          error: data?.error ?? "Failed to create booking",
+        });
         setError({ message: data?.error ?? "Failed to create booking" });
         return;
       }
@@ -504,6 +698,14 @@ export function BookingForm({
         setBookingUrl(null);
       }
       setManageToken(data.manageToken ?? null);
+      logBookingDiagnostic("submit-success", {
+        shopSlug,
+        appointmentId: data.appointment.id,
+        paymentRequired: data.paymentRequired,
+        paymentStatus: data.appointment.paymentStatus,
+        hasClientSecret: Boolean(data.clientSecret),
+        hasManageToken: Boolean(data.manageToken),
+      });
 
       if (
         paymentsEnabled &&
@@ -527,18 +729,29 @@ export function BookingForm({
 
       if (paymentsEnabled && data.paymentRequired) {
         if (!data.clientSecret) {
+          logBookingDiagnostic("submit-blocked", {
+            shopSlug,
+            appointmentId: data.appointment.id,
+            reason: "missing-client-secret",
+          });
           setError({ message: "Payment could not be initialized." });
           return;
         }
         setPaymentAmountCents(data.amountCents);
         setPaymentCurrency(data.currency);
+        setUsePaymentSimulator(Boolean(data.usePaymentSimulator));
         setClientSecret(data.clientSecret);
         setShowPaymentDetails(false);
         return;
       }
 
       setSuccess(true);
-    } catch {
+    } catch (submitError) {
+      logBookingDiagnostic("submit-failed-exception", {
+        shopSlug,
+        selectedSlot,
+        message: submitError instanceof Error ? submitError.message : "Unknown error",
+      });
       setError({ message: "Failed to create booking" });
     } finally {
       setIsSubmitting(false);
@@ -593,8 +806,10 @@ export function BookingForm({
     const slotLabel = selectedSlot
       ? timeFormatter.format(new Date(selectedSlot))
       : "Selected slot";
+    const shouldUsePaymentSimulator = forcePaymentSimulator || usePaymentSimulator;
+    const resolvedStripePromise = shouldUsePaymentSimulator ? null : getStripePromise();
 
-    if (!stripePromise) {
+    if (!shouldUsePaymentSimulator && !resolvedStripePromise) {
       return (
         <div className="rounded-lg border p-6 space-y-2">
           <h2 className="text-xl font-semibold">Payment unavailable</h2>
@@ -645,13 +860,35 @@ export function BookingForm({
       );
     }
 
-    return (
-      <Elements stripe={stripePromise} options={{ clientSecret }}>
+    if (shouldUsePaymentSimulator) {
+      return (
         <PaymentStep
           amountCents={paymentAmountCents}
           currency={paymentCurrency}
           timezone={timezone}
           slotLabel={slotLabel}
+          usePaymentSimulator
+          bookingUrl={bookingUrl}
+          returnUrl={bookingUrl}
+          onSuccess={() => setSuccess(true)}
+          onBack={() => {
+            setShowPaymentDetails(true);
+          }}
+          isCancelling={isCancellingBooking}
+          cancelError={cancelBookingError}
+          {...(manageToken ? { onCancel: handleCancelBooking } : {})}
+        />
+      );
+    }
+
+    return (
+      <Elements stripe={resolvedStripePromise} options={{ clientSecret }}>
+        <PaymentStep
+          amountCents={paymentAmountCents}
+          currency={paymentCurrency}
+          timezone={timezone}
+          slotLabel={slotLabel}
+          usePaymentSimulator={false}
           bookingUrl={bookingUrl}
           returnUrl={bookingUrl}
           onSuccess={() => setSuccess(true)}

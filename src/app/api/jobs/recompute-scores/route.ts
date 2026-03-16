@@ -1,5 +1,7 @@
 import { eq, sql } from "drizzle-orm";
+import { invalidateCacheKey } from "@/lib/cache";
 import { db } from "@/lib/db";
+import { getTierDistributionCacheKey } from "@/lib/queries/dashboard";
 import { aggregateAppointmentCounts, upsertCustomerScore } from "@/lib/queries/scoring";
 import { customers, shops } from "@/lib/schema";
 import { calculateScore, assignTier, flattenRecencyData } from "@/lib/scoring";
@@ -92,6 +94,8 @@ export async function POST(req: Request) {
           }
         }
       }
+
+      await invalidateCacheKey(getTierDistributionCacheKey(shop.id));
     }
 
     return Response.json({

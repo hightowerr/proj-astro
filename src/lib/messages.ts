@@ -214,6 +214,12 @@ export const sendBookingConfirmationSMS = async (appointmentId: string) => {
   }
 
   if (!prefs?.smsOptIn) {
+    console.warn("[booking-sms] consent_missing", {
+      customerId: appointment.customerId,
+      appointmentId: appointment.id,
+      message: "Customer has not opted in to SMS. Set smsOptIn=true when creating bookings to enable SMS.",
+    });
+
     await db.insert(messageLog).values({
       ...baseLog,
       status: "failed",
@@ -324,6 +330,12 @@ export const sendAppointmentReminderSMS = async (params: {
   };
 
   if (!prefs?.smsOptIn) {
+    console.warn("[reminder-sms] consent_missing", {
+      customerId,
+      appointmentId,
+      message: "Customer has not opted in to SMS. Set smsOptIn=true when creating bookings to enable SMS.",
+    });
+
     await db.insert(messageLog).values({
       ...baseLog,
       status: "failed",
