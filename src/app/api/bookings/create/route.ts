@@ -15,6 +15,7 @@ import {
   SlotTakenError,
 } from "@/lib/queries/appointments";
 import { getShopBySlug } from "@/lib/queries/shops";
+import { stripeIsMocked } from "@/lib/stripe";
 
 const createBookingSchema = z.object({
   shop: z.string().min(1),
@@ -30,28 +31,57 @@ const createBookingSchema = z.object({
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 export async function POST(req: Request) {
+  console.warn("[booking-create] env debug", {
+    STRIPE_MOCKED: process.env.STRIPE_MOCKED,
+    PLAYWRIGHT: process.env.PLAYWRIGHT,
+    NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_PLAYWRIGHT_STRIPE_BYPASS: process.env.NEXT_PUBLIC_PLAYWRIGHT_STRIPE_BYPASS,
+  });
+  const startedAt = Date.now();
   let body: unknown;
   try {
     body = await req.json();
   } catch {
+    console.warn("[booking-create] invalid json", {
+      durationMs: Date.now() - startedAt,
+    });
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const parsed = createBookingSchema.safeParse(body);
   if (!parsed.success) {
+    console.warn("[booking-create] invalid request", {
+      durationMs: Date.now() - startedAt,
+      errors: parsed.error.flatten().fieldErrors,
+    });
     return Response.json(
       { error: "Invalid request", details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
 
+  console.warn("[booking-create] request", {
+    shopSlug: parsed.data.shop,
+    startsAt: parsed.data.startsAt,
+    hasSmsOptIn: typeof parsed.data.customer.smsOptIn === "boolean",
+  });
+
   const startsAt = new Date(parsed.data.startsAt);
   if (Number.isNaN(startsAt.getTime())) {
+    console.warn("[booking-create] invalid startsAt", {
+      shopSlug: parsed.data.shop,
+      startsAt: parsed.data.startsAt,
+      durationMs: Date.now() - startedAt,
+    });
     return Response.json({ error: "Invalid startsAt" }, { status: 400 });
   }
 
   const shop = await getShopBySlug(parsed.data.shop);
   if (!shop) {
+    console.warn("[booking-create] shop not found", {
+      shopSlug: parsed.data.shop,
+      durationMs: Date.now() - startedAt,
+    });
     return Response.json({ error: "Shop not found" }, { status: 404 });
   }
 
@@ -61,6 +91,11 @@ export async function POST(req: Request) {
     phone = normalizePhoneNumber(parsed.data.customer.phone);
     email = normalizeEmail(parsed.data.customer.email);
   } catch (error) {
+    console.warn("[booking-create] invalid customer details", {
+      shopId: shop.id,
+      durationMs: Date.now() - startedAt,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
     return Response.json(
       { error: (error as Error).message ?? "Invalid customer details" },
       { status: 400 }
@@ -108,6 +143,16 @@ export async function POST(req: Request) {
       bookingBaseUrl,
     });
     const manageToken = await createManageToken(result.appointment.id);
+    console.warn("[booking-create] success", {
+      shopId: shop.id,
+      appointmentId: result.appointment.id,
+      paymentRequired: result.paymentRequired,
+      appointmentPaymentStatus: result.appointment.paymentStatus,
+      paymentRowStatus: result.payment?.status ?? null,
+      hasClientSecret: Boolean(result.clientSecret),
+      hasManageToken: Boolean(manageToken),
+      durationMs: Date.now() - startedAt,
+    });
 
     return Response.json({
       appointment: {
@@ -139,10 +184,17 @@ export async function POST(req: Request) {
       currency: result.currency,
       paymentRequired: result.paymentRequired,
       clientSecret: result.clientSecret,
+      usePaymentSimulator: Boolean(result.clientSecret && stripeIsMocked()),
       bookingUrl: result.bookingUrl,
       manageToken,
     });
   } catch (error) {
+    console.error("[booking-create] failed", {
+      shopSlug: parsed.data.shop,
+      startsAt: parsed.data.startsAt,
+      durationMs: Date.now() - startedAt,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
     if (error instanceof CalendarConflictError) {
       return Response.json({ error: error.message }, { status: 409 });
     }

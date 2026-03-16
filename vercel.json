@@ -21,6 +21,14 @@
       "schedule": "0 3 * * *"
     },
     {
+      "path": "/api/jobs/send-confirmations",
+      "schedule": "5 3 * * *"
+    },
+    {
+      "path": "/api/jobs/expire-confirmations",
+      "schedule": "10 3 * * *"
+    },
+    {
       "path": "/api/jobs/scan-calendar-conflicts",
       "schedule": "0 4 * * *"
     }

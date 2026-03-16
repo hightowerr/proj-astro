@@ -80,6 +80,14 @@ const getErrorCode = (error: unknown): string | undefined => {
   return getErrorCode(cause);
 };
 
+const getErrorConstraint = (error: unknown): string | undefined => {
+  if (!error || typeof error !== "object") return undefined;
+  const direct = (error as { constraint?: string }).constraint;
+  if (direct) return direct;
+  const cause = (error as { cause?: unknown }).cause;
+  return getErrorConstraint(cause);
+};
+
 const isUniqueViolation = (error: unknown): boolean => {
   return getErrorCode(error) === "23505";
 };
@@ -584,9 +592,6 @@ export const createAppointment = async (input: {
       let paymentRequired = false;
       let amountCents = 0;
       let currency = "USD";
-      const bookingUrl = input.bookingBaseUrl
-        ? `${input.bookingBaseUrl}?appointment=pending`
-        : undefined;
 
       if (paymentsEnabled) {
         const policy = await ensureShopPolicy(tx, input.shopId);
@@ -651,7 +656,7 @@ export const createAppointment = async (input: {
         paymentRequired,
         source: input.source ?? "web",
         sourceSlotOpeningId: input.sourceSlotOpeningId ?? null,
-        bookingUrl: bookingUrl ?? null,
+        bookingUrl: null,
       };
 
       const [appointment] = await tx
@@ -661,6 +666,28 @@ export const createAppointment = async (input: {
 
       if (!appointment) {
         throw new Error("Failed to create appointment");
+      }
+
+      const bookingUrl = input.bookingBaseUrl
+        ? `${input.bookingBaseUrl}?appointment=${appointment.id}`
+        : null;
+
+      let appointmentWithBookingUrl = appointment;
+      if (bookingUrl) {
+        const [updatedAppointment] = await tx
+          .update(appointments)
+          .set({
+            bookingUrl,
+            updatedAt: new Date(),
+          })
+          .where(eq(appointments.id, appointment.id))
+          .returning();
+
+        if (!updatedAppointment) {
+          throw new Error("Failed to persist booking URL");
+        }
+
+        appointmentWithBookingUrl = updatedAppointment;
       }
 
       let calendarEventId: string | null = null;
@@ -674,9 +701,9 @@ export const createAppointment = async (input: {
           const calendarEventInput: Parameters<typeof createCalendarEvent>[0] = {
             shopId: input.shopId,
             customerName: customer.fullName,
-            startsAt: appointment.startsAt,
-            endsAt: appointment.endsAt,
-            bookingUrl: bookingUrl ?? null,
+            startsAt: appointmentWithBookingUrl.startsAt,
+            endsAt: appointmentWithBookingUrl.endsAt,
+            bookingUrl,
           };
           if (shop?.name) {
             calendarEventInput.shopName = shop.name;
@@ -701,7 +728,7 @@ export const createAppointment = async (input: {
         }
       }
 
-      let appointmentWithCalendar = appointment;
+      let appointmentWithCalendar = appointmentWithBookingUrl;
       if (calendarEventId) {
         const [updatedAppointment] = await tx
           .update(appointments)
@@ -885,7 +912,10 @@ export const createAppointment = async (input: {
       throw new Error("Failed to create booking - calendar sync error");
     }
 
-    if (isUniqueViolation(error)) {
+    if (
+      isUniqueViolation(error) &&
+      getErrorConstraint(error) === "appointments_shop_starts_unique"
+    ) {
       throw new SlotTakenError();
     }
 

@@ -10,9 +10,11 @@ export default async function BookingPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  console.warn("[booking-page] loading", { slug });
   const shop = await getShopBySlug(slug);
 
   if (!shop) {
+    console.warn("[booking-page] shop not found", { slug });
     notFound();
   }
 
@@ -20,6 +22,12 @@ export default async function BookingPage({
   const timezone = settings?.timezone ?? "UTC";
   const slotMinutes = settings?.slotMinutes ?? 60;
   const defaultDate = formatDateInTimeZone(new Date(), timezone);
+  console.warn("[booking-page] loaded", {
+    slug,
+    shopId: shop.id,
+    timezone,
+    slotMinutes,
+  });
 
   return (
     <div className="container mx-auto px-4 py-10 space-y-6">
@@ -38,6 +46,7 @@ export default async function BookingPage({
           slotMinutes={slotMinutes}
           defaultDate={defaultDate}
           paymentsEnabled={true}
+          forcePaymentSimulator={process.env.PLAYWRIGHT === "true"}
         />
       </div>
     </div>

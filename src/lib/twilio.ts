@@ -3,7 +3,8 @@ import { getServerEnv } from "@/lib/env";
 
 const DEFAULT_TWILIO_TEST_FROM_NUMBER = "+15005550006";
 
-export const smsIsMocked = () => process.env.NODE_ENV === "test";
+export const smsIsMocked = () =>
+  process.env.PLAYWRIGHT === "true" || process.env.NODE_ENV === "test";
 export const smsUsesTwilioTestApi = () =>
   process.env.TWILIO_TEST_MODE === "true";
 

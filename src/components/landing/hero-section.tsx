@@ -78,6 +78,7 @@ export default function HeroSection() {
         aria-hidden="true"
         fill
         priority={true}
+        unoptimized
         sizes="100vw"
         className="object-cover object-center"
       />

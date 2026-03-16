@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { processConfirmationReply } from "@/lib/confirmation";
 import { db } from "@/lib/db";
 import { getServerEnv } from "@/lib/env";
 import {
@@ -65,6 +66,7 @@ const validateTwilioSignature = (
 };
 
 export async function POST(req: Request) {
+  const startedAt = Date.now();
   const body = await req.text();
   const params = new URLSearchParams(body);
 
@@ -115,10 +117,24 @@ export async function POST(req: Request) {
   const normalized = message.toUpperCase().replace(/\s+/g, "");
 
   if (normalized === "YES") {
+    const confirmationResult = await processConfirmationReply(from, message);
+
+    if (confirmationResult.matched) {
+      return new Response(twimlResponse(confirmationResult.replyMessage), {
+        status: 200,
+        headers: { "Content-Type": "text/xml" },
+      });
+    }
+
     try {
+      console.warn("[twilio-inbound] YES received", { from });
       const openOffer = await findLatestOpenOffer(from);
 
       if (!openOffer) {
+        console.warn("[twilio-inbound] no open offer", {
+          from,
+          durationMs: Date.now() - startedAt,
+        });
         return new Response(
           twimlResponse("No active offers found. Please contact us."),
           {
@@ -129,13 +145,23 @@ export async function POST(req: Request) {
       }
 
       await acceptOffer(openOffer);
+      console.warn("[twilio-inbound] offer accepted", {
+        from,
+        slotOpeningId: openOffer.slotOpening.id,
+        offerId: openOffer.offer.id,
+        durationMs: Date.now() - startedAt,
+      });
 
       return new Response(twimlResponse(), {
         status: 200,
         headers: { "Content-Type": "text/xml" },
       });
     } catch (error) {
-      console.error("Failed to accept slot recovery offer", { from, error });
+      console.error("Failed to accept slot recovery offer", {
+        from,
+        durationMs: Date.now() - startedAt,
+        error,
+      });
 
       const maybeCode = error instanceof Error ? error.message : null;
       if (

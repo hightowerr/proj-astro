@@ -78,6 +78,7 @@ test.describe("Tier system edge cases", () => {
         fullName: "No Score Customer",
         phone: "+12025550301",
         email: "no-score-edge@example.com",
+        smsOptIn: true,
       },
       paymentsEnabled: true,
     });
@@ -166,6 +167,7 @@ test.describe("Tier system edge cases", () => {
         fullName: riskCustomer.fullName,
         phone: riskCustomer.phone,
         email: riskCustomer.email,
+        smsOptIn: true,
       },
       paymentsEnabled: true,
     });

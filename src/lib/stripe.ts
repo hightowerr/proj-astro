@@ -3,7 +3,21 @@ import Stripe from "stripe";
 let stripeClient: Stripe | null = null;
 
 export const stripeIsMocked = () => {
-  return process.env.STRIPE_MOCKED === "true" || process.env.NODE_ENV === "test";
+  const mocked =
+    process.env.STRIPE_MOCKED === "true" ||
+    process.env.PLAYWRIGHT === "true" ||
+    process.env.NODE_ENV === "test";
+
+  if (process.env.PLAYWRIGHT === "true") {
+    console.warn("[stripe] stripeIsMocked check", {
+      mocked,
+      STRIPE_MOCKED: process.env.STRIPE_MOCKED,
+      PLAYWRIGHT: process.env.PLAYWRIGHT,
+      NODE_ENV: process.env.NODE_ENV,
+    });
+  }
+
+  return mocked;
 };
 
 export const getStripeClient = () => {

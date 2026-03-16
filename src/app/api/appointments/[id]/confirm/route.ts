@@ -1,0 +1,50 @@
+import { NextResponse } from "next/server";
+import { and, eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { sendConfirmationRequest } from "@/lib/confirmation";
+import { db } from "@/lib/db";
+import { getShopByOwnerId } from "@/lib/queries/shops";
+import { appointments } from "@/lib/schema";
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function POST(request: Request, { params }: RouteContext) {
+  try {
+    const session = await auth.api.getSession({ headers: request.headers });
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const shop = await getShopByOwnerId(session.user.id);
+    if (!shop) {
+      return NextResponse.json({ error: "Shop not found" }, { status: 404 });
+    }
+
+    const { id } = await params;
+    const appointment = await db.query.appointments.findFirst({
+      where: and(eq(appointments.id, id), eq(appointments.shopId, shop.id)),
+    });
+
+    if (!appointment) {
+      return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+    }
+
+    const result = await sendConfirmationRequest(id);
+
+    return NextResponse.json(result);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to send confirmation";
+    const status =
+      message === "SMS opt-in not found" ||
+      message === "Appointment is already confirmed" ||
+      message === "Cannot send confirmation for non-booked appointment"
+        ? 400
+        : 500;
+
+    return NextResponse.json({ error: message }, { status });
+  }
+}

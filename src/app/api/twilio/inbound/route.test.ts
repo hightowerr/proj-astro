@@ -274,6 +274,34 @@ const seedTwoOpenOffers = async () => {
   };
 };
 
+const seedPendingConfirmationForCustomer = async (input: {
+  shopId: string;
+  customerId: string;
+}) => {
+  const startsAt = tomorrowAt(13);
+  const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
+
+  const [appointment] = await db
+    .insert(appointments)
+    .values({
+      shopId: input.shopId,
+      customerId: input.customerId,
+      startsAt,
+      endsAt,
+      status: "booked",
+      confirmationStatus: "pending",
+      confirmationSentAt: new Date(),
+      confirmationDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    })
+    .returning();
+
+  if (!appointment) {
+    throw new Error("Failed to create pending confirmation appointment");
+  }
+
+  return appointment;
+};
+
 describeIf("POST /api/twilio/inbound", () => {
   beforeAll(() => {
     vi.stubEnv("NODE_ENV", "test");
@@ -344,6 +372,10 @@ describeIf("POST /api/twilio/inbound", () => {
   });
 
   it("returns a helpful message for YES with no active offer", async () => {
+    const beforeCount = await db.query.appointments.findMany({
+      where: (table, { eq: whereEq }) => whereEq(table.source, "slot_recovery"),
+    });
+
     const response = await POST(makeInboundRequest(randomPhone(), "YES"));
     const twiml = await response.text();
 
@@ -355,7 +387,39 @@ describeIf("POST /api/twilio/inbound", () => {
       where: (table, { eq: whereEq }) => whereEq(table.source, "slot_recovery"),
     });
 
+    expect(recoveryAppointments).toHaveLength(beforeCount.length);
+  });
+
+  it("uses YES to confirm a pending appointment before trying slot recovery", async () => {
+    const { shop, slotOpening, offeredCustomer } = await seedOpenOffer();
+    const confirmationAppointment = await seedPendingConfirmationForCustomer({
+      shopId: shop.id,
+      customerId: offeredCustomer.id,
+    });
+
+    const response = await POST(makeInboundRequest(offeredCustomer.phone, "YES"));
+    const twiml = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(twiml).toContain("Your appointment is confirmed");
+    expect(sendTwilioSmsMock).not.toHaveBeenCalled();
+
+    const updatedConfirmation = await db.query.appointments.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, confirmationAppointment.id),
+    });
+    expect(updatedConfirmation?.confirmationStatus).toBe("confirmed");
+
+    const recoveryAppointments = await db.query.appointments.findMany({
+      where: (table, { eq: whereEq }) =>
+        whereEq(table.sourceSlotOpeningId, slotOpening.id),
+    });
     expect(recoveryAppointments).toHaveLength(0);
+
+    const offer = await db.query.slotOffers.findFirst({
+      where: (table, { eq: whereEq }) =>
+        whereEq(table.slotOpeningId, slotOpening.id),
+    });
+    expect(offer?.status).toBe("sent");
   });
 
   it("returns slot taken message when lock acquisition fails", async () => {

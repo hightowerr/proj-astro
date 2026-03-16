@@ -1,0 +1,2 @@
+DROP INDEX "appointments_shop_starts_unique";--> statement-breakpoint
+CREATE UNIQUE INDEX "appointments_shop_starts_unique" ON "appointments" USING btree ("shop_id","starts_at") WHERE "appointments"."status" in ('pending', 'booked');

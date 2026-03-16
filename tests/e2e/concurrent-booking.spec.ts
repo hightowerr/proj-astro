@@ -20,7 +20,7 @@ const shouldRun = Boolean(
     process.env.UPSTASH_REDIS_REST_TOKEN
 );
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3300";
 
 const randomPhone = () =>
   `+1202${Math.floor(Math.random() * 10_000_000)

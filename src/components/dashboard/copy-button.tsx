@@ -3,36 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 
 type CopyButtonProps = {
   text: string;
   label?: string;
-};
-
-const copyWithFallback = async (text: string) => {
-  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-
-  if (typeof document === "undefined") {
-    throw new Error("Clipboard unavailable");
-  }
-
-  const textArea = document.createElement("textarea");
-  textArea.value = text;
-  textArea.setAttribute("readonly", "");
-  textArea.style.position = "fixed";
-  textArea.style.opacity = "0";
-  document.body.appendChild(textArea);
-  textArea.select();
-
-  const copied = document.execCommand("copy");
-  document.body.removeChild(textArea);
-
-  if (!copied) {
-    throw new Error("Copy command failed");
-  }
 };
 
 export function CopyButton({ text, label = "Copy Link" }: CopyButtonProps) {
@@ -49,7 +24,7 @@ export function CopyButton({ text, label = "Copy Link" }: CopyButtonProps) {
 
   const handleCopy = async () => {
     try {
-      await copyWithFallback(text);
+      await copyToClipboard(text);
       setCopied(true);
       toast.success("Link copied to clipboard!");
 

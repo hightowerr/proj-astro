@@ -26,7 +26,10 @@
       "Skill(web-design-guidelines)",
       "Bash(python3:*)",
       "Skill(vercel-react-best-practices)",
-      "Skill(frontend-design)"
+      "Skill(frontend-design)",
+      "Bash(pnpm test:e2e:*)",
+      "Bash(tee:*)",
+      "Bash(pkill:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

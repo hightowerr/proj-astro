@@ -3,11 +3,14 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "./db"
 
 const isPlaywrightE2E = process.env.PLAYWRIGHT === "true"
+const appOrigin = process.env.NEXT_PUBLIC_APP_URL
+const trustedOrigins = appOrigin ? [appOrigin] : undefined
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+  ...(trustedOrigins ? { trustedOrigins } : {}),
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {

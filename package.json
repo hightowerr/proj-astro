@@ -13,6 +13,7 @@
     "format:check": "prettier --check .",
     "setup": "npx tsx scripts/setup.ts",
     "env:check": "node -e \"require('./src/lib/env.ts').checkEnv()\" || echo 'Run with tsx: npx tsx -e \"import { checkEnv } from './src/lib/env'; checkEnv();\"'",
+    "verify:sms": "tsx scripts/verify-sms-config.ts",
     "test": "vitest",
     "test:unit": "vitest",
     "test:unit:ui": "vitest --ui",

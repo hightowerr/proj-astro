@@ -134,6 +134,20 @@
       "when": 1772493164211,
       "tag": "0018_cold_madame_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1773468259418,
+      "tag": "0019_mixed_hobgoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1773469037072,
+      "tag": "0020_oval_northstar",
+      "breakpoints": true
     }
   ]
 }
