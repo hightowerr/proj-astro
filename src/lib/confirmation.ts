@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, asc, eq, gt, gte, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sendAppointmentReminderSMS } from "@/lib/messages";
 import {
@@ -35,11 +35,18 @@ const renderTemplate = (template: string, data: Record<string, string>) => {
 };
 
 const ensureConfirmationTemplate = async () => {
-  const existing = await db.query.messageTemplates.findFirst({
-    where: (table, { eq: whereEq }) =>
-      whereEq(table.key, CONFIRMATION_TEMPLATE_KEY),
-    orderBy: (table, { desc }) => [desc(table.version)],
-  });
+  const existing = await db
+    .select()
+    .from(messageTemplates)
+    .where(
+      and(
+        eq(messageTemplates.key, CONFIRMATION_TEMPLATE_KEY),
+        eq(messageTemplates.channel, "sms")
+      )
+    )
+    .orderBy(desc(messageTemplates.version))
+    .limit(1)
+    .then((rows) => rows[0]);
 
   if (existing) {
     return existing;
@@ -61,8 +68,11 @@ const ensureConfirmationTemplate = async () => {
   }
 
   const retry = await db.query.messageTemplates.findFirst({
-    where: (table, { eq: whereEq }) =>
-      whereEq(table.key, CONFIRMATION_TEMPLATE_KEY),
+    where: (table, { and: whereAnd, eq: whereEq }) =>
+      whereAnd(
+        whereEq(table.key, CONFIRMATION_TEMPLATE_KEY),
+        whereEq(table.channel, "sms")
+      ),
     orderBy: (table, { desc }) => [desc(table.version)],
   });
 

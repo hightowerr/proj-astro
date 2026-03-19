@@ -6,6 +6,7 @@ import { validateToken } from "@/lib/manage-tokens";
 import {
   appointments,
   bookingSettings,
+  customerContactPrefs,
   customers,
   payments,
   policyVersions,
@@ -37,6 +38,7 @@ export default async function ManagePage({
       customerName: customers.fullName,
       customerEmail: customers.email,
       customerPhone: customers.phone,
+      customerEmailOptIn: customerContactPrefs.emailOptIn,
       shopId: shops.id,
       shopName: shops.name,
       timezone: bookingSettings.timezone,
@@ -54,6 +56,10 @@ export default async function ManagePage({
     .from(appointments)
     .innerJoin(customers, eq(customers.id, appointments.customerId))
     .innerJoin(shops, eq(shops.id, appointments.shopId))
+    .leftJoin(
+      customerContactPrefs,
+      eq(customerContactPrefs.customerId, customers.id)
+    )
     .leftJoin(bookingSettings, eq(bookingSettings.shopId, shops.id))
     .leftJoin(policyVersions, eq(policyVersions.id, appointments.policyVersionId))
     .leftJoin(payments, eq(payments.appointmentId, appointments.id))
@@ -92,6 +98,7 @@ export default async function ManagePage({
         fullName: row.customerName,
         email: row.customerEmail,
         phone: row.customerPhone,
+        emailOptIn: row.customerEmailOptIn ?? true,
       }}
       shop={{
         id: row.shopId,

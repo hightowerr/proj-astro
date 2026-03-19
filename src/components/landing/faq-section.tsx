@@ -40,7 +40,7 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="bg-bg-dark-secondary py-24">
+    <section id="faq" className="bg-bg-dark-secondary py-24 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 text-center">
           <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold tracking-widest text-primary uppercase">

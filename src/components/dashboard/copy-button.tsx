@@ -42,19 +42,19 @@ export function CopyButton({ text, label = "Copy Link" }: CopyButtonProps) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="flex items-center justify-center gap-2 rounded-lg border border-white/30 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-white/10"
-    >
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="flex items-center justify-center gap-2 rounded-lg border border-white/30 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+      >
       {copied ? (
         <>
-          <Check className="h-4 w-4" />
+          <Check className="h-4 w-4" aria-hidden="true" />
           <span>Copied!</span>
         </>
       ) : (
         <>
-          <Copy className="h-4 w-4" />
+          <Copy className="h-4 w-4" aria-hidden="true" />
           <span>{label}</span>
         </>
       )}

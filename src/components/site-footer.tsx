@@ -2,8 +2,10 @@ import Link from "next/link";
 
 export function SiteFooter() {
   const links = [
+    { label: "How It Works", href: "#how-it-works" },
     { label: "Features", href: "#features" },
     { label: "Pricing", href: "#pricing" },
+    { label: "FAQ", href: "#faq" },
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Terms of Service", href: "/terms" },
     { label: "Contact", href: "/contact" },

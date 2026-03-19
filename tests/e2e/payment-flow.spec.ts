@@ -56,7 +56,7 @@ test.describe("Payment Flow", () => {
 
     await page.getByLabel("Full name").fill("Test Customer");
     await page.getByLabel("Phone").fill("+12025551234");
-    await page.getByLabel("Email").fill("test@example.com");
+    await page.getByRole("textbox", { name: "Email" }).fill("test@example.com");
     await page.getByRole("button", { name: "Confirm booking" }).click();
 
     await fillStripeCard(page, "4242424242424242");
@@ -84,7 +84,7 @@ test.describe("Payment Flow", () => {
 
     await page.getByLabel("Full name").fill("Failing Customer");
     await page.getByLabel("Phone").fill("+12025551235");
-    await page.getByLabel("Email").fill("fail@example.com");
+    await page.getByRole("textbox", { name: "Email" }).fill("fail@example.com");
     await page.getByRole("button", { name: "Confirm booking" }).click();
 
     await fillStripeCard(page, "4000000000000002");

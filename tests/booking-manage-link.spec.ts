@@ -80,7 +80,7 @@ test.describe("Booking manage link", () => {
 
     await page.getByLabel("Full name").fill("Jamie Customer");
     await page.getByLabel("Phone").fill("+12025550123");
-    await page.getByLabel("Email").fill("jamie@example.com");
+    await page.getByRole("textbox", { name: "Email" }).fill("jamie@example.com");
     await page.getByRole("button", { name: "Confirm booking" }).click();
 
     await expect(

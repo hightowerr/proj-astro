@@ -147,7 +147,7 @@ export const appointmentEventTypeEnum = pgEnum("appointment_event_type", [
   "dispute_opened",
 ]);
 
-export const messageChannelEnum = pgEnum("message_channel", ["sms"]);
+export const messageChannelEnum = pgEnum("message_channel", ["sms", "email"]);
 
 export const messagePurposeEnum = pgEnum("message_purpose", [
   "booking_confirmation",
@@ -428,6 +428,7 @@ export const customerContactPrefs = pgTable(
       .primaryKey()
       .references(() => customers.id, { onDelete: "cascade" }),
     smsOptIn: boolean("sms_opt_in").default(false).notNull(),
+    emailOptIn: boolean("email_opt_in").default(true).notNull(),
     preferredChannel: text("preferred_channel"),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
@@ -768,17 +769,19 @@ export const messageTemplates = pgTable(
     key: text("key").notNull(),
     version: integer("version").notNull(),
     channel: messageChannelEnum("channel").notNull(),
+    subjectTemplate: text("subject_template"),
     bodyTemplate: text("body_template").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
   },
   (table) => [
-    uniqueIndex("message_templates_key_version_unique").on(
+    uniqueIndex("message_templates_key_channel_version_unique").on(
       table.key,
+      table.channel,
       table.version
     ),
-    index("message_templates_key_idx").on(table.key),
+    index("message_templates_key_channel_idx").on(table.key, table.channel),
   ]
 );
 

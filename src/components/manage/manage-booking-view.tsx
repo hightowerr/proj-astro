@@ -42,6 +42,7 @@ interface ManageBookingViewProps {
     fullName: string;
     email: string;
     phone: string;
+    emailOptIn: boolean;
   };
   shop: {
     id: string;
@@ -92,6 +93,11 @@ export function ManageBookingView({
   const [isCancelling, setIsCancelling] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [emailOptIn, setEmailOptIn] = useState(customer.emailOptIn);
+  const [isUpdatingPreferences, setIsUpdatingPreferences] = useState(false);
+  const [preferencesMessage, setPreferencesMessage] = useState<string | null>(
+    null
+  );
 
   const eligibility = calculateCancellationEligibility(
     appointment.startsAt,
@@ -113,6 +119,48 @@ export function ManageBookingView({
     shop.timezone,
     "h:mm a zzz"
   );
+
+  const handleEmailPreferenceChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const nextValue = event.target.checked;
+
+    setEmailOptIn(nextValue);
+    setIsUpdatingPreferences(true);
+    setPreferencesMessage(null);
+
+    try {
+      const response = await fetch(`/api/manage/${token}/update-preferences`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ emailOptIn: nextValue }),
+      });
+
+      const data = (await response.json()) as { message?: string; error?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Failed to update preferences");
+      }
+
+      setPreferencesMessage(
+        data.message ??
+          (nextValue
+            ? "You'll receive email reminders for future appointments."
+            : "Email reminders have been turned off.")
+      );
+    } catch (error) {
+      setEmailOptIn(!nextValue);
+      setPreferencesMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to update preferences. Please try again."
+      );
+    } finally {
+      setIsUpdatingPreferences(false);
+    }
+  };
 
   const handleCancelConfirm = async () => {
     setIsCancelling(true);
@@ -274,6 +322,48 @@ export function ManageBookingView({
             </div>
           </div>
         </div>
+      </Card>
+
+      <Card className="p-6 space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Email preferences</h2>
+          <p className="text-sm text-muted-foreground">
+            Control whether this booking can receive reminder emails.
+          </p>
+        </div>
+
+        <label
+          htmlFor="emailOptIn"
+          className="flex items-start gap-3 rounded-lg border p-4 cursor-pointer"
+        >
+          <input
+            id="emailOptIn"
+            type="checkbox"
+            className="mt-1 h-4 w-4 rounded border-input"
+            checked={emailOptIn}
+            onChange={handleEmailPreferenceChange}
+            disabled={isUpdatingPreferences}
+          />
+          <div className="space-y-1">
+            <p className="font-medium">Send me email reminders</p>
+            <p className="text-sm text-muted-foreground">
+              Get an email reminder about 24 hours before your appointment.
+            </p>
+          </div>
+        </label>
+
+        {preferencesMessage ? (
+          <p
+            className={`text-sm ${
+              preferencesMessage.toLowerCase().includes("failed")
+                ? "text-destructive"
+                : "text-emerald-700"
+            }`}
+            role="status"
+          >
+            {preferencesMessage}
+          </p>
+        ) : null}
       </Card>
 
       {appointment.status === "booked" && (

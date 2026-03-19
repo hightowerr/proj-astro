@@ -1,565 +1,116 @@
-# Agentic Coding Boilerplate
+# Booking & Appointment Management System
 
-A complete agentic coding boilerplate with authentication, PostgreSQL database, AI chat functionality, and modern UI components - perfect for building AI-powered applications and autonomous agents.
+A high-performance booking and appointment management system with automated financial outcomes, policy-driven refunds, and AI-powered reliability scoring.
 
 ## 🚀 Features
 
-- **🔐 Authentication**: Better Auth with Google OAuth integration
-- **🗃️ Database**: Drizzle ORM with PostgreSQL
-- **🤖 AI Integration**: Vercel AI SDK with OpenRouter (access to 100+ AI models)
-- **📁 File Storage**: Automatic local/Vercel Blob storage with seamless switching
-- **🎨 UI Components**: shadcn/ui with Tailwind CSS
-- **⚡ Modern Stack**: Next.js 16, React 19, TypeScript
-- **📱 Responsive**: Mobile-first design approach
-
-## 🎥 Video Tutorial
-
-Watch the complete walkthrough of this agentic coding template:
-
-[![Agentic Coding Boilerplate Tutorial](https://img.youtube.com/vi/JQ86N3WOAh4/maxresdefault.jpg)](https://youtu.be/JQ86N3WOAh4)
-
-<a href="https://youtu.be/JQ86N3WOAh4" target="_blank" rel="noopener noreferrer">🔗 Watch on YouTube</a>
-
-## ☕ Support This Project
-
-If this boilerplate helped you build something awesome, consider buying me a coffee!
-
-[![Buy me a coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/leonvanzyl)
+- **🔐 Authentication**: Better Auth with Google OAuth integration.
+- **💳 Payments & Refunds**: Stripe integration with idempotent refunds and policy-driven deposit retention.
+- **📱 SMS Notifications**: Twilio integration for booking confirmations, reminders, and slot recovery offers.
+- **⚖️ Policy Engine**: Versioned policy snapshots ensuring historical accuracy for every appointment.
+- **🎯 Tier & Scoring System**: Customer reliability scoring (0-100) with dynamic tiering (`top`, `neutral`, `risk`).
+- **♻️ Slot Recovery**: Automated offer loop that fills cancelled slots by prioritizing high-tier customers.
+- **📅 Calendar Integration**: Google Calendar conflict detection and event caching.
+- **🤖 No-Show Prediction**: Predictive risk levels based on historical attendance patterns.
+- **⚡ Modern Stack**: Next.js 16, React 19, TypeScript, Drizzle ORM, PostgreSQL, Upstash Redis.
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have the following installed on your machine:
-
-- **Node.js**: Version 18.0 or higher (<a href="https://nodejs.org/" target="_blank">Download here</a>)
-- **Git**: For cloning the repository (<a href="https://git-scm.com/" target="_blank">Download here</a>)
-- **PostgreSQL**: Either locally installed or access to a hosted service like Vercel Postgres
+- **Node.js**: Version 20.x or higher
+- **pnpm**: Recommended package manager
+- **PostgreSQL**: Local or hosted (e.g., Vercel Postgres)
+- **Redis**: Upstash Redis for locking and slot recovery
 
 ## 🛠️ Quick Setup
 
-### Automated Setup (Recommended)
-
-Get started with a single command:
+**1. Clone the repository**
 
 ```bash
-npx create-agentic-app@latest my-app
-cd my-app
+git clone <repository-url>
+cd proj-astro
 ```
 
-Or create in the current directory:
+**2. Install dependencies**
 
 ```bash
-npx create-agentic-app@latest .
-```
-
-The CLI will:
-- Copy all boilerplate files
-- Install dependencies with your preferred package manager (pnpm/npm/yarn)
-- Set up your environment file
-
-**Next steps after running the command:**
-
-1. Update `.env` with your API keys and database credentials
-2. Start the database: `docker compose up -d`
-3. Run migrations: `npm run db:migrate`
-4. Start dev server: `npm run dev`
-
-### Manual Setup (Alternative)
-
-If you prefer to set up manually:
-
-**1. Clone or Download the Repository**
-
-**Option A: Clone with Git**
-
-```bash
-git clone https://github.com/leonvanzyl/agentic-coding-starter-kit.git
-cd agentic-coding-starter-kit
-```
-
-**Option B: Download ZIP**
-Download the repository as a ZIP file and extract it to your desired location.
-
-**2. Install Dependencies**
-
-```bash
-npm install
+pnpm install
 ```
 
 **3. Environment Setup**
 
-Copy the example environment file:
+Copy the example environment file and fill in the values:
 
 ```bash
 cp env.example .env
 ```
 
-Fill in your environment variables in the `.env` file:
-
-```env
-# Database
-POSTGRES_URL="postgresql://username:password@localhost:5432/your_database_name"
-
-# Authentication - Better Auth
-BETTER_AUTH_SECRET="your-random-32-character-secret-key-here"
-
-# Google OAuth (Get from Google Cloud Console)
-GOOGLE_CLIENT_ID="your-google-client-id"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
-
-# AI Integration via OpenRouter (Optional - for chat functionality)
-# Get your API key from: https://openrouter.ai/settings/keys
-# View available models at: https://openrouter.ai/models
-OPENROUTER_API_KEY="sk-or-v1-your-openrouter-api-key-here"
-OPENROUTER_MODEL="openai/gpt-5-mini"
-
-# App URL (for production deployments)
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# File Storage (Optional - for file upload functionality)
-# Leave empty to use local storage (public/uploads/) in development
-# Set to enable Vercel Blob storage in production
-BLOB_READ_WRITE_TOKEN=""
-```
+Key variables required:
+- `POSTGRES_URL`: PostgreSQL connection string
+- `BETTER_AUTH_SECRET`: Random 32-character string
+- `STRIPE_SECRET_KEY`: Stripe API secret
+- `TWILIO_ACCOUNT_SID` / `AUTH_TOKEN`: Twilio credentials
+- `UPSTASH_REDIS_REST_URL` / `TOKEN`: Upstash Redis credentials
+- `CRON_SECRET`: Secret for authenticating background jobs
 
 **4. Database Setup**
-
-Generate and run database migrations:
-
-```bash
-npm run db:generate
-npm run db:migrate
-```
-
-**5. Start the Development Server**
-
-```bash
-npm run dev
-```
-
-Your application will be available at [http://localhost:3000](http://localhost:3000)
-
-## ⚙️ Service Configuration
-
-### PostgreSQL Database on Vercel
-
-1. Go to <a href="https://vercel.com/dashboard" target="_blank">Vercel Dashboard</a>
-2. Navigate to the **Storage** tab
-3. Click **Create** → **Postgres**
-4. Choose your database name and region
-5. Copy the `POSTGRES_URL` from the `.env.local` tab
-6. Add it to your `.env` file
-
-### Google OAuth Credentials
-
-1. Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>
-2. Create a new project or select an existing one
-3. Navigate to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-4. Set application type to **Web application**
-5. Add authorized redirect URIs:
-   - `http://localhost:3000/api/auth/callback/google` (development)
-   - `https://yourdomain.com/api/auth/callback/google` (production)
-6. Copy the **Client ID** and **Client Secret** to your `.env` file
-
-### OpenRouter API Key
-
-1. Go to <a href="https://openrouter.ai/" target="_blank">OpenRouter</a>
-2. Sign up or log in to your account
-3. Navigate to **Settings** → **Keys** or visit <a href="https://openrouter.ai/settings/keys" target="_blank">Keys Settings</a>
-4. Click **Create Key** and give it a name
-5. Copy the API key and add it to your `.env` file as `OPENROUTER_API_KEY`
-6. Browse available models at <a href="https://openrouter.ai/models" target="_blank">OpenRouter Models</a>
-
-### File Storage Configuration
-
-The project includes a flexible storage abstraction that automatically switches between local filesystem storage (development) and Vercel Blob storage (production).
-
-**For Development (Local Storage):**
-- Leave `BLOB_READ_WRITE_TOKEN` empty or unset in your `.env` file
-- Files are automatically stored in `public/uploads/`
-- Files are served at `/uploads/` URL path
-- No external service or configuration needed
-
-**For Production (Vercel Blob):**
-1. Go to <a href="https://vercel.com/dashboard" target="_blank">Vercel Dashboard</a>
-2. Navigate to your project → **Storage** tab
-3. Click **Create** → **Blob**
-4. Copy the `BLOB_READ_WRITE_TOKEN` from the integration
-5. Add it to your production environment variables
-
-The storage service automatically detects which backend to use based on the presence of the `BLOB_READ_WRITE_TOKEN` environment variable.
-
-### Scheduled Resolver (CRON_SECRET)
-
-Configure the scheduled outcome resolver by setting a shared secret and wiring a cron job to call the API route.
-
-**Local setup**
-
-1. Add to your `.env`:
-
-```env
-CRON_SECRET="your-random-secret"
-```
-
-2. Run migrations:
 
 ```bash
 pnpm db:migrate
 ```
 
-3. Call the resolver route:
+**5. Start Development Server**
 
 ```bash
-curl -X POST http://localhost:3000/api/jobs/resolve-outcomes \
-  -H "x-cron-secret: your-random-secret"
+pnpm dev
 ```
 
-**Vercel setup**
+## 🏗️ Architecture
 
-1. Go to Vercel → Project → Settings → Environment Variables.
-2. Add `CRON_SECRET` with the same value you will send in the header.
-3. Create a Cron Job in Vercel that calls:
-   - URL: `/api/jobs/resolve-outcomes`
-   - Method: `POST`
-   - Header: `x-cron-secret: <your-secret>`
-4. Choose a daily schedule (for example, `0 0 * * *`).
-   - Hobby accounts only support daily cron jobs.
-   - More frequent schedules require Vercel Pro.
+### Booking Lifecycle
+1. **Booking**: Customer selects a slot → Appointment created → Payment intent → SMS confirmation.
+2. **Cancellation**: If before cutoff: full refund. If after: deposit retained based on policy snapshot.
+3. **Resolution**: Post-appointment, the `resolve-outcomes` job auto-determines if the appointment was `settled`, `voided`, or `refunded`.
 
-### Twilio Test Credentials for E2E
+### Key Abstractions
+- **Policy Snapshots**: Every appointment captures the active `policyVersion` at booking time to prevent retro-active policy changes affecting existing bookings.
+- **Slot Recovery**: Cancellations trigger a `slotOpening` which initiates an automated offer loop, prioritizing `top` tier customers via SMS.
+- **Advisory Locks**: Background jobs use PostgreSQL advisory locks to prevent concurrent execution.
 
-For Playwright e2e runs, this project supports a Twilio test mode that calls
-Twilio with test credentials and magic numbers (no real SMS delivery or charges).
+## ⚙️ Background Jobs (Cron)
 
-Set these in `.env`:
+All jobs require the `x-cron-secret` header.
 
-```env
-TWILIO_ACCOUNT_SID=AC... # Twilio test Account SID
-TWILIO_AUTH_TOKEN=...    # Twilio test Auth Token
-TWILIO_TEST_MODE=true
-TWILIO_TEST_FROM_NUMBER=+15005550006
-# Optional: simulate non-mobile failure
-# TWILIO_TEST_TO_NUMBER_OVERRIDE=+15005550009
-```
+- `/api/jobs/resolve-outcomes`: Finalizes financial outcomes after appointments end.
+- `/api/jobs/offer-loop`: Processes slot recovery offers.
+- `/api/jobs/recompute-scores`: Recalculates customer reliability scores.
+- `/api/jobs/scan-calendar-conflicts`: Syncs with Google Calendar to detect overlaps.
 
-Notes:
-- `pnpm test:e2e` defaults `TWILIO_TEST_MODE=true` for the Playwright web server.
-- In production/live flows, keep `TWILIO_TEST_MODE=false` and use your real
-  `TWILIO_PHONE_NUMBER`.
-
-### Testing SMS Functionality Locally
-
-SMS requires customer consent to send. When creating test bookings, include `smsOptIn: true`:
-
-```typescript
-// Example booking request
-{
-  customer: {
-    fullName: "Test Customer",
-    phone: "+15551234567",
-    email: "test@example.com",
-    smsOptIn: true  // Required for SMS to work
-  }
-}
-```
-
-**Configure test mode** in `.env`:
-```bash
-TWILIO_TEST_MODE=true  # Uses magic test numbers, no real SMS sent
-```
-
-**Verify messages** in the database:
-```sql
-SELECT purpose, status, error_code, error_message
-FROM message_log
-WHERE appointment_id = 'your-appointment-id'
-ORDER BY created_at DESC;
-```
-
-**Common issue**: If you see "consent_missing: SMS opt-in not found" errors, ensure you're setting `smsOptIn: true` when creating bookings. The consent check happens at the application level before reaching Twilio.
-
-**Run diagnostic check**:
-```bash
-pnpm verify:sms  # Shows SMS configuration status and recent failures
-```
-
-### Tier System (Slice 7)
-
-The tier system scores customers from `0-100` based on booking outcomes over a rolling
-180-day window and assigns tiers:
-
-- `top`: score `>= 80` and no voids in 90 days
-- `neutral`: default tier
-- `risk`: score `< 40` or `>= 2` voids in 90 days
-
-Tier data powers:
-
-1. Tier-based deposit overrides at `/app/settings/payment-policy`
-2. Tier-adjusted booking pricing at booking time
-3. Tier-prioritized slot recovery offers (`top > neutral > risk`)
-
-Manual recompute:
+## 🧪 Testing
 
 ```bash
-curl -X POST http://localhost:3000/api/jobs/recompute-scores \
-  -H "x-cron-secret: $CRON_SECRET"
+pnpm test          # Run unit tests (Vitest)
+pnpm test:e2e      # Run E2E tests (Playwright)
 ```
 
-Useful verification:
-
-```bash
-pnpm test src/lib/__tests__/scoring.test.ts
-pnpm test src/lib/__tests__/tier-pricing.test.ts
-pnpm test src/lib/__tests__/slot-recovery-tier-sorting.test.ts
-pnpm db:studio
-```
-
-## 🗂️ Project Structure
-
-```
-src/
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   │   ├── auth/          # Authentication endpoints
-│   │   └── chat/          # AI chat endpoint
-│   ├── chat/              # AI chat page
-│   ├── dashboard/         # User dashboard
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── auth/             # Authentication components
-│   └── ui/               # shadcn/ui components
-└── lib/                  # Utilities and configurations
-    ├── auth.ts           # Better Auth configuration
-    ├── auth-client.ts    # Client-side auth utilities
-    ├── db.ts             # Database connection
-    ├── schema.ts         # Database schema
-    ├── storage.ts        # File storage abstraction
-    └── utils.ts          # General utilities
-```
+**E2E Note**: Set `TWILIO_TEST_MODE=true` to use Twilio magic numbers and avoid real charges during tests.
 
 ## 🔧 Available Scripts
 
-```bash
-npm run dev          # Start development server with Turbopack
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run db:generate  # Generate database migrations
-npm run db:migrate   # Run database migrations
-npm run db:push      # Push schema changes to database
-npm run db:studio    # Open Drizzle Studio (database GUI)
-npm run db:dev       # Push schema for development
-npm run db:reset     # Reset database (drop all tables)
-```
-
-## 📖 Pages Overview
-
-- **Home (`/`)**: Landing page with setup instructions and features overview
-- **Dashboard (`/dashboard`)**: Protected user dashboard with profile information
-- **Chat (`/chat`)**: AI-powered chat interface using OpenRouter (requires authentication)
-
-## 🚀 Deployment
-
-### Deploy to Vercel (Recommended)
-
-1. Install the Vercel CLI globally:
-
-   ```bash
-   npm install -g vercel
-   ```
-
-2. Deploy your application:
-
-   ```bash
-   vercel --prod
-   ```
-
-3. Follow the prompts to configure your deployment
-4. Add your environment variables when prompted or via the Vercel dashboard
-
-### Production Environment Variables
-
-Ensure these are set in your production environment:
-
-- `POSTGRES_URL` - Production PostgreSQL connection string
-- `BETTER_AUTH_SECRET` - Secure random 32+ character string
-- `GOOGLE_CLIENT_ID` - Google OAuth Client ID
-- `GOOGLE_CLIENT_SECRET` - Google OAuth Client Secret
-- `OPENROUTER_API_KEY` - OpenRouter API key (optional, for AI chat functionality)
-- `OPENROUTER_MODEL` - Model name from OpenRouter (optional, defaults to openai/gpt-5-mini)
-- `NEXT_PUBLIC_APP_URL` - Your production domain
-- `BLOB_READ_WRITE_TOKEN` - Vercel Blob token (optional, uses local storage if not set)
-
-## 🎥 Tutorial Video
-
-Watch my comprehensive tutorial on how to use this agentic coding boilerplate to build AI-powered applications:
-
-<a href="https://youtu.be/JQ86N3WOAh4" target="_blank" rel="noopener noreferrer">📺 YouTube Tutorial - Building with Agentic Coding Boilerplate</a>
-
-## 🤖 Claude Code Commands
-
-This project includes custom slash commands for [Claude Code](https://claude.ai/code) that streamline feature development with GitHub integration.
-
-### Available Commands
-
-| Command | Description |
-|---------|-------------|
-| `/create-feature` | Create a new feature specification with requirements and implementation plan |
-| `/publish-to-github` | Publish a feature to GitHub Issues and Projects |
-| `/continue-feature` | Continue implementing the next task for a GitHub-published feature |
-| `/checkpoint` | Create a comprehensive checkpoint commit with all changes |
-
-### Prerequisites
-
-Before using the GitHub-integrated commands:
-
-1. **GitHub CLI**: Install and authenticate the GitHub CLI
-   ```bash
-   # Install (if needed)
-   brew install gh  # macOS
-   # or see https://cli.github.com/
-
-   # Authenticate
-   gh auth login
-
-   # Add project scopes (required for /publish-to-github)
-   gh auth refresh -s project,read:project
-   ```
-
-2. **Claude Code**: Install Claude Code CLI from [claude.ai/code](https://claude.ai/code)
-
-### Typical Workflow
-
-#### 1. Plan Your Feature
-
-Start a conversation with Claude Code and describe the feature you want to build:
-
-```
-You: I want to add a user preferences page where users can update their display name,
-     email notifications, and theme preferences.
-```
-
-#### 2. Create Feature Specification
-
-Once you've discussed the requirements, run:
-
-```
-/create-feature
-```
-
-This creates a spec folder at `specs/{feature-name}/` containing:
-- `requirements.md` - What the feature does and acceptance criteria
-- `implementation-plan.md` - Phased tasks with checkboxes
-
-#### 3. Publish to GitHub
-
-Publish the feature to GitHub for tracking:
-
-```
-/publish-to-github
-```
-
-This creates:
-- An **Epic issue** with full requirements
-- **Task issues** for each implementation step
-- A **GitHub Project** to track progress
-- **Labels** for organization
-- A `github.md` file with all references
-
-#### 4. Implement Tasks
-
-Start implementing tasks one at a time:
-
-```
-/continue-feature
-```
-
-This command:
-1. Finds the next unblocked task (respecting dependencies)
-2. Updates the GitHub Project status to "In Progress"
-3. Implements the task following project conventions
-4. Runs lint and typecheck
-5. Commits with `closes #{issue-number}`
-6. Updates the issue with implementation details
-7. Moves the task to "Done" on the Project board
-
-Repeat `/continue-feature` for each task, or let Claude continue automatically.
-
-#### 5. Create Checkpoints
-
-At any point, create a detailed checkpoint commit:
-
-```
-/checkpoint
-```
-
-This stages all changes and creates a well-formatted commit with:
-- Clear summary line
-- Detailed description of changes
-- Co-author attribution
-
-### Example Session
-
-```bash
-# Start Claude Code in your project
-claude
-
-# Discuss feature requirements
-You: I need to add API rate limiting to protect our endpoints...
-
-# Claude helps plan, then you run:
-/create-feature
-
-# Review the spec, then publish:
-/publish-to-github
-
-# Implement task by task:
-/continue-feature
-# ... Claude implements, commits, updates GitHub ...
-
-/continue-feature
-# ... next task ...
-
-# When done, push to GitHub:
-git push
-```
-
-### Without GitHub Integration
-
-If you prefer not to use GitHub, you can still use `/create-feature` to create specs, then manually work through the `implementation-plan.md` checkboxes. The `/continue-feature` command also supports offline mode, tracking progress directly in the markdown file.
-
-### Command Files Location
-
-Commands are defined in `.claude/commands/`:
-```
-.claude/commands/
-├── checkpoint.md
-├── continue-feature.md
-├── create-feature.md
-└── publish-to-github.md
-```
-
-You can customize these commands or add new ones following the [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code).
-
-## 🤝 Contributing
-
-1. Fork this repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Need Help?
-
-If you encounter any issues:
-
-1. Check the [Issues](https://github.com/leonvanzyl/agentic-coding-starter-kit/issues) section
-2. Review the documentation above
-3. Create a new issue with detailed information about your problem
+- `pnpm dev`: Start dev server
+- `pnpm build`: Build for production
+- `pnpm lint`: Run ESLint
+- `pnpm typecheck`: TypeScript check
+- `pnpm db:generate`: Generate migrations
+- `pnpm db:migrate`: Apply migrations
+- `pnpm db:studio`: Open database GUI
+
+## 📖 Documentation for Stakeholders
+
+- **[Astro: The Autonomous Appointment System (Bet)](./docs/BET-README.md)**: Product overview and successful delivery of Slices 0-8.
+- **[Sanity CMS Content Guidelines](./docs/SANITY-GUIDELINES.md)**: How to manage landing page content for non-technical stakeholders.
+- **[Marketing "How to Edit" Guide](./docs/MARKETING-EDIT-GUIDE.md)**: A quick guide for the marketing team to manage copy, pricing, and policies.
+- **[Performance Audit](./docs/PERFORMANCE-AUDIT.md)**: Estimated Lighthouse scores and bundle size analysis.
 
 ---
 
-**Happy coding! 🚀**
+**Happy booking! 🚀**

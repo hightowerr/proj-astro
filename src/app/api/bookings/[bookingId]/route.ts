@@ -67,9 +67,16 @@ export async function GET(
 
   let manageToken: string | null = null;
   try {
-    manageToken = await createManageToken(row.appointmentId);
+    // Check if a manage token already exists
+    const existingToken = await db.query.bookingManageTokens.findFirst({
+      where: (table, { eq }) => eq(table.appointmentId, row.appointmentId),
+    });
+
+    if (!existingToken) {
+      manageToken = await createManageToken(row.appointmentId);
+    }
   } catch (error) {
-    console.error("Failed to create manage token for booking resume", {
+    console.error("Failed to handle manage token for booking resume", {
       bookingId: row.appointmentId,
       error,
     });

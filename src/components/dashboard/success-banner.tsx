@@ -89,10 +89,10 @@ export function SuccessBanner({ businessTypeName, shopId }: SuccessBannerProps) 
       <button
         type="button"
         onClick={handleDismiss}
-        className="shrink-0 text-text-muted transition-colors duration-200 hover:text-white"
+        className="shrink-0 text-text-muted transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
         aria-label="Dismiss banner"
       >
-        <X className="h-4 w-4" />
+        <X className="h-4 w-4" aria-hidden="true" />
       </button>
     </div>
   );

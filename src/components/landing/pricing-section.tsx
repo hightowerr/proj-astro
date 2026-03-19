@@ -73,12 +73,12 @@ export default function PricingSection() {
           </ul>
 
           <motion.a
-            href="/app"
+            href="/register"
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.15 }}
-            className="bg-accent-coral text-bg-dark hover:bg-[#F09070] w-full cursor-pointer rounded-xl py-3.5 font-semibold transition-colors duration-200"
+            className="bg-accent-coral text-bg-dark hover:bg-[#F09070] block w-full cursor-pointer rounded-xl py-3.5 text-center font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
           >
-            Book a Demo
+            Start Free Trial
           </motion.a>
           <p className="mt-3 text-center text-sm text-text-light-muted">No credit card required</p>
         </div>
