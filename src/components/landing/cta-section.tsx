@@ -52,12 +52,12 @@ export default function CtaSection() {
 
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
           <motion.a
-            href="/app"
+            href="/register"
             whileHover={reducedMotion ? {} : { scale: 1.02 }}
             transition={{ duration: 0.15 }}
-            className="cursor-pointer rounded-xl bg-accent-coral px-8 py-3 font-semibold text-bg-dark transition-colors duration-200 hover:bg-[#F09070]"
+            className="cursor-pointer rounded-xl bg-accent-coral px-8 py-3 font-semibold text-bg-dark transition-colors duration-200 hover:bg-[#F09070] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
           >
-            Book a Demo
+            Start Free Trial
           </motion.a>
           <motion.button
             type="button"
@@ -66,9 +66,9 @@ export default function CtaSection() {
             onClick={() =>
               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
             }
-            className="cursor-pointer rounded-xl border border-white/30 px-8 py-3 text-white transition-colors duration-200 hover:bg-white/10"
+            className="cursor-pointer rounded-xl border border-white/30 px-8 py-3 text-white transition-colors duration-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
           >
-            See how it works
+            See How It Works
           </motion.button>
         </div>
 

@@ -70,8 +70,8 @@ export async function POST(req: Request) {
   const body = await req.text();
   const params = new URLSearchParams(body);
 
-  // Validate Twilio signature (skip in test mode)
-  if (process.env.NODE_ENV !== "test") {
+  // Validate Twilio signature (skip in test mode or Playwright)
+  if (process.env.NODE_ENV !== "test" && process.env.PLAYWRIGHT !== "true") {
     const env = getServerEnv();
     const signature = req.headers.get("X-Twilio-Signature") ?? "";
     const url = req.url;

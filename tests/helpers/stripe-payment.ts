@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
 const STRIPE_IFRAME_SELECTOR =
-  'iframe[src*="js.stripe.com"], iframe[title*="Secure payment input frame"], iframe[name^="__privateStripeFrame"]';
+  'iframe[title*="Secure payment input frame"], iframe[name^="__privateStripeFrame"], iframe[src*="js.stripe.com/v3/elements-inner-card"]';
 
 const CARD_TAB_SELECTORS = ['[role="tab"]:has-text("Card")', 'button:has-text("Card")'];
 const CARD_NUMBER_SELECTORS = [
@@ -103,6 +103,8 @@ async function waitForStripeElement(page: Page, timeoutMs: number) {
 }
 
 async function waitForPaymentUi(page: Page, timeoutMs: number): Promise<"mock" | "stripe"> {
+  // Wait for either the mock simulator OR a real Stripe iframe to appear.
+  // We use toPass to retry the check until one of them is found.
   await expect(async () => {
     const unavailable = await page
       .getByRole("heading", { name: /payment unavailable/i })
@@ -113,18 +115,17 @@ async function waitForPaymentUi(page: Page, timeoutMs: number): Promise<"mock" |
     }
 
     const mockVisible = await page.locator("#playwright-card-number").isVisible().catch(() => false);
-    if (mockVisible) {
-      return;
-    }
-
     const stripeFrameCount = await page.locator(STRIPE_IFRAME_SELECTOR).count();
-    if (stripeFrameCount > 0) {
+
+    if (mockVisible || stripeFrameCount > 0) {
       return;
     }
 
-    throw new Error("Payment UI not mounted yet.");
+    throw new Error("Payment UI not mounted yet (neither mock nor stripe).");
   }).toPass({ timeout: timeoutMs });
 
+  // Now that we know one of them is visible, decide which one to use.
+  // We prioritize the mock simulator if both are somehow present.
   const mockVisible = await page.locator("#playwright-card-number").isVisible().catch(() => false);
   return mockVisible ? "mock" : "stripe";
 }

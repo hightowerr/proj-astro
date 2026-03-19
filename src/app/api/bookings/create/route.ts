@@ -25,6 +25,7 @@ const createBookingSchema = z.object({
     phone: z.string().trim().min(1),
     email: z.string().trim().email(),
     smsOptIn: z.boolean().optional(),
+    emailOptIn: z.boolean().optional().default(true),
   }),
 });
 
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
     shopSlug: parsed.data.shop,
     startsAt: parsed.data.startsAt,
     hasSmsOptIn: typeof parsed.data.customer.smsOptIn === "boolean",
+    emailOptIn: parsed.data.customer.emailOptIn,
   });
 
   const startsAt = new Date(parsed.data.startsAt);
@@ -109,10 +111,12 @@ export async function POST(req: Request) {
       phone: string;
       email: string;
       smsOptIn?: boolean;
+      emailOptIn: boolean;
     } = {
       fullName: parsed.data.customer.fullName.trim(),
       phone,
       email,
+      emailOptIn: parsed.data.customer.emailOptIn,
     };
     if (typeof parsed.data.customer.smsOptIn === "boolean") {
       customerData.smsOptIn = parsed.data.customer.smsOptIn;

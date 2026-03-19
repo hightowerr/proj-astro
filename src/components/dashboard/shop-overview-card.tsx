@@ -19,17 +19,17 @@ export function ShopOverviewCard({ shopName, shopSlug, businessType }: ShopOverv
       <h2 className="mb-6 text-xl font-semibold text-white">Your Shop Details</h2>
 
       <div className="mb-6 space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-text-muted">Business Type</p>
-            <p className="text-sm font-medium text-white">{label}</p>
+            <p className="text-sm font-medium text-white break-words">{label}</p>
           </div>
         </div>
 
         <div>
           <p className="mb-1 text-xs text-text-muted">Shop Name</p>
-          <p className="text-sm font-medium text-white">{shopName}</p>
+          <p className="text-sm font-medium text-white break-words">{shopName}</p>
         </div>
 
         <div>
@@ -38,7 +38,7 @@ export function ShopOverviewCard({ shopName, shopSlug, businessType }: ShopOverv
             href={`/book/${shopSlug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="break-all font-mono text-sm text-white underline decoration-white/20 underline-offset-4 transition-colors hover:text-primary hover:decoration-primary/60"
+            className="break-all font-mono text-sm text-white underline decoration-white/20 underline-offset-4 transition-colors hover:text-primary hover:decoration-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
           >
             /book/{shopSlug}
           </a>
@@ -61,9 +61,9 @@ export function ShopOverviewCard({ shopName, shopSlug, businessType }: ShopOverv
           href={`/book/${shopSlug}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary-light"
+          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
         >
-          <ExternalLink className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" aria-hidden="true" />
           <span>Test Booking Page</span>
         </a>
         <CopyButton text={bookingUrl} label="Copy Link" />

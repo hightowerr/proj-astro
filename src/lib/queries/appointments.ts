@@ -1,5 +1,5 @@
 import { toZonedTime } from "date-fns-tz";
-import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import {
   computeEndsAt,
   formatDateInTimeZone,
@@ -276,6 +276,19 @@ export type HighRiskReminderCandidate = {
   shopTimezone: string;
 };
 
+export type EmailReminderCandidate = {
+  appointmentId: string;
+  shopId: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  startsAt: Date;
+  endsAt: Date;
+  bookingUrl: string | null;
+  shopName: string;
+  shopTimezone: string;
+};
+
 /**
  * Finds booked high-risk appointments in the reminder window (23h..25h).
  */
@@ -319,6 +332,59 @@ export const findHighRiskAppointments = async (): Promise<
 
   return rows.map((row) => ({
     ...row,
+    shopTimezone: row.shopTimezone ?? "UTC",
+  }));
+};
+
+/**
+ * Finds booked appointments in the email reminder window (23h..25h)
+ * where the customer has an email address and has not opted out.
+ */
+export const findAppointmentsForEmailReminder = async (): Promise<
+  EmailReminderCandidate[]
+> => {
+  const now = Date.now();
+  const windowStart = new Date(now + 23 * 60 * 60 * 1000);
+  const windowEnd = new Date(now + 25 * 60 * 60 * 1000);
+
+  const rows = await db
+    .select({
+      appointmentId: appointments.id,
+      shopId: appointments.shopId,
+      customerId: appointments.customerId,
+      customerName: customers.fullName,
+      customerEmail: customers.email,
+      startsAt: appointments.startsAt,
+      endsAt: appointments.endsAt,
+      bookingUrl: appointments.bookingUrl,
+      shopName: shops.name,
+      shopTimezone: bookingSettings.timezone,
+    })
+    .from(appointments)
+    .innerJoin(customers, eq(appointments.customerId, customers.id))
+    .innerJoin(shops, eq(appointments.shopId, shops.id))
+    .leftJoin(
+      customerContactPrefs,
+      eq(appointments.customerId, customerContactPrefs.customerId)
+    )
+    .leftJoin(bookingSettings, eq(appointments.shopId, bookingSettings.shopId))
+    .where(
+      and(
+        eq(appointments.status, "booked"),
+        isNotNull(customers.email),
+        gte(appointments.startsAt, windowStart),
+        lte(appointments.startsAt, windowEnd),
+        or(
+          eq(customerContactPrefs.emailOptIn, true),
+          isNull(customerContactPrefs.customerId)
+        )
+      )
+    )
+    .orderBy(asc(appointments.startsAt));
+
+  return rows.map((row) => ({
+    ...row,
+    customerEmail: row.customerEmail!,
     shopTimezone: row.shopTimezone ?? "UTC",
   }));
 };
@@ -404,9 +470,20 @@ const upsertCustomerContactPrefs = async (
   input: {
     customerId: string;
     smsOptIn?: boolean;
+    emailOptIn?: boolean;
   }
 ) => {
-  if (typeof input.smsOptIn !== "boolean") {
+  const updates: Partial<typeof customerContactPrefs.$inferInsert> = {};
+
+  if (typeof input.smsOptIn === "boolean") {
+    updates.smsOptIn = input.smsOptIn;
+  }
+
+  if (typeof input.emailOptIn === "boolean") {
+    updates.emailOptIn = input.emailOptIn;
+  }
+
+  if (Object.keys(updates).length === 0) {
     return null;
   }
 
@@ -417,16 +494,16 @@ const upsertCustomerContactPrefs = async (
   if (existing) {
     await tx
       .update(customerContactPrefs)
-      .set({ smsOptIn: input.smsOptIn, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: new Date() })
       .where(eq(customerContactPrefs.customerId, input.customerId));
-    return { ...existing, smsOptIn: input.smsOptIn };
+    return { ...existing, ...updates };
   }
 
   const [created] = await tx
     .insert(customerContactPrefs)
     .values({
       customerId: input.customerId,
-      smsOptIn: input.smsOptIn,
+      ...updates,
     })
     .returning();
 
@@ -521,6 +598,7 @@ export const createAppointment = async (input: {
     phone: string;
     email: string;
     smsOptIn?: boolean;
+    emailOptIn?: boolean;
   };
   paymentsEnabled?: boolean;
   bookingBaseUrl?: string | null;
@@ -579,11 +657,18 @@ export const createAppointment = async (input: {
         email: input.customer.email,
       });
 
-      const contactPrefsInput: { customerId: string; smsOptIn?: boolean } = {
+      const contactPrefsInput: {
+        customerId: string;
+        smsOptIn?: boolean;
+        emailOptIn?: boolean;
+      } = {
         customerId: customer.id,
       };
       if (typeof input.customer.smsOptIn === "boolean") {
         contactPrefsInput.smsOptIn = input.customer.smsOptIn;
+      }
+      if (typeof input.customer.emailOptIn === "boolean") {
+        contactPrefsInput.emailOptIn = input.customer.emailOptIn;
       }
       await upsertCustomerContactPrefs(tx, contactPrefsInput);
 

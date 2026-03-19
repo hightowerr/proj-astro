@@ -88,6 +88,14 @@ const logBookingDiagnostic = (
   }
 
   console.warn(`[booking-form] ${event}`, payload);
+
+  if (typeof window !== "undefined") {
+    void fetch("/api/diagnostic", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event, payload }),
+    }).catch(() => {});
+  }
 };
 
 const formatCurrency = (amountCents: number, currency: string) => {
@@ -381,6 +389,7 @@ export function BookingForm({
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [smsOptIn, setSmsOptIn] = useState(false);
+  const [emailOptIn, setEmailOptIn] = useState(true);
   const [isCancellingBooking, setIsCancellingBooking] = useState(false);
   const [cancelBookingError, setCancelBookingError] = useState<string | null>(null);
   const [cancelBookingMessage, setCancelBookingMessage] = useState<string | null>(null);
@@ -397,7 +406,17 @@ export function BookingForm({
   );
 
   const shouldResume =
-    Boolean(resumeAppointmentId) && !resumeFailed && !success;
+    Boolean(resumeAppointmentId) && !resumeFailed && !success && !clientSecret;
+
+  logBookingDiagnostic("render", {
+    shouldResume,
+    resumeLoading,
+    resumeAppointmentId,
+    clientSecret: Boolean(clientSecret),
+    success,
+    paymentsEnabled,
+    forcePaymentSimulator,
+  });
 
   useEffect(() => {
     if (resumeAppointmentId) {
@@ -653,6 +672,7 @@ export function BookingForm({
             phone,
             email,
             smsOptIn,
+            emailOptIn,
           },
         }),
       });
@@ -1009,6 +1029,25 @@ export function BookingForm({
         <Label htmlFor="sms-opt-in" className="text-sm leading-5">
           Send me SMS updates about this booking.
         </Label>
+      </div>
+
+      <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-3">
+        <input
+          id="email-opt-in"
+          type="checkbox"
+          className="mt-1 h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          checked={emailOptIn}
+          onChange={(event) => setEmailOptIn(event.target.checked)}
+        />
+        <div className="space-y-1">
+          <Label htmlFor="email-opt-in" className="cursor-pointer text-sm leading-5">
+            Send me email reminders.
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Get an email reminder about 24 hours before your appointment. You can
+            opt out later.
+          </p>
+        </div>
       </div>
 
       {error ? (

@@ -1,11 +1,13 @@
 import { createHash } from "node:crypto";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
 import { checkReminderAlreadySent } from "@/lib/queries/messages";
 import {
   messageDedup,
   messageLog,
   messageTemplates,
+  messageChannelEnum,
 } from "@/lib/schema";
 import { sendTwilioSms } from "@/lib/twilio";
 
@@ -17,6 +19,20 @@ const REMINDER_TEMPLATE_KEY = "appointment_reminder_24h";
 const DEFAULT_REMINDER_TEMPLATE_VERSION = 1;
 const DEFAULT_REMINDER_TEMPLATE_BODY =
   "Reminder: Your appointment tomorrow at {{time}} at {{shop_name}}. {{manage_link}}Reply STOP to opt out.";
+const DEFAULT_EMAIL_REMINDER_SUBJECT_TEMPLATE =
+  "Reminder: Your appointment tomorrow at {{shopName}}";
+const DEFAULT_EMAIL_REMINDER_BODY_TEMPLATE = `
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <p>Hi {{customerName}},</p>
+    <p>This is a reminder about your appointment tomorrow at {{shopName}}.</p>
+    <p>Date: {{appointmentDate}}</p>
+    <p>Time: {{appointmentTime}}</p>
+    <p><a href="{{bookingUrl}}">Manage your booking</a></p>
+  </body>
+</html>
+`.trim();
 
 const hashBody = (body: string) =>
   createHash("sha256").update(body).digest("hex");
@@ -27,96 +43,195 @@ const formatCurrency = (amountCents: number, currency: string) =>
     currency: currency.toUpperCase(),
   }).format(amountCents / 100);
 
-const renderTemplate = (
+type MessageChannel = (typeof messageChannelEnum.enumValues)[number];
+type MessagePurpose = typeof messageLog.$inferInsert.purpose;
+type MessageStatus = typeof messageLog.$inferInsert.status;
+
+type TemplateSeed = {
+  subjectTemplate?: string | null;
+  bodyTemplate: string;
+};
+
+export const renderTemplate = (
   template: string,
-  data: Record<string, string>
+  data: Record<string, string>,
+  options?: {
+    collapseWhitespace?: boolean;
+    missingValue?: "" | "preserve";
+  }
 ) => {
   const rendered = template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
-    return data[key] ?? "";
+    const value = data[key];
+    if (value != null) {
+      return value;
+    }
+
+    return options?.missingValue === "" ? "" : `{{${key}}}`;
   });
-  return rendered.replace(/\s+/g, " ").trim();
+
+  return options?.collapseWhitespace
+    ? rendered.replace(/\s+/g, " ").trim()
+    : rendered;
+};
+
+export const getOrCreateTemplate = async (
+  key: string,
+  channel: MessageChannel,
+  version: number,
+  defaults?: TemplateSeed
+) => {
+  const existing = await db
+    .select()
+    .from(messageTemplates)
+    .where(
+      and(
+        eq(messageTemplates.key, key),
+        eq(messageTemplates.channel, channel),
+        eq(messageTemplates.version, version)
+      )
+    )
+    .limit(1);
+
+  const existingTemplate = existing[0];
+  if (existingTemplate) {
+    return existingTemplate;
+  }
+
+  if (!defaults) {
+    throw new Error(`Message template missing: ${key}/${channel}/v${version}`);
+  }
+
+  const [created] = await db
+    .insert(messageTemplates)
+    .values({
+      key,
+      version,
+      channel,
+      subjectTemplate: defaults.subjectTemplate ?? null,
+      bodyTemplate: defaults.bodyTemplate,
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  if (created) {
+    return created;
+  }
+
+  const retry = await db
+    .select()
+    .from(messageTemplates)
+    .where(
+      and(
+        eq(messageTemplates.key, key),
+        eq(messageTemplates.channel, channel),
+        eq(messageTemplates.version, version)
+      )
+    )
+    .limit(1);
+
+  const retryTemplate = retry[0];
+  if (!retryTemplate) {
+    throw new Error(`Message template missing: ${key}/${channel}/v${version}`);
+  }
+
+  return retryTemplate;
+};
+
+export const shouldSendMessage = async (
+  _customerId: string,
+  _purpose: MessagePurpose,
+  _channel: MessageChannel,
+  dedupKey: string
+) => {
+  const inserted = await db
+    .insert(messageDedup)
+    .values({ dedupKey })
+    .onConflictDoNothing()
+    .returning({ dedupKey: messageDedup.dedupKey });
+
+  return inserted.length > 0;
+};
+
+export const logMessage = async (input: {
+  shopId: string;
+  appointmentId: string;
+  customerId: string;
+  purpose: MessagePurpose;
+  channel: MessageChannel;
+  recipient: string;
+  provider: string;
+  status: MessageStatus;
+  renderedBody: string;
+  templateId?: string | null;
+  templateKey: string;
+  templateVersion: number;
+  externalMessageId?: string | null;
+  retryCount?: number;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  sentAt?: Date | null;
+}) => {
+  await db.insert(messageLog).values({
+    shopId: input.shopId,
+    appointmentId: input.appointmentId,
+    customerId: input.customerId,
+    channel: input.channel,
+    purpose: input.purpose,
+    toPhone: input.recipient,
+    provider: input.provider,
+    providerMessageId: input.externalMessageId ?? null,
+    status: input.status,
+    bodyHash: hashBody(input.renderedBody),
+    templateId: input.templateId ?? null,
+    templateKey: input.templateKey,
+    templateVersion: input.templateVersion,
+    renderedBody: input.renderedBody,
+    retryCount: input.retryCount ?? 0,
+    errorCode: input.errorCode ?? null,
+    errorMessage: input.errorMessage ?? null,
+    sentAt: input.sentAt ?? null,
+  });
+};
+
+const getLatestTemplate = async (
+  key: string,
+  channel: MessageChannel,
+  defaults: TemplateSeed,
+  version = DEFAULT_TEMPLATE_VERSION
+) => {
+  const existing = await db
+    .select()
+    .from(messageTemplates)
+    .where(
+      and(eq(messageTemplates.key, key), eq(messageTemplates.channel, channel))
+    )
+    .orderBy(desc(messageTemplates.version))
+    .limit(1);
+
+  const existingTemplate = existing[0];
+  if (existingTemplate) {
+    return existingTemplate;
+  }
+
+  return await getOrCreateTemplate(key, channel, version, defaults);
 };
 
 const ensureBookingTemplate = async () => {
-  const existing = await db
-    .select()
-    .from(messageTemplates)
-    .where(eq(messageTemplates.key, BOOKING_TEMPLATE_KEY))
-    .orderBy(desc(messageTemplates.version))
-    .limit(1);
-
-  if (existing.length > 0) {
-    return existing[0];
-  }
-
-  const [created] = await db
-    .insert(messageTemplates)
-    .values({
-      key: BOOKING_TEMPLATE_KEY,
-      version: DEFAULT_TEMPLATE_VERSION,
-      channel: "sms",
-      bodyTemplate: DEFAULT_TEMPLATE_BODY,
-    })
-    .onConflictDoNothing()
-    .returning();
-
-  if (created) {
-    return created;
-  }
-
-  const retry = await db
-    .select()
-    .from(messageTemplates)
-    .where(eq(messageTemplates.key, BOOKING_TEMPLATE_KEY))
-    .orderBy(desc(messageTemplates.version))
-    .limit(1);
-
-  if (retry.length === 0) {
-    throw new Error("Message template missing");
-  }
-
-  return retry[0];
+  return await getLatestTemplate(
+    BOOKING_TEMPLATE_KEY,
+    "sms",
+    { bodyTemplate: DEFAULT_TEMPLATE_BODY },
+    DEFAULT_TEMPLATE_VERSION
+  );
 };
 
 const ensureReminderTemplate = async () => {
-  const existing = await db
-    .select()
-    .from(messageTemplates)
-    .where(eq(messageTemplates.key, REMINDER_TEMPLATE_KEY))
-    .orderBy(desc(messageTemplates.version))
-    .limit(1);
-
-  if (existing.length > 0) {
-    return existing[0];
-  }
-
-  const [created] = await db
-    .insert(messageTemplates)
-    .values({
-      key: REMINDER_TEMPLATE_KEY,
-      version: DEFAULT_REMINDER_TEMPLATE_VERSION,
-      channel: "sms",
-      bodyTemplate: DEFAULT_REMINDER_TEMPLATE_BODY,
-    })
-    .onConflictDoNothing()
-    .returning();
-
-  if (created) {
-    return created;
-  }
-
-  const retry = await db
-    .select()
-    .from(messageTemplates)
-    .where(eq(messageTemplates.key, REMINDER_TEMPLATE_KEY))
-    .orderBy(desc(messageTemplates.version))
-    .limit(1);
-
-  if (retry.length === 0) {
-    throw new Error("Reminder template missing");
-  }
-
-  return retry[0];
+  return await getLatestTemplate(
+    REMINDER_TEMPLATE_KEY,
+    "sms",
+    { bodyTemplate: DEFAULT_REMINDER_TEMPLATE_BODY },
+    DEFAULT_REMINDER_TEMPLATE_VERSION
+  );
 };
 
 export const sendBookingConfirmationSMS = async (appointmentId: string) => {
@@ -184,7 +299,7 @@ export const sendBookingConfirmationSMS = async (appointmentId: string) => {
     manage_link: appointment.bookingUrl
       ? `Manage: ${appointment.bookingUrl} `
       : "",
-  });
+  }, { collapseWhitespace: true, missingValue: "" });
   const bodyHash = hashBody(renderedBody);
 
   const baseLog = {
@@ -262,6 +377,131 @@ export type ReminderSendResult =
   | "already_sent"
   | "consent_missing";
 
+export type EmailReminderSendResult = "sent" | "already_sent";
+
+export const sendAppointmentReminderEmail = async (params: {
+  appointmentId: string;
+  shopId: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  startsAt: Date;
+  endsAt: Date;
+  bookingUrl: string | null;
+  shopName: string;
+  shopTimezone: string;
+}): Promise<EmailReminderSendResult> => {
+  const {
+    appointmentId,
+    shopId,
+    customerId,
+    customerName,
+    customerEmail,
+    startsAt,
+    endsAt,
+    bookingUrl,
+    shopName,
+    shopTimezone,
+  } = params;
+
+  const dedupKey = `appointment_reminder_24h:email:${appointmentId}`;
+  const sendAllowed = await shouldSendMessage(
+    customerId,
+    "appointment_reminder_24h",
+    "email",
+    dedupKey
+  );
+
+  if (!sendAllowed) {
+    return "already_sent";
+  }
+
+  const template = await getOrCreateTemplate(
+    REMINDER_TEMPLATE_KEY,
+    "email",
+    1,
+    {
+      subjectTemplate: DEFAULT_EMAIL_REMINDER_SUBJECT_TEMPLATE,
+      bodyTemplate: DEFAULT_EMAIL_REMINDER_BODY_TEMPLATE,
+    }
+  );
+
+  const appointmentDate = new Intl.DateTimeFormat("en-US", {
+    timeZone: shopTimezone,
+    dateStyle: "full",
+  }).format(startsAt);
+  const startTime = new Intl.DateTimeFormat("en-US", {
+    timeZone: shopTimezone,
+    timeStyle: "short",
+  }).format(startsAt);
+  const endTime = new Intl.DateTimeFormat("en-US", {
+    timeZone: shopTimezone,
+    timeStyle: "short",
+  }).format(endsAt);
+
+  const templateData = {
+    customerName,
+    shopName,
+    appointmentDate,
+    appointmentTime: `${startTime} - ${endTime}`,
+    bookingUrl: bookingUrl ?? "",
+  };
+
+  const subject = renderTemplate(
+    template.subjectTemplate ?? DEFAULT_EMAIL_REMINDER_SUBJECT_TEMPLATE,
+    templateData,
+    { missingValue: "" }
+  );
+  const renderedBody = renderTemplate(template.bodyTemplate, templateData, {
+    missingValue: "",
+  });
+
+  const emailResult = await sendEmail({
+    to: customerEmail,
+    subject,
+    html: renderedBody,
+  });
+
+  if (!emailResult.success) {
+    await logMessage({
+      shopId,
+      appointmentId,
+      customerId,
+      purpose: "appointment_reminder_24h",
+      channel: "email",
+      recipient: customerEmail,
+      provider: "resend",
+      status: "failed",
+      templateId: template.id,
+      templateKey: template.key,
+      templateVersion: template.version,
+      renderedBody,
+      retryCount: 1,
+      errorMessage: emailResult.error ?? "Email send failed",
+    });
+    throw new Error(emailResult.error ?? "Email send failed");
+  }
+
+  await logMessage({
+    shopId,
+    appointmentId,
+    customerId,
+    purpose: "appointment_reminder_24h",
+    channel: "email",
+    recipient: customerEmail,
+    provider: "resend",
+    status: "sent",
+    templateId: template.id,
+    templateKey: template.key,
+    templateVersion: template.version,
+    renderedBody,
+    externalMessageId: emailResult.messageId ?? null,
+    sentAt: new Date(),
+  });
+
+  return "sent";
+};
+
 export const sendAppointmentReminderSMS = async (params: {
   appointmentId: string;
   shopId: string;
@@ -310,7 +550,7 @@ export const sendAppointmentReminderSMS = async (params: {
     shop_name: shopName,
     time: timeFormatter.format(startsAt),
     manage_link: bookingUrl ? `Manage: ${bookingUrl} ` : "",
-  });
+  }, { collapseWhitespace: true, missingValue: "" });
   const bodyHash = hashBody(renderedBody);
 
   const baseLog = {

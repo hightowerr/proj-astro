@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const appNavLinks = [
   { href: "/app", label: "Shop" },
@@ -28,7 +29,12 @@ export function AppNav() {
               key={link.href}
               href={link.href}
               aria-current={isActive ? "page" : undefined}
-              className="whitespace-nowrap text-sm font-medium text-text-light-muted underline-offset-4 transition-colors hover:text-white hover:underline"
+              className={cn(
+                "rounded-md whitespace-nowrap px-2 py-1 text-sm font-medium underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark hover:text-white hover:underline",
+                isActive
+                  ? "text-white underline decoration-primary"
+                  : "text-text-light-muted",
+              )}
             >
               {link.label}
             </Link>

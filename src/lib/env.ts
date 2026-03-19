@@ -38,6 +38,13 @@ const serverEnvSchema = z.object({
   TWILIO_TEST_FROM_NUMBER: z.string().min(1).optional(),
   TWILIO_TEST_TO_NUMBER_OVERRIDE: z.string().min(1).optional(),
 
+  // Email
+  RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required"),
+  EMAIL_FROM_ADDRESS: z
+    .string()
+    .trim()
+    .email("EMAIL_FROM_ADDRESS must be a valid email"),
+
   // App
   NODE_ENV: z
     .enum(["development", "production", "test"])
@@ -183,6 +190,14 @@ export function checkEnv(): void {
 
   if (!twilioTestMode && !process.env.TWILIO_PHONE_NUMBER) {
     throw new Error("TWILIO_PHONE_NUMBER is required");
+  }
+
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is required");
+  }
+
+  if (!process.env.EMAIL_FROM_ADDRESS) {
+    throw new Error("EMAIL_FROM_ADDRESS is required");
   }
 
   // Check optional variables and warn
