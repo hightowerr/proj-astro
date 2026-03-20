@@ -37,8 +37,9 @@ export default function RootLayout({
         return originalMeasure(...args);
       } catch (error) {
         const name = typeof args[0] === "string" ? args[0] : "";
+        const normalizedName = name.replace(/[\\u200B-\\u200D\\u2060\\uFEFF]/g, "");
         const message = error && typeof error.message === "string" ? error.message : "";
-        if (name.charCodeAt(0) === 8203 && /negative time stamp/i.test(message)) {
+        if (/negative time stamp/i.test(message) && /\\bBookingPage\\b/.test(normalizedName)) {
           return;
         }
         throw error;

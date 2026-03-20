@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { formatInTimeZone } from "date-fns-tz";
 import {
   AlertCircle,
@@ -48,6 +49,7 @@ interface ManageBookingViewProps {
     id: string;
     name: string;
     timezone: string;
+    slug: string;
   };
   policy: {
     id: string;
@@ -256,6 +258,9 @@ export function ManageBookingView({
         <p className="text-sm text-muted-foreground">
           View appointment details and cancellation eligibility.
         </p>
+        <Button asChild variant="outline" className="w-full sm:w-auto">
+          <Link href={`/book/${shop.slug}`}>Book again</Link>
+        </Button>
       </div>
 
       <Card className="p-6">

@@ -62,6 +62,12 @@ pnpm db:migrate   # Run pending migrations
 pnpm db:studio    # Open database GUI
 ```
 
+### Running Scripts
+Scripts in `scripts/` directory need environment variables. Always use:
+```bash
+pnpm tsx --env-file=.env scripts/<script-name>.ts
+```
+
 ## Architecture
 
 ### Booking Lifecycle

@@ -29,7 +29,9 @@
       "Skill(frontend-design)",
       "Bash(pnpm test:e2e:*)",
       "Bash(tee:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(pnpm tsx:*)",
+      "Bash(test:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

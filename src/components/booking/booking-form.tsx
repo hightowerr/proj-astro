@@ -595,6 +595,25 @@ export function BookingForm({
     );
   };
 
+  const handleBookAgain = () => {
+    setSuccess(false);
+    setError(null);
+    setAvailabilityError(null);
+    setCancelBookingError(null);
+    setCancelBookingMessage(null);
+    setClientSecret(null);
+    setUsePaymentSimulator(false);
+    setBookingUrl(null);
+    setManageToken(null);
+    setResumeFailed(true);
+    setResumeLoading(false);
+    setIsCancellingBooking(false);
+    setShowPaymentDetails(false);
+    setSelectedSlot(null);
+    setRefreshToken((value) => value + 1);
+    clearResumeQueryParam();
+  };
+
   const handleCancelBooking = async () => {
     if (!manageToken) {
       setCancelBookingError("Manage link missing. Please refresh the page and try again.");
@@ -780,33 +799,59 @@ export function BookingForm({
 
   if (success) {
     return (
-      <div className="rounded-lg border p-6 space-y-4">
+      <div className="space-y-5 rounded-2xl border border-white/10 bg-bg-dark-secondary/70 p-6 shadow-sm">
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold">Booking confirmed</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs font-semibold uppercase text-primary-light">
+            Booking confirmed
+          </p>
+          <h2 className="text-balance text-2xl font-semibold text-white">
+            You&apos;re booked with {shopName}
+          </h2>
+          <p className="text-pretty text-sm text-text-light-muted">
             We&apos;ve reserved your slot at {shopName}.
           </p>
           {selectedSlot ? (
-            <p className="text-sm">
+            <p className="text-sm font-medium text-white">
               {timeFormatter.format(new Date(selectedSlot))} ({timezone})
             </p>
           ) : null}
         </div>
 
         {manageToken ? (
-          <div className="rounded-lg border bg-muted/40 p-4 space-y-2">
-            <h3 className="text-sm font-semibold">Manage your booking</h3>
-            <p className="text-sm text-muted-foreground">
-              Use this link to view details or cancel your appointment.
-            </p>
-            <Button asChild>
-              <a href={`/manage/${manageToken}`}>Manage booking</a>
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Save this link — you&apos;ll need it to manage your appointment.
+          <div className="space-y-4 rounded-xl border border-white/10 bg-bg-dark p-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-white">Manage your booking</h3>
+              <p className="text-pretty text-sm text-text-light-muted">
+                Use this link to view details or cancel your appointment.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild className="sm:flex-1">
+                <a href={`/manage/${manageToken}`}>Manage booking</a>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBookAgain}
+                className="border-white/15 bg-bg-dark text-white hover:bg-bg-dark-secondary hover:text-white sm:flex-1"
+              >
+                Book again
+              </Button>
+            </div>
+            <p className="text-xs text-text-light-muted">
+              Save this link if you may need to change or cancel later.
             </p>
           </div>
-        ) : null}
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleBookAgain}
+            className="border-white/15 bg-bg-dark text-white hover:bg-bg-dark hover:text-white"
+          >
+            Book again
+          </Button>
+        )}
       </div>
     );
   }
@@ -924,15 +969,15 @@ export function BookingForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-7">
       {cancelBookingMessage ? (
         <div className="rounded-md border border-emerald-600/30 bg-emerald-500/5 p-3">
           <p className="text-sm text-emerald-700">{cancelBookingMessage}</p>
         </div>
       ) : null}
 
-      <div className="space-y-2">
-        <Label htmlFor="booking-date">Date</Label>
+      <div className="space-y-2.5">
+        <Label htmlFor="booking-date" className="text-sm font-semibold">Date</Label>
         <Input
           id="booking-date"
           type="date"
@@ -942,8 +987,13 @@ export function BookingForm({
         />
       </div>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Available slots</legend>
+      <fieldset className="space-y-3">
+        <div className="space-y-1">
+          <legend className="text-sm font-semibold">Available slots</legend>
+          <p className="text-sm opacity-90">
+            {slotMinutes} minutes • {timezone}
+          </p>
+        </div>
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading slots…</p>
         ) : availabilityError ? (
@@ -953,7 +1003,7 @@ export function BookingForm({
             No slots available for this day.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {slots.map((slot) => {
               const label = timeFormatter.format(new Date(slot.startsAt));
               const selected = selectedSlot === slot.startsAt;
@@ -963,7 +1013,11 @@ export function BookingForm({
                   type="button"
                   variant={selected ? "default" : "outline"}
                   onClick={() => setSelectedSlot(slot.startsAt)}
-                  className="justify-center"
+                  className={`justify-center h-11 text-base font-semibold ${
+                    !selected
+                      ? "text-foreground hover:bg-accent hover:text-accent-foreground border-border"
+                      : ""
+                  }`}
                   data-slot={slot.startsAt}
                   aria-pressed={selected}
                   data-booking-slot={slot.startsAt}
@@ -974,14 +1028,11 @@ export function BookingForm({
             })}
           </div>
         )}
-        <p className="text-xs text-muted-foreground">
-          Slot length: {slotMinutes} minutes ({timezone})
-        </p>
       </fieldset>
 
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="full-name">Full name</Label>
+        <div className="space-y-2.5">
+          <Label htmlFor="full-name" className="text-sm font-semibold">Full name</Label>
           <Input
             id="full-name"
             name="fullName"
@@ -991,8 +1042,8 @@ export function BookingForm({
             required
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone</Label>
+        <div className="space-y-2.5">
+          <Label htmlFor="phone" className="text-sm font-semibold">Phone</Label>
           <Input
             id="phone"
             name="phone"
@@ -1003,8 +1054,8 @@ export function BookingForm({
             required
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+        <div className="space-y-2.5">
+          <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
           <Input
             id="email"
             name="email"
@@ -1018,32 +1069,32 @@ export function BookingForm({
         </div>
       </div>
 
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-3">
         <input
           id="sms-opt-in"
           type="checkbox"
-          className="mt-1 h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="mt-0.5 h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           checked={smsOptIn}
           onChange={(event) => setSmsOptIn(event.target.checked)}
         />
-        <Label htmlFor="sms-opt-in" className="text-sm leading-5">
+        <Label htmlFor="sms-opt-in" className="text-sm font-medium leading-5 cursor-pointer">
           Send me SMS updates about this booking.
         </Label>
       </div>
 
-      <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-3">
+      <div className="flex items-start gap-3 rounded-lg border bg-muted/40 p-4">
         <input
           id="email-opt-in"
           type="checkbox"
-          className="mt-1 h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="mt-0.5 h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           checked={emailOptIn}
           onChange={(event) => setEmailOptIn(event.target.checked)}
         />
-        <div className="space-y-1">
-          <Label htmlFor="email-opt-in" className="cursor-pointer text-sm leading-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="email-opt-in" className="cursor-pointer text-sm font-medium leading-5">
             Send me email reminders.
           </Label>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm leading-relaxed opacity-85">
             Get an email reminder about 24 hours before your appointment. You can
             opt out later.
           </p>
@@ -1051,15 +1102,15 @@ export function BookingForm({
       </div>
 
       {error ? (
-        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
-          <p className="text-sm text-destructive">{error.message}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3.5">
+          <p className="text-sm font-semibold text-destructive">{error.message}</p>
+          <p className="mt-1.5 text-sm opacity-85">
             Please select a different time slot and try again.
           </p>
         </div>
       ) : null}
 
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting} className="w-full h-11 text-base font-semibold">
         {isSubmitting ? "Booking…" : "Confirm booking"}
       </Button>
     </form>

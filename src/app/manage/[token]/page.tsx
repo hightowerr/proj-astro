@@ -42,6 +42,7 @@ export default async function ManagePage({
       shopId: shops.id,
       shopName: shops.name,
       timezone: bookingSettings.timezone,
+      shopSlug: shops.slug,
       policyId: policyVersions.id,
       cancelCutoffMinutes: policyVersions.cancelCutoffMinutes,
       refundBeforeCutoff: policyVersions.refundBeforeCutoff,
@@ -103,6 +104,7 @@ export default async function ManagePage({
       shop={{
         id: row.shopId,
         name: row.shopName,
+        slug: row.shopSlug,
         timezone,
       }}
       policy={{
