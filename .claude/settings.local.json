@@ -31,7 +31,8 @@
       "Bash(tee:*)",
       "Bash(pkill:*)",
       "Bash(pnpm tsx:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(mkdir:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

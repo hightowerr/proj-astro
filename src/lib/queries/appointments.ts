@@ -714,6 +714,9 @@ export const createAppointment = async (input: {
             currency: policy.currency,
             paymentMode: tierPricing.paymentMode,
             depositAmountCents: tierPricing.depositAmountCents,
+            cancelCutoffMinutes: policy.cancelCutoffMinutes,
+            refundBeforeCutoff: policy.refundBeforeCutoff,
+            resolutionGraceMinutes: policy.resolutionGraceMinutes,
           })
           .returning();
 

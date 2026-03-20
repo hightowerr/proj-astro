@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Base system colors (shadcn/ui compatibility) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -32,6 +33,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Design System: Brand Colors */
   --color-bg-dark: #1a1d21;
   --color-bg-dark-secondary: #24282e;
   --color-primary: #3d8b8b;
@@ -39,17 +42,34 @@
   --color-primary-dark: #2a6b6b;
   --color-accent-peach: #e8c4b8;
   --color-accent-coral: #f4a58a;
+  --color-accent-coral-hover: #f09070;
+
+  /* Design System: Text Colors */
   --color-text-muted: #6b7280;
   --color-text-light-muted: #a1a5ab;
+
+  /* Design System: Status Colors */
   --color-success-green: #10b981;
   --color-error-red: #ef4444;
   --color-warning-amber: #f59e0b;
+
+  /* Design System: Border & Divider Opacity */
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-border-medium: rgba(255, 255, 255, 0.3);
+
+  /* Design System: Animations */
   --animate-float: float 6s ease-in-out infinite;
   --animate-fade-up: fade-up 0.6s ease-out forwards;
+  --animate-slide-in-left: slide-in-left 0.6s ease-out forwards;
+  --animate-slide-in-right: slide-in-right 0.6s ease-out forwards;
+
+  /* Design System: Border Radius */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: 1rem;
 }
 
 @keyframes float {

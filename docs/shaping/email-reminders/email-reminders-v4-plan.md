@@ -890,7 +890,7 @@ testQuery();
 ```
 
 ```bash
-pnpm tsx scripts/test-email-reminder-query.ts
+pnpm tsx --env-file=.env scripts/test-email-reminder-query.ts
 ```
 
 **Expected output:**

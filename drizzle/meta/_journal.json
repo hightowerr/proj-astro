@@ -155,6 +155,13 @@
       "when": 1773732436215,
       "tag": "0021_harsh_next_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1774004259479,
+      "tag": "0022_oval_stepford_cuckoos",
+      "breakpoints": true
     }
   ]
 }

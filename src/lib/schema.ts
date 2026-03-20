@@ -291,6 +291,12 @@ export const shopPolicies = pgTable(
     resolutionGraceMinutes: integer("resolution_grace_minutes")
       .default(30)
       .notNull(),
+    cancelCutoffMinutes: integer("cancel_cutoff_minutes")
+      .default(1440)
+      .notNull(),
+    refundBeforeCutoff: boolean("refund_before_cutoff")
+      .default(true)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -314,6 +320,9 @@ export const policyVersions = pgTable(
     refundBeforeCutoff: boolean("refund_before_cutoff")
       .notNull()
       .default(true),
+    resolutionGraceMinutes: integer("resolution_grace_minutes")
+      .default(30)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
