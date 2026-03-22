@@ -1,0 +1,121 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e6] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e7]:
+      - img [ref=e8]
+    - generic [ref=e11]:
+      - button "Open issues overlay" [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]: "0"
+          - generic [ref=e15]: "1"
+        - generic [ref=e16]: Issue
+      - button "Collapse issues badge" [ref=e17]:
+        - img [ref=e18]
+  - link "Skip to main content" [ref=e20] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e21]:
+    - navigation [ref=e22]:
+      - link "Astro homepage" [ref=e23] [cursor=pointer]:
+        - /url: /
+        - text: Astro
+      - generic [ref=e24]:
+        - link "How It Works" [ref=e25] [cursor=pointer]:
+          - /url: "#how-it-works"
+        - link "Features" [ref=e26] [cursor=pointer]:
+          - /url: "#features"
+        - link "Pricing" [ref=e27] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "FAQ" [ref=e28] [cursor=pointer]:
+          - /url: "#faq"
+      - generic [ref=e29]:
+        - link "Open App" [ref=e30] [cursor=pointer]:
+          - /url: /app
+        - button "Sign Out" [ref=e31]
+  - main [ref=e32]:
+    - navigation "App navigation" [ref=e34]:
+      - link "Shop" [ref=e35] [cursor=pointer]:
+        - /url: /app
+      - link "Dashboard" [ref=e36] [cursor=pointer]:
+        - /url: /app/dashboard
+      - link "Appointments" [ref=e37] [cursor=pointer]:
+        - /url: /app/appointments
+      - link "Conflicts" [ref=e38] [cursor=pointer]:
+        - /url: /app/conflicts
+      - link "Customers" [ref=e39] [cursor=pointer]:
+        - /url: /app/customers
+      - link "Availability" [ref=e40] [cursor=pointer]:
+        - /url: /app/settings/availability
+      - link "Payment Policy" [ref=e41] [cursor=pointer]:
+        - /url: /app/settings/payment-policy
+      - link "Calendar" [ref=e42] [cursor=pointer]:
+        - /url: /app/settings/calendar
+      - link "Reminders" [ref=e43] [cursor=pointer]:
+        - /url: /app/settings/reminders
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - link "Back to Appointments" [ref=e46] [cursor=pointer]:
+          - /url: /app/appointments
+          - img [ref=e47]
+          - text: Back to Appointments
+        - generic [ref=e49]:
+          - heading "Calendar Conflicts" [level=1] [ref=e50]
+          - paragraph [ref=e51]: Resolve overlaps between booked appointments and Google Calendar events.
+      - generic [ref=e53]:
+        - img [ref=e54]
+        - generic [ref=e56]:
+          - paragraph [ref=e57]: 1 conflict detected
+          - paragraph [ref=e58]: Keep an appointment to dismiss a false positive, or cancel it to free up calendar time.
+      - table [ref=e60]:
+        - rowgroup [ref=e61]:
+          - row "Appointment Customer Calendar Event Severity Detected Actions" [ref=e62]:
+            - columnheader "Appointment" [ref=e63]
+            - columnheader "Customer" [ref=e64]
+            - columnheader "Calendar Event" [ref=e65]
+            - columnheader "Severity" [ref=e66]
+            - columnheader "Detected" [ref=e67]
+            - columnheader "Actions" [ref=e68]
+        - rowgroup [ref=e69]:
+          - 'row "Mar 23, 2026, 1:42 AM Until Mar 23, 2026, 2:42 AM Conflict Customer conflict@example.com Important Meeting Mar 23, 2026, 1:42 AM - Mar 23, 2026, 2:42 AM Conflict severity: High Conflict Mar 22, 2026, 1:42 PM Keep Appointment Cancel Appointment" [ref=e70]':
+            - cell "Mar 23, 2026, 1:42 AM Until Mar 23, 2026, 2:42 AM" [ref=e71]:
+              - generic [ref=e72]: Mar 23, 2026, 1:42 AM
+              - generic [ref=e73]: Until Mar 23, 2026, 2:42 AM
+            - cell "Conflict Customer conflict@example.com" [ref=e74]:
+              - generic [ref=e75]: Conflict Customer
+              - generic [ref=e76]: conflict@example.com
+            - cell "Important Meeting Mar 23, 2026, 1:42 AM - Mar 23, 2026, 2:42 AM" [ref=e77]:
+              - generic [ref=e78]: Important Meeting
+              - generic [ref=e79]: Mar 23, 2026, 1:42 AM - Mar 23, 2026, 2:42 AM
+            - 'cell "Conflict severity: High Conflict" [ref=e80]':
+              - 'status "Conflict severity: High Conflict" [ref=e81]':
+                - img [ref=e82]
+                - text: High Conflict
+            - cell "Mar 22, 2026, 1:42 PM" [ref=e84]
+            - cell "Keep Appointment Cancel Appointment" [ref=e85]:
+              - generic [ref=e86]:
+                - button "Keep Appointment" [ref=e87]
+                - button "Cancel Appointment" [ref=e88]
+  - contentinfo [ref=e89]:
+    - generic [ref=e90]:
+      - link "Astro" [ref=e91] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e92]:
+        - link "How It Works" [ref=e93] [cursor=pointer]:
+          - /url: "#how-it-works"
+        - link "Features" [ref=e94] [cursor=pointer]:
+          - /url: "#features"
+        - link "Pricing" [ref=e95] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "FAQ" [ref=e96] [cursor=pointer]:
+          - /url: "#faq"
+        - link "Privacy Policy" [ref=e97] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms of Service" [ref=e98] [cursor=pointer]:
+          - /url: /terms
+        - link "Contact" [ref=e99] [cursor=pointer]:
+          - /url: /contact
+      - paragraph [ref=e100]: © 2025 Astro. All rights reserved.
+  - region "Notifications alt+T"
+  - alert [ref=e101]
+```

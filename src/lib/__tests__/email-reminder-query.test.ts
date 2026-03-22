@@ -33,6 +33,8 @@ const makeFixture = async (input?: {
   hoursFromNow?: number;
   status?: "booked" | "cancelled";
   emailOptIn?: boolean | null;
+  createdAt?: Date;
+  reminderTimingsSnapshot?: string[];
 }) => {
   const shop = await createShop({
     ownerUserId: userId,
@@ -79,6 +81,8 @@ const makeFixture = async (input?: {
       endsAt,
       status: input?.status ?? "booked",
       bookingUrl: `https://example.com/manage/${randomUUID()}`,
+      createdAt: input?.createdAt ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      reminderTimingsSnapshot: input?.reminderTimingsSnapshot ?? ["24h"],
     })
     .returning();
 
@@ -168,4 +172,62 @@ describeIf("findAppointmentsForEmailReminder", () => {
 
     expect(results.some((row) => row.appointmentId === appointment.id)).toBe(false);
   });
+
+  it("only returns appointments for intervals present in the snapshot", async () => {
+    const { appointment: twentyFourHourAppointment } = await makeFixture({
+      hoursFromNow: 24,
+      emailOptIn: true,
+      reminderTimingsSnapshot: ["10m", "2h"],
+    });
+    const { appointment: twoHourAppointment } = await makeFixture({
+      hoursFromNow: 2,
+      emailOptIn: true,
+      reminderTimingsSnapshot: ["10m", "2h"],
+    });
+
+    const results = await findAppointmentsForEmailReminder();
+
+    expect(
+      results.some(
+        (row) =>
+          row.appointmentId === twentyFourHourAppointment.id &&
+          row.reminderInterval === "24h"
+      )
+    ).toBe(false);
+    expect(
+      results.some(
+        (row) =>
+          row.appointmentId === twoHourAppointment.id &&
+          row.reminderInterval === "2h"
+      )
+    ).toBe(true);
+  });
+
+  it("returns the appointment once per matching interval window", async () => {
+    const { appointment } = await makeFixture({
+      hoursFromNow: 24,
+      emailOptIn: true,
+      reminderTimingsSnapshot: ["2h", "24h"],
+    });
+
+    const results = await findAppointmentsForEmailReminder();
+    const matches = results.filter((row) => row.appointmentId === appointment.id);
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.reminderInterval).toBe("24h");
+  });
+
+  it("skips appointments booked within the reminder window", async () => {
+    const { appointment } = await makeFixture({
+      hoursFromNow: 0.08,
+      emailOptIn: true,
+      createdAt: new Date(),
+      reminderTimingsSnapshot: ["10m"],
+    });
+
+    const results = await findAppointmentsForEmailReminder();
+
+    expect(results.some((row) => row.appointmentId === appointment.id)).toBe(false);
+  });
+
 });

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
-import { appointments, customers, customerContactPrefs, shops, bookingSettings } from "@/lib/schema";
-import { eq, and, gte, lte, isNotNull, or, isNull, asc } from "drizzle-orm";
+import { appointments, customers, customerContactPrefs } from "@/lib/schema";
+import { asc, eq } from "drizzle-orm";
 
 async function diagnose() {
   console.log("\n=== EMAIL REMINDER DIAGNOSTIC ===\n");

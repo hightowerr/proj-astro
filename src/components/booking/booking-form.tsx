@@ -927,7 +927,8 @@ export function BookingForm({
 
     if (shouldUsePaymentSimulator) {
       return (
-        <PaymentStep
+        <Elements stripe={null}>
+          <PaymentStep
           amountCents={paymentAmountCents}
           currency={paymentCurrency}
           timezone={timezone}
@@ -943,6 +944,7 @@ export function BookingForm({
           cancelError={cancelBookingError}
           {...(manageToken ? { onCancel: handleCancelBooking } : {})}
         />
+        </Elements>
       );
     }
 

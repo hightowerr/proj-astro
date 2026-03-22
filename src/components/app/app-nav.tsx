@@ -13,6 +13,7 @@ const appNavLinks = [
   { href: "/app/settings/availability", label: "Availability" },
   { href: "/app/settings/payment-policy", label: "Payment Policy" },
   { href: "/app/settings/calendar", label: "Calendar" },
+  { href: "/app/settings/reminders", label: "Reminders" },
 ];
 
 export function AppNav() {

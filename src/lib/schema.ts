@@ -155,6 +155,12 @@ export const messagePurposeEnum = pgEnum("message_purpose", [
   "slot_recovery_offer",
   "appointment_reminder_24h",
   "appointment_confirmation_request",
+  "appointment_reminder_10m",
+  "appointment_reminder_1h",
+  "appointment_reminder_2h",
+  "appointment_reminder_4h",
+  "appointment_reminder_48h",
+  "appointment_reminder_1w",
 ]);
 
 export const appointmentConfirmationStatusEnum = pgEnum(
@@ -259,11 +265,27 @@ export const bookingSettings = pgTable(
       .references(() => shops.id, { onDelete: "cascade" }),
     slotMinutes: integer("slot_minutes").notNull(),
     timezone: text("timezone").notNull(),
+    reminderTimings: text("reminder_timings")
+      .array()
+      .notNull()
+      .default(sql`ARRAY['24h']::text[]`),
   },
   (table) => [
     check(
       "booking_settings_slot_minutes_valid",
       sql`${table.slotMinutes} in (15, 30, 45, 60, 90, 120)`
+    ),
+    check(
+      "booking_settings_reminder_timings_max",
+      sql`cardinality(${table.reminderTimings}) <= 3`
+    ),
+    check(
+      "booking_settings_reminder_timings_min",
+      sql`cardinality(${table.reminderTimings}) >= 1`
+    ),
+    check(
+      "booking_settings_reminder_timings_valid",
+      sql`${table.reminderTimings} <@ ARRAY['10m','1h','2h','4h','24h','48h','1w']::text[]`
     ),
   ]
 );
@@ -496,6 +518,10 @@ export const appointments = pgTable(
       { onDelete: "set null" }
     ),
     bookingUrl: text("booking_url"),
+    reminderTimingsSnapshot: text("reminder_timings_snapshot")
+      .array()
+      .notNull()
+      .default(sql`ARRAY['24h']::text[]`),
     calendarEventId: text("calendar_event_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()

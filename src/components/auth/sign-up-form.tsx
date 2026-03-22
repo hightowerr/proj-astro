@@ -2,14 +2,12 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { signUp } from "@/lib/auth-client"
 
 export function SignUpForm() {
-  const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -44,8 +42,7 @@ export function SignUpForm() {
       if (result.error) {
         setError(result.error.message || "Failed to create account")
       } else {
-        router.push("/app")
-        router.refresh()
+        window.location.assign("/app")
       }
     } catch {
       setError("An unexpected error occurred")
@@ -111,7 +108,7 @@ export function SignUpForm() {
         {isPending ? "Creating account..." : "Create account"}
       </Button>
       <div className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        Already have an account? {" "}
         <Link href="/login" className="text-primary hover:underline">
           Sign in
         </Link>

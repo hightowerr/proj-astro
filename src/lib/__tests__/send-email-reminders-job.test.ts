@@ -46,6 +46,7 @@ describe("POST /api/jobs/send-email-reminders", () => {
     bookingUrl: `https://example.com/manage/${id}`,
     shopName: "Test Shop",
     shopTimezone: "UTC",
+    reminderInterval: "24h",
   });
 
   beforeEach(() => {
@@ -118,6 +119,9 @@ describe("POST /api/jobs/send-email-reminders", () => {
     ]);
     expect(body.durationMs).toEqual(expect.any(Number));
     expect(sendAppointmentReminderEmailMock).toHaveBeenCalledTimes(3);
+    expect(sendAppointmentReminderEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({ reminderInterval: "24h" })
+    );
   });
 
   it("returns a zero-count summary when there is no work", async () => {

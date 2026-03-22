@@ -103,6 +103,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       bookingUrl: row.bookingUrl,
       shopName: row.shopName,
       shopTimezone: row.shopTimezone ?? "UTC",
+      reminderInterval: "24h",
     });
 
     if (result === "already_sent") {

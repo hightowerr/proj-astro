@@ -136,6 +136,7 @@ export async function sendReminderSMS(
     bookingUrl: appointment.bookingUrl,
     shopName: appointment.shopName,
     shopTimezone: appointment.shopTimezone ?? "UTC",
+    reminderInterval: "24h",
   });
 }
 

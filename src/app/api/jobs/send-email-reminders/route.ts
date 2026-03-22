@@ -49,6 +49,7 @@ export async function POST(req: Request) {
           bookingUrl: appointment.bookingUrl,
           shopName: appointment.shopName,
           shopTimezone: appointment.shopTimezone,
+          reminderInterval: appointment.reminderInterval,
         });
 
         if (result === "sent") {

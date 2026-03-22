@@ -390,6 +390,7 @@ export const sendAppointmentReminderEmail = async (params: {
   bookingUrl: string | null;
   shopName: string;
   shopTimezone: string;
+  reminderInterval: string;
 }): Promise<EmailReminderSendResult> => {
   const {
     appointmentId,
@@ -402,12 +403,14 @@ export const sendAppointmentReminderEmail = async (params: {
     bookingUrl,
     shopName,
     shopTimezone,
+    reminderInterval,
   } = params;
 
-  const dedupKey = `appointment_reminder_24h:email:${appointmentId}`;
+  const purpose = `appointment_reminder_${reminderInterval}` as MessagePurpose;
+  const dedupKey = `${purpose}:email:${appointmentId}`;
   const sendAllowed = await shouldSendMessage(
     customerId,
-    "appointment_reminder_24h",
+    purpose,
     "email",
     dedupKey
   );
@@ -467,7 +470,7 @@ export const sendAppointmentReminderEmail = async (params: {
       shopId,
       appointmentId,
       customerId,
-      purpose: "appointment_reminder_24h",
+      purpose,
       channel: "email",
       recipient: customerEmail,
       provider: "resend",
@@ -486,7 +489,7 @@ export const sendAppointmentReminderEmail = async (params: {
     shopId,
     appointmentId,
     customerId,
-    purpose: "appointment_reminder_24h",
+    purpose,
     channel: "email",
     recipient: customerEmail,
     provider: "resend",
@@ -512,6 +515,7 @@ export const sendAppointmentReminderSMS = async (params: {
   bookingUrl: string | null;
   shopName: string;
   shopTimezone: string;
+  reminderInterval: string;
 }): Promise<ReminderSendResult> => {
   const {
     appointmentId,
@@ -523,12 +527,18 @@ export const sendAppointmentReminderSMS = async (params: {
     bookingUrl,
     shopName,
     shopTimezone,
+    reminderInterval,
   } = params;
 
-  const alreadySent = await checkReminderAlreadySent(appointmentId);
+  const alreadySent = await checkReminderAlreadySent(
+    appointmentId,
+    reminderInterval
+  );
   if (alreadySent) {
     return "already_sent";
   }
+
+  const purpose = `appointment_reminder_${reminderInterval}` as MessagePurpose;
 
   const prefs = await db.query.customerContactPrefs.findFirst({
     where: (table, { eq }) => eq(table.customerId, customerId),
@@ -558,7 +568,7 @@ export const sendAppointmentReminderSMS = async (params: {
     appointmentId,
     customerId,
     channel: "sms" as const,
-    purpose: "appointment_reminder_24h" as const,
+    purpose,
     toPhone: customerPhone,
     provider: "twilio",
     bodyHash,
