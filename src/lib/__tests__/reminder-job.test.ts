@@ -35,11 +35,14 @@ const makeAppointmentFixture = async (input?: {
   noShowRisk?: "low" | "medium" | "high" | null;
   status?: "booked" | "cancelled";
   smsOptIn?: boolean;
+  reminderTimingsSnapshot?: string[];
+  createdAt?: Date;
 }) => {
   const hoursFromNow = input?.hoursFromNow ?? 24;
   const noShowRisk = input?.noShowRisk ?? "high";
   const status = input?.status ?? "booked";
   const smsOptIn = input?.smsOptIn ?? true;
+  const reminderTimingsSnapshot = input?.reminderTimingsSnapshot ?? ["24h"];
 
   const shop = await createShop({
     ownerUserId: userId,
@@ -53,7 +56,9 @@ const makeAppointmentFixture = async (input?: {
     .values({
       shopId: shop.id,
       fullName: "Reminder Customer",
-      phone: `+1202555${Math.floor(Math.random() * 10000).toString().padStart(4, "0")}`,
+      phone: `+1202555${Math.floor(Math.random() * 10000)
+        .toString()
+        .padStart(4, "0")}`,
       email: `reminder-${randomUUID()}@example.com`,
     })
     .returning();
@@ -80,6 +85,8 @@ const makeAppointmentFixture = async (input?: {
       status,
       noShowRisk,
       bookingUrl: `https://example.com/manage/${randomUUID()}`,
+      reminderTimingsSnapshot,
+      createdAt: input?.createdAt,
     })
     .returning();
 
@@ -137,12 +144,62 @@ describeIf("reminder query and dedup", () => {
     expect(results.some((row) => row.appointmentId === appointment.id)).toBe(true);
   });
 
+  it("returns only appointments for intervals in their snapshot", async () => {
+    const twoHourOnly = await makeAppointmentFixture({
+      hoursFromNow: 24,
+      reminderTimingsSnapshot: ["2h"],
+    });
+    const twentyFourHour = await makeAppointmentFixture({
+      hoursFromNow: 24,
+      reminderTimingsSnapshot: ["24h"],
+    });
+
+    const results = await findHighRiskAppointments();
+
+    expect(
+      results.some((row) => row.appointmentId === twoHourOnly.appointment.id)
+    ).toBe(false);
+
+    expect(
+      results.some(
+        (row) =>
+          row.appointmentId === twentyFourHour.appointment.id &&
+          row.reminderInterval === "24h"
+      )
+    ).toBe(true);
+  });
+
+  it("returns reminderInterval on each result", async () => {
+    const { appointment } = await makeAppointmentFixture({
+      hoursFromNow: 24,
+      reminderTimingsSnapshot: ["24h"],
+    });
+
+    const results = await findHighRiskAppointments();
+    const found = results.find((row) => row.appointmentId === appointment.id);
+
+    expect(found?.reminderInterval).toBe("24h");
+  });
+
+  it("skips appointments booked within the reminder window", async () => {
+    const { appointment } = await makeAppointmentFixture({
+      hoursFromNow: 0.5,
+      reminderTimingsSnapshot: ["1h"],
+      createdAt: new Date(),
+    });
+
+    const results = await findHighRiskAppointments();
+
+    expect(results.some((row) => row.appointmentId === appointment.id)).toBe(false);
+  });
+
   it("excludes appointments outside reminder window", async () => {
     const { appointment } = await makeAppointmentFixture({
       hoursFromNow: 48,
       noShowRisk: "high",
       status: "booked",
       smsOptIn: true,
+      reminderTimingsSnapshot: ["24h"],
     });
 
     const results = await findHighRiskAppointments();
@@ -216,13 +273,13 @@ describeIf("reminder query and dedup", () => {
       sentAt: new Date(),
     });
 
-    await expect(checkReminderAlreadySent(appointment.id)).resolves.toBe(true);
+    await expect(checkReminderAlreadySent(appointment.id, "24h")).resolves.toBe(true);
   });
 
   it("returns false when no reminder has been logged", async () => {
     const { appointment } = await makeAppointmentFixture();
 
-    await expect(checkReminderAlreadySent(appointment.id)).resolves.toBe(false);
+    await expect(checkReminderAlreadySent(appointment.id, "24h")).resolves.toBe(false);
   });
 
   it("returns false when only booking confirmation exists", async () => {
@@ -245,6 +302,32 @@ describeIf("reminder query and dedup", () => {
       sentAt: new Date(),
     });
 
-    await expect(checkReminderAlreadySent(appointment.id)).resolves.toBe(false);
+    await expect(checkReminderAlreadySent(appointment.id, "24h")).resolves.toBe(false);
+  });
+
+  it("returns false for a different interval even if one interval was already sent", async () => {
+    const { shop, customer, appointment } = await makeAppointmentFixture({
+      reminderTimingsSnapshot: ["24h", "2h"],
+    });
+
+    await db.insert(messageLog).values({
+      shopId: shop.id,
+      appointmentId: appointment.id,
+      customerId: customer.id,
+      channel: "sms",
+      purpose: "appointment_reminder_24h",
+      toPhone: customer.phone,
+      provider: "twilio",
+      status: "sent",
+      bodyHash: "hash-reminder-24h",
+      templateKey: "appointment_reminder_24h",
+      templateVersion: 1,
+      renderedBody: "24h reminder body",
+      providerMessageId: `mock_${randomUUID()}`,
+      sentAt: new Date(),
+    });
+
+    await expect(checkReminderAlreadySent(appointment.id, "24h")).resolves.toBe(true);
+    await expect(checkReminderAlreadySent(appointment.id, "2h")).resolves.toBe(false);
   });
 });

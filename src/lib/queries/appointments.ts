@@ -27,6 +27,11 @@ import {
 import { getNoShowStats, scanAppointmentsByOutcome } from "@/lib/queries/no-show-scoring";
 import { loadCustomerScoreTx } from "@/lib/queries/scoring";
 import {
+  parseReminderInterval,
+  REMINDER_INTERVALS,
+  shouldSkipReminder,
+} from "@/lib/reminders";
+import {
   appointments,
   bookingSettings,
   customerContactPrefs,
@@ -274,6 +279,7 @@ export type HighRiskReminderCandidate = {
   bookingUrl: string | null;
   shopName: string;
   shopTimezone: string;
+  reminderInterval: string;
 };
 
 export type EmailReminderCandidate = {
@@ -287,106 +293,162 @@ export type EmailReminderCandidate = {
   bookingUrl: string | null;
   shopName: string;
   shopTimezone: string;
+  reminderInterval: string;
 };
 
 /**
- * Finds booked high-risk appointments in the reminder window (23h..25h).
+ * Finds booked high-risk appointments across all configured reminder windows.
  */
 export const findHighRiskAppointments = async (): Promise<
   HighRiskReminderCandidate[]
 > => {
   const now = Date.now();
-  const windowStart = new Date(now + 23 * 60 * 60 * 1000);
-  const windowEnd = new Date(now + 25 * 60 * 60 * 1000);
+  const results: HighRiskReminderCandidate[] = [];
 
-  const rows = await db
-    .select({
-      appointmentId: appointments.id,
-      shopId: appointments.shopId,
-      customerId: appointments.customerId,
-      customerName: customers.fullName,
-      customerPhone: customers.phone,
-      startsAt: appointments.startsAt,
-      endsAt: appointments.endsAt,
-      bookingUrl: appointments.bookingUrl,
-      shopName: shops.name,
-      shopTimezone: bookingSettings.timezone,
-    })
-    .from(appointments)
-    .innerJoin(customers, eq(appointments.customerId, customers.id))
-    .innerJoin(
-      customerContactPrefs,
-      eq(appointments.customerId, customerContactPrefs.customerId)
-    )
-    .innerJoin(shops, eq(appointments.shopId, shops.id))
-    .leftJoin(bookingSettings, eq(appointments.shopId, bookingSettings.shopId))
-    .where(
-      and(
-        eq(appointments.status, "booked"),
-        eq(appointments.noShowRisk, "high"),
-        gte(appointments.startsAt, windowStart),
-        lte(appointments.startsAt, windowEnd),
-        eq(customerContactPrefs.smsOptIn, true)
+  for (const interval of REMINDER_INTERVALS) {
+    const intervalMinutes = parseReminderInterval(interval);
+    if (intervalMinutes === null) {
+      continue;
+    }
+
+    const windowStart = new Date(now + (intervalMinutes - 60) * 60 * 1000);
+    const windowEnd = new Date(now + (intervalMinutes + 60) * 60 * 1000);
+
+    const rows = await db
+      .select({
+        appointmentId: appointments.id,
+        shopId: appointments.shopId,
+        customerId: appointments.customerId,
+        customerName: customers.fullName,
+        customerPhone: customers.phone,
+        startsAt: appointments.startsAt,
+        endsAt: appointments.endsAt,
+        createdAt: appointments.createdAt,
+        bookingUrl: appointments.bookingUrl,
+        shopName: shops.name,
+        shopTimezone: bookingSettings.timezone,
+      })
+      .from(appointments)
+      .innerJoin(customers, eq(appointments.customerId, customers.id))
+      .innerJoin(
+        customerContactPrefs,
+        eq(appointments.customerId, customerContactPrefs.customerId)
       )
-    );
+      .innerJoin(shops, eq(appointments.shopId, shops.id))
+      .leftJoin(bookingSettings, eq(appointments.shopId, bookingSettings.shopId))
+      .where(
+        and(
+          eq(appointments.status, "booked"),
+          eq(appointments.noShowRisk, "high"),
+          gte(appointments.startsAt, windowStart),
+          lte(appointments.startsAt, windowEnd),
+          sql`${interval} = ANY(${appointments.reminderTimingsSnapshot})`,
+          eq(customerContactPrefs.smsOptIn, true)
+        )
+      );
 
-  return rows.map((row) => ({
-    ...row,
-    shopTimezone: row.shopTimezone ?? "UTC",
-  }));
+    for (const row of rows) {
+      if (shouldSkipReminder(row.startsAt, row.createdAt, interval)) {
+        continue;
+      }
+
+      results.push({
+        appointmentId: row.appointmentId,
+        shopId: row.shopId,
+        customerId: row.customerId,
+        customerName: row.customerName,
+        customerPhone: row.customerPhone,
+        startsAt: row.startsAt,
+        endsAt: row.endsAt,
+        bookingUrl: row.bookingUrl,
+        shopName: row.shopName,
+        shopTimezone: row.shopTimezone ?? "UTC",
+        reminderInterval: interval,
+      });
+    }
+  }
+
+  return results;
 };
 
 /**
- * Finds booked appointments in the email reminder window (23h..25h)
+ * Finds booked appointments across all configured reminder windows
  * where the customer has an email address and has not opted out.
  */
 export const findAppointmentsForEmailReminder = async (): Promise<
   EmailReminderCandidate[]
 > => {
   const now = Date.now();
-  const windowStart = new Date(now + 23 * 60 * 60 * 1000);
-  const windowEnd = new Date(now + 25 * 60 * 60 * 1000);
+  const results: EmailReminderCandidate[] = [];
 
-  const rows = await db
-    .select({
-      appointmentId: appointments.id,
-      shopId: appointments.shopId,
-      customerId: appointments.customerId,
-      customerName: customers.fullName,
-      customerEmail: customers.email,
-      startsAt: appointments.startsAt,
-      endsAt: appointments.endsAt,
-      bookingUrl: appointments.bookingUrl,
-      shopName: shops.name,
-      shopTimezone: bookingSettings.timezone,
-    })
-    .from(appointments)
-    .innerJoin(customers, eq(appointments.customerId, customers.id))
-    .innerJoin(shops, eq(appointments.shopId, shops.id))
-    .leftJoin(
-      customerContactPrefs,
-      eq(appointments.customerId, customerContactPrefs.customerId)
-    )
-    .leftJoin(bookingSettings, eq(appointments.shopId, bookingSettings.shopId))
-    .where(
-      and(
-        eq(appointments.status, "booked"),
-        isNotNull(customers.email),
-        gte(appointments.startsAt, windowStart),
-        lte(appointments.startsAt, windowEnd),
-        or(
-          eq(customerContactPrefs.emailOptIn, true),
-          isNull(customerContactPrefs.customerId)
+  for (const interval of REMINDER_INTERVALS) {
+    const intervalMinutes = parseReminderInterval(interval);
+    if (intervalMinutes === null) {
+      continue;
+    }
+
+    const windowStart = new Date(now + (intervalMinutes - 60) * 60 * 1000);
+    const windowEnd = new Date(now + (intervalMinutes + 60) * 60 * 1000);
+
+    const rows = await db
+      .select({
+        appointmentId: appointments.id,
+        shopId: appointments.shopId,
+        customerId: appointments.customerId,
+        customerName: customers.fullName,
+        customerEmail: customers.email,
+        startsAt: appointments.startsAt,
+        endsAt: appointments.endsAt,
+        createdAt: appointments.createdAt,
+        bookingUrl: appointments.bookingUrl,
+        shopName: shops.name,
+        shopTimezone: bookingSettings.timezone,
+      })
+      .from(appointments)
+      .innerJoin(customers, eq(appointments.customerId, customers.id))
+      .innerJoin(shops, eq(appointments.shopId, shops.id))
+      .leftJoin(
+        customerContactPrefs,
+        eq(appointments.customerId, customerContactPrefs.customerId)
+      )
+      .leftJoin(bookingSettings, eq(appointments.shopId, bookingSettings.shopId))
+      .where(
+        and(
+          eq(appointments.status, "booked"),
+          isNotNull(customers.email),
+          gte(appointments.startsAt, windowStart),
+          lte(appointments.startsAt, windowEnd),
+          sql`${interval} = ANY(${appointments.reminderTimingsSnapshot})`,
+          or(
+            eq(customerContactPrefs.emailOptIn, true),
+            isNull(customerContactPrefs.customerId)
+          )
         )
       )
-    )
-    .orderBy(asc(appointments.startsAt));
+      .orderBy(asc(appointments.startsAt));
 
-  return rows.map((row) => ({
-    ...row,
-    customerEmail: row.customerEmail!,
-    shopTimezone: row.shopTimezone ?? "UTC",
-  }));
+    for (const row of rows) {
+      if (shouldSkipReminder(row.startsAt, row.createdAt, interval)) {
+        continue;
+      }
+
+      results.push({
+        appointmentId: row.appointmentId,
+        shopId: row.shopId,
+        customerId: row.customerId,
+        customerName: row.customerName,
+        customerEmail: row.customerEmail!,
+        startsAt: row.startsAt,
+        endsAt: row.endsAt,
+        bookingUrl: row.bookingUrl,
+        shopName: row.shopName,
+        shopTimezone: row.shopTimezone ?? "UTC",
+        reminderInterval: interval,
+      });
+    }
+  }
+
+  return results;
 };
 
 type DbLike = Pick<typeof db, "query" | "insert" | "update">;
@@ -617,6 +679,7 @@ export const createAppointment = async (input: {
         throw new Error("Booking settings not found");
       }
 
+      const reminderTimingsSnapshot = settings.reminderTimings ?? ["24h"];
       const localStart = toZonedTime(input.startsAt, settings.timezone);
       const dayOfWeek = localStart.getDay();
       const hours = await tx.query.shopHours.findFirst({
@@ -745,6 +808,7 @@ export const createAppointment = async (input: {
         source: input.source ?? "web",
         sourceSlotOpeningId: input.sourceSlotOpeningId ?? null,
         bookingUrl: null,
+        reminderTimingsSnapshot,
       };
 
       const [appointment] = await tx

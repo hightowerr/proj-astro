@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { appointments, customers, shops, bookingSettings, customerContactPrefs } from "@/lib/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { sendAppointmentReminderEmail } from "@/lib/messages";
 
 async function sendTestEmailReminder() {
@@ -112,6 +112,7 @@ async function sendTestEmailReminder() {
       bookingUrl: row.bookingUrl,
       shopName: row.shopName,
       shopTimezone: row.shopTimezone ?? "UTC",
+      reminderInterval: "24h",
     });
 
     if (result === "already_sent") {

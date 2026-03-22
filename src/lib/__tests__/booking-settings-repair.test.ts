@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
@@ -104,5 +104,43 @@ describeIf("booking settings repair", () => {
       where: (table, { eq }) => eq(table.shopId, shopId),
     });
     expect(repaired).not.toBeNull();
+  });
+
+  it("rejects empty reminder timings at the database level", async () => {
+    await db
+      .insert(bookingSettings)
+      .values({
+        shopId,
+        slotMinutes: 60,
+        timezone: "UTC",
+        reminderTimings: ["24h"],
+      })
+      .onConflictDoUpdate({
+        target: bookingSettings.shopId,
+        set: {
+          slotMinutes: 60,
+          timezone: "UTC",
+          reminderTimings: ["24h"],
+        },
+      });
+
+    const error = await db
+      .execute(sql`
+        UPDATE booking_settings
+        SET reminder_timings = ARRAY[]::text[]
+        WHERE shop_id = ${shopId}
+      `)
+      .then(() => null)
+      .catch((error) => error);
+
+    expect(error).toBeTruthy();
+    const cause =
+      error && typeof error === "object" && "cause" in error
+        ? (error as { cause?: { constraint?: string; message?: string } }).cause
+        : undefined;
+
+    expect(cause?.constraint ?? cause?.message ?? String(error)).toMatch(
+      /booking_settings_reminder_timings_min/i
+    );
   });
 });

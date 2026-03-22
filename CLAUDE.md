@@ -68,6 +68,11 @@ Scripts in `scripts/` directory need environment variables. Always use:
 pnpm tsx --env-file=.env scripts/<script-name>.ts
 ```
 
+### Chromebook
+```bash
+sudo docker compose up
+```
+
 ## Architecture
 
 ### Booking Lifecycle

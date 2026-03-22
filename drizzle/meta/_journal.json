@@ -162,6 +162,41 @@
       "when": 1774004259479,
       "tag": "0022_oval_stepford_cuckoos",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1774095453482,
+      "tag": "0023_overjoyed_firebird",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1775000000000,
+      "tag": "0024_reminder_timings_snapshot",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1775000001000,
+      "tag": "0025_reminder_purpose_enum",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1774118717361,
+      "tag": "0026_orange_fixer",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1774121313516,
+      "tag": "0027_booking_settings_reminder_constraint_repair",
+      "breakpoints": true
     }
   ]
 }

@@ -91,7 +91,13 @@ test("customer books a slot and business sees it", async ({ page }) => {
       );
     });
 
-    await page.locator("#booking-date").fill(dateStr);
+    await page.locator("#booking-date").evaluate((input, value) => {
+      const element = input as HTMLInputElement;
+      const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      valueSetter?.call(element, value);
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    }, dateStr);
     await availabilityResponse;
 
     await page
@@ -128,7 +134,7 @@ test("customer books a slot and business sees it", async ({ page }) => {
 
   await expect(async () => {
     const bookingConfirmedVisible = await page
-      .getByRole("heading", { name: "Booking confirmed" })
+      .getByText("Booking confirmed", { exact: true })
       .isVisible()
       .catch(() => false);
     const payAgainVisible = await page

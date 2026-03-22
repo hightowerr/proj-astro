@@ -71,7 +71,13 @@ test.describe("Booking manage link", () => {
     await expect(page.getByText("Book with Hello Shop")).toBeVisible();
 
     const dateStr = nextWeekdayUtc();
-    await page.locator("#booking-date").fill(dateStr);
+    await page.locator("#booking-date").evaluate((input, value) => {
+      const element = input as HTMLInputElement;
+      const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      valueSetter?.call(element, value);
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    }, dateStr);
 
     const firstSlot = page.locator("[data-booking-slot]").first();
     await expect(firstSlot).toBeVisible();

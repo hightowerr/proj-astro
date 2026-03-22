@@ -15,8 +15,23 @@ export async function completeShopOnboarding(
   });
 
   if (await businessTypeHeading.isVisible().catch(() => false)) {
-    await page.getByRole("button", { name: businessTypeLabel }).click();
-    await page.getByRole("button", { name: /^Next$/ }).click();
+    const businessTypeButton = page.getByRole("button", { name: businessTypeLabel, exact: true });
+    const nextButton = page.getByRole("button", { name: /^Next$/ });
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await businessTypeButton.click();
+
+      const pressed = await businessTypeButton.getAttribute("aria-pressed");
+      if (pressed === "true") {
+        break;
+      }
+
+      await page.waitForTimeout(250);
+    }
+
+    await expect(businessTypeButton).toHaveAttribute("aria-pressed", "true");
+    await expect(nextButton).toBeEnabled();
+    await nextButton.click();
   }
 
   await page.getByLabel("Shop name").fill(shopName);
