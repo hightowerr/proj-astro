@@ -44,7 +44,7 @@
           - generic [ref=e54]: General Services
       - generic [ref=e55]:
         - button "Next" [disabled] [ref=e56]
-        - paragraph [ref=e57]: Step 1 of 2
+        - paragraph [ref=e57]: Step 1 of 3
   - contentinfo [ref=e58]:
     - generic [ref=e59]:
       - link "Astro" [ref=e60] [cursor=pointer]:

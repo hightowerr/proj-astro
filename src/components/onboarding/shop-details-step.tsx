@@ -207,7 +207,7 @@ export function ShopDetailsStep({
       </div>
 
       <p className="text-center text-xs font-medium tracking-wider text-text-light-muted uppercase" aria-live="polite">
-        Step 2 of 2
+        Step 2 of 3
       </p>
     </div>
   );

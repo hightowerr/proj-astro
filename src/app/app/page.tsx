@@ -23,7 +23,7 @@ export default async function AppPage() {
   const { label: businessTypeLabel } = getBusinessTypeInfo(shop.businessType);
 
   return (
-    <div className="min-h-screen bg-bg-dark">
+    <div className="min-h-screen" style={{ background: "var(--color-surface-base)" }}>
       <div className="mx-auto max-w-5xl px-4 py-8 lg:py-12">
         <SuccessBanner businessTypeName={businessTypeLabel} shopId={shop.id} />
 

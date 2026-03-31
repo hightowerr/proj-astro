@@ -9,7 +9,6 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CancellationResponse } from "@/types/cancellation";
@@ -20,6 +19,7 @@ type AvailabilityResponse = {
   date: string;
   timezone: string;
   slotMinutes: number;
+  durationMinutes: number;
   slots: Slot[];
 };
 type AvailabilityErrorResponse = {
@@ -37,6 +37,9 @@ type BookingFormProps = {
   defaultDate: string;
   paymentsEnabled?: boolean;
   forcePaymentSimulator?: boolean;
+  selectedEventTypeId?: string | null;
+  selectedEventTypeName?: string | null;
+  selectedDurationMinutes?: number | null;
 };
 
 type BookingResponse = {
@@ -105,6 +108,47 @@ const formatCurrency = (amountCents: number, currency: string) => {
   }).format(amountCents / 100);
 };
 
+const stripeElementsAppearance = {
+  theme: "night" as const,
+  variables: {
+    colorPrimary: "#3dd4c8",
+    colorBackground: "#1d2738",
+    colorText: "#edf2f7",
+    colorDanger: "#f45878",
+    borderRadius: "0.625rem",
+  },
+  rules: {
+    ".Input": {
+      backgroundColor: "#1d2738",
+      border: "1px solid rgba(255,255,255,0.11)",
+      color: "#edf2f7",
+    },
+    ".Input:focus": {
+      border: "1px solid #3dd4c8",
+      boxShadow: "0 0 0 3px rgba(61,212,200,0.14)",
+    },
+    ".Label": {
+      color: "#8aa2bc",
+      fontSize: "0.75rem",
+      fontWeight: "600",
+    },
+    ".Tab": {
+      backgroundColor: "#161e2c",
+      border: "1px solid rgba(255,255,255,0.11)",
+      color: "#8aa2bc",
+    },
+    ".Tab--selected": {
+      backgroundColor: "#1d2738",
+      border: "1px solid #3dd4c8",
+      color: "#edf2f7",
+    },
+    ".Block": {
+      backgroundColor: "#161e2c",
+      border: "1px solid rgba(255,255,255,0.07)",
+    },
+  },
+};
+
 function PaymentStep({
   amountCents,
   currency,
@@ -118,6 +162,8 @@ function PaymentStep({
   onCancel,
   isCancelling,
   cancelError,
+  serviceName,
+  serviceDurationMinutes,
 }: {
   amountCents: number;
   currency: string;
@@ -131,6 +177,8 @@ function PaymentStep({
   onCancel?: (() => Promise<void>) | undefined;
   isCancelling?: boolean;
   cancelError?: string | null;
+  serviceName?: string | null;
+  serviceDurationMinutes?: number | null;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -245,20 +293,28 @@ function PaymentStep({
 
   return (
         <div className="space-y-6">
-      <div className="rounded-lg border p-4 space-y-1">
+      <div className="p-4 space-y-1" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}>
         <p className="text-sm font-medium">Payment due</p>
         <p className="text-2xl font-semibold">
           {formatCurrency(amountCents, currency)}
         </p>
-        <p className="text-xs text-muted-foreground">
+        {serviceName ? (
+          <p className="text-sm font-medium">{serviceName}</p>
+        ) : null}
+        {serviceDurationMinutes ? (
+          <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+            {serviceDurationMinutes} minutes
+          </p>
+        ) : null}
+        <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
           Booking time: {slotLabel} ({timezone})
         </p>
       </div>
 
       <form onSubmit={handlePayment} className="space-y-4">
         {usePaymentSimulator ? (
-          <div className="space-y-3 rounded-md border border-dashed p-3">
-            <p className="text-xs text-muted-foreground">Playwright payment simulator</p>
+          <div className="space-y-3 rounded-md border border-dashed p-3" style={{ borderColor: "var(--color-border-medium)", background: "var(--color-surface-overlay)" }}>
+            <p className="text-xs" style={{ color: "var(--color-text-tertiary)" }}>Playwright payment simulator</p>
             <div className="space-y-2">
               <Label htmlFor="playwright-card-number">Card number</Label>
               <Input
@@ -299,10 +355,10 @@ function PaymentStep({
           <PaymentElement options={{ layout: "tabs" }} />
         )}
         {paymentError ? (
-          <p className="text-sm text-destructive">{paymentError}</p>
+          <p className="text-sm" style={{ color: "var(--color-error)" }}>{paymentError}</p>
         ) : null}
         {bookingUrl ? (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
             Need to finish later? Use your booking link:{" "}
             <a href={bookingUrl} className="underline">
               Resume payment
@@ -310,7 +366,7 @@ function PaymentStep({
             .
           </p>
         ) : null}
-        <Button
+        <button
           type="submit"
           disabled={
             (usePaymentSimulator
@@ -319,37 +375,35 @@ function PaymentStep({
             isPaying ||
             Boolean(isCancelling)
           }
+          style={{
+            width: "100%",
+            background: isPaying ? "var(--color-brand-dim)" : "var(--color-brand)",
+            color: "var(--color-surface-void)",
+            borderRadius: "var(--radius-lg)",
+            padding: "0.625rem 1.25rem",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            border: "none",
+            cursor: isPaying ? "not-allowed" : "pointer",
+            opacity: isPaying ? 0.7 : 1,
+          }}
         >
           {isPaying
             ? "Processing…"
             : paymentError
               ? "Pay again"
               : "Pay now"}
-        </Button>
+        </button>
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onBack}
-            disabled={isPaying || Boolean(isCancelling)}
-          >
-            Back to details
-          </Button>
+          <button type="button" onClick={onBack} disabled={isPaying || Boolean(isCancelling)} style={{ background: "transparent", border: "1px solid var(--color-brand-border)", color: "var(--color-brand)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Back to details</button>
           {onCancel ? (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                void onCancel();
-              }}
-              disabled={isPaying || Boolean(isCancelling)}
-            >
+            <button type="button" onClick={() => { void onCancel(); }} disabled={isPaying || Boolean(isCancelling)} style={{ background: "var(--color-error-subtle)", border: "1px solid var(--color-error-border)", color: "var(--color-error)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>
               {isCancelling ? "Cancelling…" : "Cancel booking"}
-            </Button>
+            </button>
           ) : null}
         </div>
-        {cancelError ? <p className="text-sm text-destructive">{cancelError}</p> : null}
+        {cancelError ? <p className="text-sm" style={{ color: "var(--color-error)" }}>{cancelError}</p> : null}
       </form>
     </div>
   );
@@ -363,9 +417,13 @@ export function BookingForm({
   defaultDate,
   paymentsEnabled = false,
   forcePaymentSimulator = false,
+  selectedEventTypeId = null,
+  selectedEventTypeName = null,
+  selectedDurationMinutes = null,
 }: BookingFormProps) {
   const searchParams = useSearchParams();
   const resumeAppointmentId = searchParams.get("appointment");
+  const effectiveDurationMinutes = selectedDurationMinutes ?? slotMinutes;
   const [date, setDate] = useState(defaultDate);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -405,6 +463,13 @@ export function BookingForm({
     [timezone]
   );
 
+  const [availabilityDurationMinutes, setAvailabilityDurationMinutes] =
+    useState(effectiveDurationMinutes);
+
+  useEffect(() => {
+    setAvailabilityDurationMinutes(effectiveDurationMinutes);
+  }, [effectiveDurationMinutes]);
+
   const shouldResume =
     Boolean(resumeAppointmentId) && !resumeFailed && !success && !clientSecret;
 
@@ -443,6 +508,9 @@ export function BookingForm({
           shop: shopSlug,
           date,
         });
+        if (selectedEventTypeId) {
+          params.set("service", selectedEventTypeId);
+        }
         const res = await fetch(`/api/availability?${params.toString()}`, {
           method: "GET",
           signal: controller.signal,
@@ -458,11 +526,15 @@ export function BookingForm({
 
         const data = (await res.json()) as AvailabilityResponse;
         if (!active) return;
+        setAvailabilityDurationMinutes(
+          data.durationMinutes ?? effectiveDurationMinutes
+        );
         setSlots(data.slots ?? []);
         logBookingDiagnostic("availability-loaded", {
           shopSlug,
           date,
           slotCount: data.slots?.length ?? 0,
+          durationMinutes: data.durationMinutes ?? effectiveDurationMinutes,
         });
       } catch (err) {
         if ((err as { name?: string }).name !== "AbortError") {
@@ -485,7 +557,14 @@ export function BookingForm({
       active = false;
       controller.abort();
     };
-  }, [date, shopSlug, refreshToken, shouldResume]);
+  }, [
+    date,
+    effectiveDurationMinutes,
+    refreshToken,
+    selectedEventTypeId,
+    shouldResume,
+    shopSlug,
+  ]);
 
   useEffect(() => {
     if (!shouldResume || !resumeAppointmentId) {
@@ -686,6 +765,7 @@ export function BookingForm({
         body: JSON.stringify({
           shop: shopSlug,
           startsAt: selectedSlot,
+          eventTypeId: selectedEventTypeId ?? undefined,
           customer: {
             fullName,
             phone,
@@ -815,6 +895,11 @@ export function BookingForm({
               {timeFormatter.format(new Date(selectedSlot))} ({timezone})
             </p>
           ) : null}
+          {selectedEventTypeName ? (
+            <p className="text-sm font-medium text-white">
+              {selectedEventTypeName} - {effectiveDurationMinutes} min
+            </p>
+          ) : null}
         </div>
 
         {manageToken ? (
@@ -826,31 +911,32 @@ export function BookingForm({
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild className="sm:flex-1">
-                <a href={`/manage/${manageToken}`}>Manage booking</a>
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBookAgain}
-                className="border-white/15 bg-bg-dark text-white hover:bg-bg-dark-secondary hover:text-white sm:flex-1"
+              <a
+                href={`/manage/${manageToken}`}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "var(--color-brand)",
+                  color: "var(--color-surface-void)",
+                  borderRadius: "var(--radius-lg)",
+                  padding: "0.5rem 1rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
               >
-                Book again
-              </Button>
+                Manage booking
+              </a>
+              <button type="button" onClick={handleBookAgain} style={{ flex: 1, background: "transparent", border: "1px solid var(--color-brand-border)", color: "var(--color-brand)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Book again</button>
             </div>
             <p className="text-xs text-text-light-muted">
               Save this link if you may need to change or cancel later.
             </p>
           </div>
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleBookAgain}
-            className="border-white/15 bg-bg-dark text-white hover:bg-bg-dark hover:text-white"
-          >
-            Book again
-          </Button>
+          <button type="button" onClick={handleBookAgain} style={{ background: "transparent", border: "1px solid var(--color-brand-border)", color: "var(--color-brand)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Book again</button>
         )}
       </div>
     );
@@ -858,9 +944,9 @@ export function BookingForm({
 
   if (shouldResume && resumeLoading) {
     return (
-      <div className="rounded-lg border p-6 space-y-2">
+      <div className="p-6 space-y-2" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}>
         <h2 className="text-xl font-semibold">Loading your booking</h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
           Fetching payment details…
         </p>
       </div>
@@ -876,9 +962,9 @@ export function BookingForm({
 
     if (!shouldUsePaymentSimulator && !resolvedStripePromise) {
       return (
-        <div className="rounded-lg border p-6 space-y-2">
+        <div className="p-6 space-y-2" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}>
           <h2 className="text-xl font-semibold">Payment unavailable</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             Payment setup is missing. Please try again later.
           </p>
         </div>
@@ -887,39 +973,42 @@ export function BookingForm({
 
     if (showPaymentDetails) {
       return (
-        <div className="rounded-lg border p-4 space-y-3">
+        <div className="p-4 space-y-3" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}>
           <p className="text-sm font-medium">Booking details</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             {slotLabel} ({timezone})
           </p>
-          <div className="grid gap-1 text-sm text-muted-foreground">
+          <div className="grid gap-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>
             {fullName ? <p>Name: {fullName}</p> : null}
             {phone ? <p>Phone: {phone}</p> : null}
             {email ? <p>Email: {email}</p> : null}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
+            <button
               type="button"
               onClick={() => setShowPaymentDetails(false)}
               disabled={isCancellingBooking}
+              style={{
+                background: "var(--color-brand)",
+                color: "var(--color-surface-void)",
+                borderRadius: "var(--radius-lg)",
+                padding: "0.5rem 1rem",
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+              }}
             >
               Return to payment
-            </Button>
+            </button>
             {manageToken ? (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => {
-                  void handleCancelBooking();
-                }}
-                disabled={isCancellingBooking}
-              >
+              <button type="button" onClick={() => { void handleCancelBooking(); }} disabled={isCancellingBooking} style={{ background: "var(--color-error-subtle)", border: "1px solid var(--color-error-border)", color: "var(--color-error)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>
                 {isCancellingBooking ? "Cancelling…" : "Cancel booking"}
-              </Button>
+              </button>
             ) : null}
           </div>
           {cancelBookingError ? (
-            <p className="text-sm text-destructive">{cancelBookingError}</p>
+            <p className="text-sm" style={{ color: "var(--color-error)" }}>{cancelBookingError}</p>
           ) : null}
         </div>
       );
@@ -942,6 +1031,8 @@ export function BookingForm({
           }}
           isCancelling={isCancellingBooking}
           cancelError={cancelBookingError}
+          serviceName={selectedEventTypeName}
+          serviceDurationMinutes={effectiveDurationMinutes}
           {...(manageToken ? { onCancel: handleCancelBooking } : {})}
         />
         </Elements>
@@ -949,7 +1040,7 @@ export function BookingForm({
     }
 
     return (
-      <Elements stripe={resolvedStripePromise} options={{ clientSecret }}>
+      <Elements stripe={resolvedStripePromise} options={{ clientSecret, appearance: stripeElementsAppearance }}>
         <PaymentStep
           amountCents={paymentAmountCents}
           currency={paymentCurrency}
@@ -964,6 +1055,8 @@ export function BookingForm({
           }}
           isCancelling={isCancellingBooking}
           cancelError={cancelBookingError}
+          serviceName={selectedEventTypeName}
+          serviceDurationMinutes={effectiveDurationMinutes}
           {...(manageToken ? { onCancel: handleCancelBooking } : {})}
         />
       </Elements>
@@ -972,9 +1065,28 @@ export function BookingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-7">
+      {selectedEventTypeName ? (
+        <div className="p-4" style={{ borderRadius: "var(--radius-2xl)", border: "1px solid var(--color-border-default)", background: "var(--color-brand-subtle)" }}>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em]" style={{ color: "var(--color-text-tertiary)" }}>
+            Selected service
+          </p>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold">{selectedEventTypeName}</h2>
+              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                {effectiveDurationMinutes} minutes - {timezone}
+              </p>
+            </div>
+            <p className="text-sm font-medium text-foreground">
+              {selectedEventTypeId ? "Selected service" : "Default service"}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {cancelBookingMessage ? (
-        <div className="rounded-md border border-emerald-600/30 bg-emerald-500/5 p-3">
-          <p className="text-sm text-emerald-700">{cancelBookingMessage}</p>
+        <div className="p-3" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--color-success-border)", background: "var(--color-success-subtle)" }}>
+          <p className="text-sm" style={{ color: "var(--color-success)" }}>{cancelBookingMessage}</p>
         </div>
       ) : null}
 
@@ -993,15 +1105,15 @@ export function BookingForm({
         <div className="space-y-1">
           <legend className="text-sm font-semibold">Available slots</legend>
           <p className="text-sm opacity-90">
-            {slotMinutes} minutes • {timezone}
+            {availabilityDurationMinutes} minutes - {timezone}
           </p>
         </div>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading slots…</p>
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Loading slots…</p>
         ) : availabilityError ? (
-          <p className="text-sm text-destructive">{availabilityError}</p>
+          <p className="text-sm" style={{ color: "var(--color-error)" }}>{availabilityError}</p>
         ) : slots.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             No slots available for this day.
           </p>
         ) : (
@@ -1010,22 +1122,27 @@ export function BookingForm({
               const label = timeFormatter.format(new Date(slot.startsAt));
               const selected = selectedSlot === slot.startsAt;
               return (
-                <Button
+                <button
                   key={slot.startsAt}
                   type="button"
-                  variant={selected ? "default" : "outline"}
                   onClick={() => setSelectedSlot(slot.startsAt)}
-                  className={`justify-center h-11 text-base font-semibold ${
-                    !selected
-                      ? "text-foreground hover:bg-accent hover:text-accent-foreground border-border"
-                      : ""
-                  }`}
                   data-slot={slot.startsAt}
-                  aria-pressed={selected}
                   data-booking-slot={slot.startsAt}
+                  aria-pressed={selected}
+                  style={{
+                    height: "2.75rem",
+                    borderRadius: "var(--radius-lg)",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    border: selected ? "none" : "1px solid var(--color-border-default)",
+                    background: selected ? "var(--color-brand)" : "var(--color-surface-overlay)",
+                    color: selected ? "var(--color-surface-void)" : "var(--color-text-secondary)",
+                    cursor: "pointer",
+                    transition: "all 150ms ease",
+                  }}
                 >
                   {label}
-                </Button>
+                </button>
               );
             })}
           </div>
@@ -1084,7 +1201,7 @@ export function BookingForm({
         </Label>
       </div>
 
-      <div className="flex items-start gap-3 rounded-lg border bg-muted/40 p-4">
+      <div className="flex items-start gap-3 p-4" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border-subtle)", background: "var(--color-surface-overlay)" }}>
         <input
           id="email-opt-in"
           type="checkbox"
@@ -1104,17 +1221,17 @@ export function BookingForm({
       </div>
 
       {error ? (
-        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3.5">
-          <p className="text-sm font-semibold text-destructive">{error.message}</p>
+        <div className="p-3.5" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--color-error-border)", background: "var(--color-error-subtle)" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--color-error)" }}>{error.message}</p>
           <p className="mt-1.5 text-sm opacity-85">
             Please select a different time slot and try again.
           </p>
         </div>
       ) : null}
 
-      <Button type="submit" disabled={isSubmitting} className="w-full h-11 text-base font-semibold">
+      <button type="submit" disabled={isSubmitting} style={{ width: "100%", height: "2.75rem", background: isSubmitting ? "var(--color-brand-dim)" : "var(--color-brand)", color: "var(--color-surface-void)", borderRadius: "var(--radius-lg)", fontSize: "1rem", fontWeight: 600, border: "none", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
         {isSubmitting ? "Booking…" : "Confirm booking"}
-      </Button>
+      </button>
     </form>
   );
 }

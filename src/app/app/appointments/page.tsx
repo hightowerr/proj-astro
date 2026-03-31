@@ -1,3 +1,4 @@
+import type React from "react";
 import Link from "next/link";
 import { NoShowRiskBadge } from "@/components/appointments/no-show-risk-badge";
 import { ConflictAlertBanner } from "@/components/conflicts/conflict-alert-banner";
@@ -20,7 +21,7 @@ export default async function AppointmentsPage() {
     return (
       <div className="container mx-auto px-4 py-10">
         <h1 className="text-3xl font-semibold">Appointments</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-[var(--color-text-secondary)]">
           Create your shop to start receiving bookings.
         </p>
       </div>
@@ -58,7 +59,7 @@ export default async function AppointmentsPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold">Appointments</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-[var(--color-text-secondary)]">
             Recent and upcoming appointments for {shop.name}.
           </p>
         </div>
@@ -68,37 +69,38 @@ export default async function AppointmentsPage() {
       <ConflictAlertBanner conflictCount={conflictCount} shopId={shop.id} />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border p-4">
-          <p className="text-xs font-medium uppercase text-muted-foreground">
+        <div className="rounded-xl p-4" style={{ background: "var(--color-surface-raised)", border: "1px solid var(--color-border-default)" }}>
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
             Settled (7d)
           </p>
-          <p className="text-2xl font-semibold tabular-nums">{outcomeSummary.settled}</p>
+          <p className="text-2xl font-semibold tabular-nums" style={{ color: "var(--color-success)" }}>{outcomeSummary.settled}</p>
         </div>
-        <div className="rounded-lg border p-4">
-          <p className="text-xs font-medium uppercase text-muted-foreground">
+        <div className="rounded-xl p-4" style={{ background: "var(--color-surface-raised)", border: "1px solid var(--color-border-default)" }}>
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
             Voided (7d)
           </p>
-          <p className="text-2xl font-semibold tabular-nums">{outcomeSummary.voided}</p>
+          <p className="text-2xl font-semibold tabular-nums" style={{ color: "var(--color-error)" }}>{outcomeSummary.voided}</p>
         </div>
-        <div className="rounded-lg border p-4">
-          <p className="text-xs font-medium uppercase text-muted-foreground">
+        <div className="rounded-xl p-4" style={{ background: "var(--color-surface-raised)", border: "1px solid var(--color-border-default)" }}>
+          <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
             Unresolved (7d)
           </p>
-          <p className="text-2xl font-semibold tabular-nums">{outcomeSummary.unresolved}</p>
+          <p className="text-2xl font-semibold tabular-nums" style={{ color: "var(--color-text-primary)" }}>{outcomeSummary.unresolved}</p>
         </div>
       </div>
 
       {appointments.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-[var(--color-text-secondary)]">
           No recent or upcoming appointments. Share your booking link to get started.
         </p>
       ) : (
-        <div className="overflow-hidden rounded-lg border">
+        <div className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--color-border-default)" }}>
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left">
+            <thead className="text-left" style={{ background: "var(--color-surface-overlay)" }}>
               <tr>
                 <th scope="col" className="px-4 py-2 font-medium">Start</th>
                 <th scope="col" className="px-4 py-2 font-medium">Customer</th>
+                <th scope="col" className="px-4 py-2 font-medium">Service</th>
                 <th scope="col" className="px-4 py-2 font-medium">Payment</th>
                 <th scope="col" className="px-4 py-2 font-medium">Outcome</th>
                 <th scope="col" className="px-4 py-2 font-medium">No-Show Risk</th>
@@ -109,21 +111,24 @@ export default async function AppointmentsPage() {
             </thead>
             <tbody>
               {appointments.map((appointment) => (
-                <tr key={appointment.id} className="border-t">
+                <tr key={appointment.id} style={{ borderTop: "1px solid var(--color-border-hairline)" }}>
                   <td className="px-4 py-3">
                     {formatter.format(new Date(appointment.startsAt))}
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-medium">{appointment.customerName}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-[var(--color-text-secondary)]">
                       {appointment.customerEmail ?? appointment.customerPhone}
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">
+                    {appointment.eventTypeName ?? "—"}
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-medium capitalize">
                       {appointment.paymentStatus}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-[var(--color-text-secondary)]">
                       {currencyFormatter(
                         appointment.paymentAmountCents,
                         appointment.paymentCurrency
@@ -150,18 +155,18 @@ export default async function AppointmentsPage() {
                       }
                     />
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                     {appointment.resolvedAt
                       ? formatter.format(new Date(appointment.resolvedAt))
                       : "—"}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                     {formatter.format(new Date(appointment.createdAt))}
                   </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/app/appointments/${appointment.id}`}
-                      className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                      className="text-sm font-medium text-[var(--color-brand)] underline-offset-4 hover:underline"
                     >
                       View
                     </Link>
@@ -176,17 +181,17 @@ export default async function AppointmentsPage() {
       <section className="space-y-3">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold">Slot Recovery</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-[var(--color-text-secondary)]">
             Recently opened slots and their recovery progress.
           </p>
         </div>
 
         {slotOpenings.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No slot openings yet.</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">No slot openings yet.</p>
         ) : (
-          <div className="overflow-hidden rounded-lg border">
+          <div className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--color-border-default)" }}>
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left">
+              <thead className="text-left" style={{ background: "var(--color-surface-overlay)" }}>
                 <tr>
                   <th scope="col" className="px-4 py-2 font-medium">Time</th>
                   <th scope="col" className="px-4 py-2 font-medium">Status</th>
@@ -197,19 +202,19 @@ export default async function AppointmentsPage() {
               </thead>
               <tbody>
                 {slotOpenings.map((slotOpening) => (
-                  <tr key={slotOpening.id} className="border-t">
+                  <tr key={slotOpening.id} style={{ borderTop: "1px solid var(--color-border-hairline)" }}>
                     <td className="px-4 py-3">
                       <div className="font-medium">
                         {formatter.format(new Date(slotOpening.startsAt))}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-[var(--color-text-secondary)]">
                         Ends {formatter.format(new Date(slotOpening.endsAt))}
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <SlotStatusBadge status={slotOpening.status} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                       {formatter.format(new Date(slotOpening.createdAt))}
                     </td>
                     <td className="px-4 py-3">
@@ -217,18 +222,18 @@ export default async function AppointmentsPage() {
                       slotOpening.recoveredAppointmentId ? (
                         <Link
                           href={`/app/appointments/${slotOpening.recoveredAppointmentId}`}
-                          className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                          className="text-sm font-medium text-[var(--color-brand)] underline-offset-4 hover:underline"
                         >
                           View booking
                         </Link>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-[var(--color-text-secondary)]">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       <Link
                         href={`/app/slot-openings/${slotOpening.id}`}
-                        className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                        className="text-sm font-medium text-[var(--color-brand)] underline-offset-4 hover:underline"
                       >
                         View slot
                       </Link>
@@ -245,15 +250,28 @@ export default async function AppointmentsPage() {
 }
 
 function SlotStatusBadge({ status }: { status: "open" | "filled" | "expired" }) {
-  const classes = {
-    open: "bg-blue-100 text-blue-800",
-    filled: "bg-green-100 text-green-800",
-    expired: "bg-muted text-muted-foreground",
+  const styles: Record<typeof status, React.CSSProperties> = {
+    open: {
+      background: "var(--color-brand-subtle)",
+      color: "var(--color-brand)",
+      border: "1px solid var(--color-brand-border)",
+    },
+    filled: {
+      background: "var(--color-success-subtle)",
+      color: "var(--color-success)",
+      border: "1px solid var(--color-success-border)",
+    },
+    expired: {
+      background: "var(--color-surface-overlay)",
+      color: "var(--color-text-tertiary)",
+      border: "1px solid var(--color-border-subtle)",
+    },
   };
 
   return (
     <span
-      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium capitalize ${classes[status]}`}
+      className="inline-flex rounded-full px-2 py-1 text-xs font-medium capitalize"
+      style={styles[status]}
     >
       {status}
     </span>

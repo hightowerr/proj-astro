@@ -8,6 +8,7 @@ import {
   bookingSettings,
   customerContactPrefs,
   customers,
+  eventTypes,
   payments,
   policyVersions,
   shops,
@@ -53,6 +54,7 @@ export default async function ManagePage({
       paymentCurrency: payments.currency,
       paymentRefundedAmountCents: payments.refundedAmountCents,
       paymentStripeRefundId: payments.stripeRefundId,
+      eventTypeName: eventTypes.name,
     })
     .from(appointments)
     .innerJoin(customers, eq(customers.id, appointments.customerId))
@@ -64,6 +66,7 @@ export default async function ManagePage({
     .leftJoin(bookingSettings, eq(bookingSettings.shopId, shops.id))
     .leftJoin(policyVersions, eq(policyVersions.id, appointments.policyVersionId))
     .leftJoin(payments, eq(payments.appointmentId, appointments.id))
+    .leftJoin(eventTypes, eq(eventTypes.id, appointments.eventTypeId))
     .where(eq(appointments.id, appointmentId))
     .limit(1);
 
@@ -94,6 +97,7 @@ export default async function ManagePage({
         paymentStatus: row.paymentStatus,
         paymentRequired: row.paymentRequired,
         financialOutcome: row.financialOutcome,
+        eventTypeName: row.eventTypeName ?? null,
       }}
       customer={{
         fullName: row.customerName,

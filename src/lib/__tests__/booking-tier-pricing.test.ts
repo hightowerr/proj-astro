@@ -274,4 +274,87 @@ describeIf("createAppointment tier pricing", () => {
     expect(result.appointment.calendarEventId).toBeNull();
     expect(createCalendarEventMock).not.toHaveBeenCalled();
   });
+
+  it("clamps risk-tier deposits to the event type floor", async () => {
+    const result = await createAppointment({
+      shopId,
+      startsAt: nextWeekdayStartAt(),
+      customer: {
+        fullName: "Risk Tier Customer",
+        email: "risk-tier@example.com",
+        phone: "+12025550193",
+      },
+      paymentsEnabled: true,
+      eventTypeDepositCents: 6000,
+    });
+
+    expect(result.paymentRequired).toBe(true);
+    expect(result.amountCents).toBe(6000);
+    expect(result.payment?.amountCents).toBe(6000);
+    expect(result.policyVersion?.depositAmountCents).toBe(6000);
+  });
+
+  it("preserves top-tier waivers for higher-priced services", async () => {
+    const result = await createAppointment({
+      shopId,
+      startsAt: nextWeekdayStartAt(),
+      customer: {
+        fullName: "Top Tier Customer",
+        email: "top-tier@example.com",
+        phone: "+12025550191",
+      },
+      paymentsEnabled: true,
+      eventTypeDepositCents: 5000,
+    });
+
+    expect(result.paymentRequired).toBe(false);
+    expect(result.amountCents).toBe(0);
+    expect(result.payment).toBeNull();
+    expect(result.policyVersion?.depositAmountCents).toBe(0);
+  });
+
+  it("preserves top-tier reduced deposits for higher-priced services", async () => {
+    await db
+      .insert(shopPolicies)
+      .values({
+        shopId,
+        currency: "USD",
+        paymentMode: "deposit",
+        depositAmountCents: 2000,
+        riskDepositAmountCents: 5000,
+        topDepositWaived: false,
+        topDepositAmountCents: 1000,
+        excludeRiskFromOffers: false,
+      })
+      .onConflictDoUpdate({
+        target: shopPolicies.shopId,
+        set: {
+          currency: "USD",
+          paymentMode: "deposit",
+          depositAmountCents: 2000,
+          riskDepositAmountCents: 5000,
+          topDepositWaived: false,
+          topDepositAmountCents: 1000,
+          excludeRiskFromOffers: false,
+        },
+      });
+
+    const result = await createAppointment({
+      shopId,
+      startsAt: nextWeekdayStartAt(),
+      customer: {
+        fullName: "Top Tier Customer",
+        email: "top-tier@example.com",
+        phone: "+12025550191",
+      },
+      paymentsEnabled: true,
+      eventTypeDepositCents: 5000,
+    });
+
+    expect(result.paymentRequired).toBe(true);
+    expect(result.amountCents).toBe(1000);
+    expect(result.payment?.amountCents).toBe(1000);
+    expect(result.policyVersion?.depositAmountCents).toBe(1000);
+  });
+
 });

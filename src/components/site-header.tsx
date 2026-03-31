@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
@@ -15,6 +15,13 @@ export function SiteHeader() {
   const reduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
   const { data: session, isPending } = useSession();
+  const hasHydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  const effectivePending = isPending || !hasHydrated;
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 0);
@@ -28,13 +35,13 @@ export function SiteHeader() {
   ];
 
   const headerClass = scrolled
-    ? "bg-bg-dark/80 border-b border-white/5 backdrop-blur-md"
+    ? "bg-[var(--color-surface-base)]/80 border-b border-[var(--color-border-hairline)] backdrop-blur-md"
     : "bg-transparent";
   const drawerTransitionClass = reduceMotion ? "" : "transition-transform duration-300 ease-out";
   const actionLinkClass =
-    "rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark";
+    "rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]";
   const secondaryActionClass =
-    "text-text-light-muted rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark";
+    "text-[var(--color-text-secondary)] rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]";
 
   const handleSignOut = async () => {
     await signOut();
@@ -46,14 +53,14 @@ export function SiteHeader() {
     <>
       <a
         href="#main-content"
-        className="focus:bg-bg-dark-secondary sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] focus:rounded-md focus:px-4 focus:py-2 focus:text-white"
+        className="focus:bg-[var(--color-surface-raised)] sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] focus:rounded-md focus:px-4 focus:py-2 focus:text-[var(--color-text-primary)]"
       >
         Skip to main content
       </a>
 
       <header className={`fixed top-0 z-50 w-full ${headerClass}`} role="banner">
         <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="text-xl font-bold text-white" aria-label="Astro homepage">
+          <Link href="/" className="text-xl font-bold text-[var(--color-text-primary)]" aria-label="Astro homepage">
             Astro
           </Link>
 
@@ -62,7 +69,7 @@ export function SiteHeader() {
               <Link
                 key={item.label}
                 href={item.href}
-                className="text-text-light-muted text-sm font-medium transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+                className="text-[var(--color-text-secondary)] text-sm font-medium transition-colors duration-200 hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
               >
                 {item.label}
               </Link>
@@ -70,9 +77,9 @@ export function SiteHeader() {
           </div>
 
           <div className="hidden items-center gap-3 md:flex">
-            {isPending ? null : session ? (
+            {effectivePending ? null : session ? (
               <>
-                <Link href="/app" className={cn("bg-accent-coral text-bg-dark hover:bg-accent-peach", actionLinkClass)}>
+                <Link href="/app" className={cn("bg-[var(--color-brand)] text-[var(--color-text-inverse)] hover:bg-[var(--color-brand-hover)]", actionLinkClass)}>
                   Open App
                 </Link>
                 <button type="button" onClick={handleSignOut} className={secondaryActionClass}>
@@ -86,7 +93,7 @@ export function SiteHeader() {
                 </Link>
                 <Link
                   href="/register"
-                  className={cn("bg-accent-coral text-bg-dark hover:bg-accent-peach", actionLinkClass)}
+                  className={cn("bg-[var(--color-brand)] text-[var(--color-text-inverse)] hover:bg-[var(--color-brand-hover)]", actionLinkClass)}
                 >
                   Start Free Trial
                 </Link>
@@ -97,7 +104,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="inline-flex items-center justify-center rounded-md p-2 text-white md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+            className="inline-flex items-center justify-center rounded-md p-2 text-[var(--color-text-primary)] md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
             aria-label="Open menu"
             aria-expanded={drawerOpen}
           >
@@ -118,12 +125,12 @@ export function SiteHeader() {
             role="dialog"
             aria-modal="true"
             aria-label="Mobile navigation"
-            className={`bg-bg-dark-secondary fixed top-0 right-0 bottom-0 z-50 w-72 transform p-6 translate-x-0 ${drawerTransitionClass}`}
+            className={`fixed top-0 right-0 bottom-0 z-50 w-72 transform p-6 translate-x-0 bg-[var(--color-surface-raised)] ${drawerTransitionClass}`}
           >
             <div className="mb-8 flex items-center justify-between">
               <Link
                 href="/"
-                className="rounded-md text-xl font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+                className="rounded-md text-xl font-bold text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
                 onClick={() => setDrawerOpen(false)}
               >
                 Astro
@@ -131,7 +138,7 @@ export function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="rounded-md p-2 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+                className="rounded-md p-2 text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
                 aria-label="Close menu"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -143,19 +150,19 @@ export function SiteHeader() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-text-light-muted rounded-md text-sm font-medium transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+                  className="text-[var(--color-text-secondary)] rounded-md text-sm font-medium transition-colors duration-200 hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
                   onClick={() => setDrawerOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
 
-              {isPending ? null : session ? (
+              {effectivePending ? null : session ? (
                 <>
                   <Link
                     href="/app"
                     className={cn(
-                      "bg-accent-coral text-bg-dark hover:bg-accent-peach inline-flex w-full justify-center",
+                      "bg-[var(--color-brand)] text-[var(--color-text-inverse)] hover:bg-[var(--color-brand-hover)] inline-flex w-full justify-center",
                       actionLinkClass,
                     )}
                     onClick={() => setDrawerOpen(false)}
@@ -168,7 +175,7 @@ export function SiteHeader() {
                       setDrawerOpen(false);
                       await handleSignOut();
                     }}
-                    className="text-text-light-muted inline-flex w-full justify-center rounded-lg border border-white/10 px-4 py-2 text-sm font-medium transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+                    className="text-[var(--color-text-secondary)] inline-flex w-full justify-center rounded-lg border border-[var(--color-border-default)] px-4 py-2 text-sm font-medium transition-colors duration-200 hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
                   >
                     Sign Out
                   </button>
@@ -177,7 +184,7 @@ export function SiteHeader() {
                 <>
                   <Link
                     href="/login"
-                    className="text-text-light-muted mt-2 inline-flex w-full justify-center rounded-lg border border-white/10 px-4 py-2 text-sm font-medium transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+                    className="text-[var(--color-text-secondary)] mt-2 inline-flex w-full justify-center rounded-lg border border-[var(--color-border-default)] px-4 py-2 text-sm font-medium transition-colors duration-200 hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
                     onClick={() => setDrawerOpen(false)}
                   >
                     Sign In
@@ -185,7 +192,7 @@ export function SiteHeader() {
                   <Link
                     href="/register"
                     className={cn(
-                      "bg-accent-coral text-bg-dark hover:bg-accent-peach inline-flex w-full justify-center",
+                      "bg-[var(--color-brand)] text-[var(--color-text-inverse)] hover:bg-[var(--color-brand-hover)] inline-flex w-full justify-center",
                       actionLinkClass,
                     )}
                     onClick={() => setDrawerOpen(false)}

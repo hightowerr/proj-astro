@@ -8,6 +8,7 @@ import {
   customerNoShowStats,
   customerScores,
   customers,
+  eventTypes,
   payments,
   shopPolicies,
   shops,
@@ -53,6 +54,7 @@ export async function createSlotOpeningFromCancellation(
         endsAt: appointment.endsAt,
         sourceAppointmentId: appointment.id,
         status: "open",
+        eventTypeId: appointment.eventTypeId ?? null,
       })
       .returning({ id: slotOpenings.id });
 
@@ -386,10 +388,27 @@ export async function acceptOffer(
       throw new Error("SLOT_NO_LONGER_AVAILABLE");
     }
 
+    let eventTypeDepositCents: number | null = null;
+    if (slotOpening.eventTypeId) {
+      const [eventType] = await db
+        .select({ depositAmountCents: eventTypes.depositAmountCents })
+        .from(eventTypes)
+        .where(eq(eventTypes.id, slotOpening.eventTypeId))
+        .limit(1);
+      eventTypeDepositCents = eventType?.depositAmountCents ?? null;
+    }
+
+    const durationMinutes = Math.round(
+      (slotOpening.endsAt.getTime() - slotOpening.startsAt.getTime()) / 60000
+    );
+
     const bookingBaseUrl = `${appOrigin}/book/${shop.slug}`;
     const booking = await createAppointment({
       shopId: slotOpening.shopId,
       startsAt: slotOpening.startsAt,
+      durationMinutes,
+      eventTypeId: slotOpening.eventTypeId ?? null,
+      eventTypeDepositCents,
       customer: {
         fullName: customer.fullName,
         phone: customer.phone,

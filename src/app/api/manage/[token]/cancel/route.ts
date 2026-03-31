@@ -17,7 +17,11 @@ import {
   shops,
 } from "@/lib/schema";
 import { createSlotOpeningFromCancellation } from "@/lib/slot-recovery";
-import { getStripeClient, stripeIsMocked } from "@/lib/stripe";
+import {
+  getStripeClient,
+  normalizeStripePaymentStatus,
+  stripeIsMocked,
+} from "@/lib/stripe";
 import { processRefund } from "@/lib/stripe-refund";
 
 export const runtime = "nodejs";
@@ -132,33 +136,156 @@ export async function POST(_request: Request, { params }: CancelParams) {
       }
     };
 
-    const cancelPaymentIntentIfNeeded = async () => {
-      const paymentIntentId = row.payment?.stripePaymentIntentId;
-      if (!paymentIntentId) {
-        return;
-      }
+    const persistPaymentStatus = async (
+      paymentId: string,
+      nextStatus: typeof payments.$inferSelect.status
+    ) => {
+      await db
+        .update(payments)
+        .set({
+          status: nextStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(payments.id, paymentId));
+    };
 
-      if (row.payment?.status === "succeeded" || row.payment?.status === "canceled") {
-        return;
-      }
-
-      if (stripeIsMocked()) {
-        return;
+    const refreshPaymentStatusFromStripe = async (
+      payment: typeof payments.$inferSelect
+    ) => {
+      if (!payment.stripePaymentIntentId || stripeIsMocked()) {
+        return payment;
       }
 
       try {
         const stripe = getStripeClient();
-        await stripe.paymentIntents.cancel(paymentIntentId);
+        const paymentIntent = await stripe.paymentIntents.retrieve(
+          payment.stripePaymentIntentId
+        );
+        const normalizedStatus = normalizeStripePaymentStatus(paymentIntent.status);
+
+        if (normalizedStatus !== payment.status) {
+          await persistPaymentStatus(payment.id, normalizedStatus);
+          return {
+            ...payment,
+            status: normalizedStatus,
+          };
+        }
       } catch (error) {
+        console.error("[cancel] Failed to refresh payment intent status", {
+          appointmentId: row.appointment.id,
+          paymentIntentId: payment.stripePaymentIntentId,
+          error,
+        });
+      }
+
+      return payment;
+    };
+
+    const cancelPaymentIntentIfNeeded = async (
+      payment: typeof payments.$inferSelect | null
+    ): Promise<typeof payments.$inferSelect | null> => {
+      const paymentIntentId = payment?.stripePaymentIntentId;
+      if (!paymentIntentId) {
+        return payment;
+      }
+
+      if (payment?.status === "succeeded" || payment?.status === "canceled") {
+        return payment;
+      }
+
+      if (stripeIsMocked()) {
+        return payment;
+      }
+
+      try {
+        const stripe = getStripeClient();
+        const cancelledIntent = await stripe.paymentIntents.cancel(paymentIntentId);
+        const normalizedStatus = normalizeStripePaymentStatus(cancelledIntent.status);
+
+        if (payment && normalizedStatus !== payment.status) {
+          await persistPaymentStatus(payment.id, normalizedStatus);
+          return {
+            ...payment,
+            status: normalizedStatus,
+          };
+        }
+      } catch (error) {
+        try {
+          const stripe = getStripeClient();
+          const latestIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          const normalizedStatus = normalizeStripePaymentStatus(latestIntent.status);
+
+          if (payment && normalizedStatus !== payment.status) {
+            await persistPaymentStatus(payment.id, normalizedStatus);
+            return {
+              ...payment,
+              status: normalizedStatus,
+            };
+          }
+        } catch (syncError) {
+          console.error("[cancel] Failed to refresh payment intent after cancel error", {
+            appointmentId: row.appointment.id,
+            paymentIntentId,
+            error: syncError,
+          });
+        }
+
         console.error("[cancel] Failed to cancel payment intent", {
           appointmentId: row.appointment.id,
           paymentIntentId,
           error,
         });
       }
+
+      return payment;
     };
 
     if (row.appointment.status === "pending") {
+      let payment = row.payment;
+
+      if (payment) {
+        payment = await refreshPaymentStatusFromStripe(payment);
+      }
+
+      // Payment was captured during the booking session before the appointment
+      // was confirmed. Issue a full refund — customer is always eligible since
+      // the appointment was never booked.
+      if (payment?.status === "succeeded") {
+        const refundResult = await processRefund({
+          appointment: row.appointment,
+          payment,
+          cutoffTime: new Date(),
+        });
+        await deleteCalendarEventIfExists();
+        await createSlotOpeningFromCancellation(row.appointment, payment);
+        return Response.json({
+          success: true,
+          refunded: true,
+          amount: payment.amountCents / 100,
+          message: `Refunded $${(payment.amountCents / 100).toFixed(2)} to your card`,
+          refundId: refundResult.refundId,
+        });
+      }
+
+      payment = await cancelPaymentIntentIfNeeded(payment);
+
+      if (payment?.status === "succeeded") {
+        const refundResult = await processRefund({
+          appointment: row.appointment,
+          payment,
+          cutoffTime: new Date(),
+        });
+        await deleteCalendarEventIfExists();
+        await createSlotOpeningFromCancellation(row.appointment, payment);
+        return Response.json({
+          success: true,
+          refunded: true,
+          amount: payment.amountCents / 100,
+          message: `Refunded $${(payment.amountCents / 100).toFixed(2)} to your card`,
+          refundId: refundResult.refundId,
+        });
+      }
+
       const now = new Date();
 
       const updateResult = await db.transaction(async (tx) => {
@@ -186,7 +313,7 @@ export async function POST(_request: Request, { params }: CancelParams) {
           return { updated: false } as const;
         }
 
-        if (row.payment?.id) {
+        if (payment?.id) {
           await tx
             .update(payments)
             .set({
@@ -195,7 +322,7 @@ export async function POST(_request: Request, { params }: CancelParams) {
             })
             .where(
               and(
-                eq(payments.id, row.payment.id),
+                eq(payments.id, payment.id),
                 inArray(payments.status, [
                   "requires_payment_method",
                   "requires_action",
@@ -239,7 +366,6 @@ export async function POST(_request: Request, { params }: CancelParams) {
         });
       }
 
-      await cancelPaymentIntentIfNeeded();
       await deleteCalendarEventIfExists();
 
       return Response.json({

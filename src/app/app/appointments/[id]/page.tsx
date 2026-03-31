@@ -8,7 +8,7 @@ import {
   getCustomerAppointmentHistory,
 } from "@/lib/queries/appointments";
 import { getShopByOwnerId } from "@/lib/queries/shops";
-import { appointments, customers, messageLog, payments } from "@/lib/schema";
+import { appointments, customers, eventTypes, messageLog, payments } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
 
 const formatCurrency = (amountCents?: number | null, currency?: string | null) => {
@@ -59,10 +59,12 @@ export default async function AppointmentDetailPage({
       customerPhone: customers.phone,
       amountCents: payments.amountCents,
       currency: payments.currency,
+      eventTypeName: eventTypes.name,
     })
     .from(appointments)
     .innerJoin(customers, eq(appointments.customerId, customers.id))
     .leftJoin(payments, eq(payments.appointmentId, appointments.id))
+    .leftJoin(eventTypes, eq(eventTypes.id, appointments.eventTypeId))
     .where(and(eq(appointments.id, id), eq(appointments.shopId, shop.id)))
     .limit(1);
 
@@ -133,6 +135,11 @@ export default async function AppointmentDetailPage({
           <p className="text-sm">
             Status: <span className="capitalize">{appointment.status}</span>
           </p>
+          {appointment.eventTypeName ? (
+            <p className="text-sm">
+              Service: <span>{appointment.eventTypeName}</span>
+            </p>
+          ) : null}
         </div>
 
         <div className="rounded-lg border p-4 space-y-2">

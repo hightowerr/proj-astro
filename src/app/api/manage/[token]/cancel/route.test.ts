@@ -9,6 +9,9 @@ const {
   validateTokenMock,
   autoResolveAlertMock,
   calculateCancellationEligibilityMock,
+  paymentIntentCancelMock,
+  paymentIntentRetrieveMock,
+  stripeIsMockedMock,
   dbMock,
 } = vi.hoisted(() => {
   const selectLimitMock = vi.fn();
@@ -32,6 +35,9 @@ const {
     validateTokenMock: vi.fn(),
     autoResolveAlertMock: vi.fn(),
     calculateCancellationEligibilityMock: vi.fn(),
+    paymentIntentCancelMock: vi.fn(),
+    paymentIntentRetrieveMock: vi.fn(),
+    stripeIsMockedMock: vi.fn(() => true),
     dbMock: {
       select: vi.fn(() => selectBuilder),
       transaction: vi.fn(),
@@ -69,12 +75,39 @@ vi.mock("@/lib/stripe-refund", () => ({
   processRefund: processRefundMock,
 }));
 
+vi.mock("@/lib/stripe", () => ({
+  getStripeClient: () => ({
+    paymentIntents: {
+      retrieve: paymentIntentRetrieveMock,
+      cancel: paymentIntentCancelMock,
+    },
+  }),
+  stripeIsMocked: stripeIsMockedMock,
+  normalizeStripePaymentStatus: (status: string) => {
+    switch (status) {
+      case "requires_payment_method":
+      case "requires_action":
+      case "processing":
+      case "succeeded":
+      case "canceled":
+        return status;
+      default:
+        return "processing";
+    }
+  },
+}));
+
 import { POST } from "./route";
 
 const makeRow = (overrides?: {
   calendarEventId?: string | null;
   appointmentStatus?: "booked" | "pending" | "cancelled";
-  payment?: { amountCents: number; status: string } | null;
+  payment?: {
+    id: string;
+    amountCents: number;
+    status: string;
+    stripePaymentIntentId: string | null;
+  } | null;
 }) => ({
   appointment: {
     id: "appt-1",
@@ -94,9 +127,16 @@ const makeRow = (overrides?: {
   payment:
     overrides?.payment ??
     ({
+      id: "pay-1",
       status: "succeeded",
       amountCents: 2000,
-    } as { amountCents: number; status: string }),
+      stripePaymentIntentId: "pi_test_123",
+    } as {
+      id: string;
+      amountCents: number;
+      status: string;
+      stripePaymentIntentId: string | null;
+    }),
 });
 
 describe("POST /api/manage/[token]/cancel (calendar cleanup)", () => {
@@ -117,6 +157,9 @@ describe("POST /api/manage/[token]/cancel (calendar cleanup)", () => {
     autoResolveAlertMock.mockResolvedValue(undefined);
     invalidateCalendarCacheMock.mockResolvedValue(undefined);
     dbMock.transaction.mockResolvedValue({ updated: true });
+    paymentIntentRetrieveMock.mockReset();
+    paymentIntentCancelMock.mockReset();
+    stripeIsMockedMock.mockReturnValue(true);
   });
 
   it("deletes calendar event and invalidates cache on refund-eligible cancellation", async () => {
@@ -192,8 +235,10 @@ describe("POST /api/manage/[token]/cancel (calendar cleanup)", () => {
         appointmentStatus: "pending",
         calendarEventId: null,
         payment: {
+          id: "pay-1",
           status: "requires_payment_method",
           amountCents: 2000,
+          stripePaymentIntentId: "pi_test_123",
         },
       }),
     ]);
@@ -207,5 +252,33 @@ describe("POST /api/manage/[token]/cancel (calendar cleanup)", () => {
     expect(processRefundMock).not.toHaveBeenCalled();
     expect(body.message).toBe("Booking cancelled. No payment was taken.");
     expect(deleteCalendarEventMock).not.toHaveBeenCalled();
+  });
+
+  it("refunds pending bookings when Stripe already captured payment", async () => {
+    stripeIsMockedMock.mockReturnValue(false);
+    paymentIntentRetrieveMock.mockResolvedValue({ status: "succeeded" });
+    dbMock.__selectLimitMock.mockResolvedValue([
+      makeRow({
+        appointmentStatus: "pending",
+        payment: {
+          id: "pay-1",
+          status: "requires_payment_method",
+          amountCents: 2000,
+          stripePaymentIntentId: "pi_live_123",
+        },
+      }),
+    ]);
+
+    const response = await POST(new Request("http://localhost"), {
+      params: Promise.resolve({ token: "token-1" }),
+    });
+    const body = (await response.json()) as { refunded?: boolean; message?: string };
+
+    expect(response.status).toBe(200);
+    expect(body.refunded).toBe(true);
+    expect(body.message).toContain("Refunded");
+    expect(processRefundMock).toHaveBeenCalledTimes(1);
+    expect(paymentIntentCancelMock).not.toHaveBeenCalled();
+    expect(dbMock.transaction).not.toHaveBeenCalled();
   });
 });

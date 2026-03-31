@@ -14,12 +14,14 @@ import {
   ShopClosedError,
   SlotTakenError,
 } from "@/lib/queries/appointments";
+import { getEventTypeById } from "@/lib/queries/event-types";
 import { getShopBySlug } from "@/lib/queries/shops";
 import { stripeIsMocked } from "@/lib/stripe";
 
 const createBookingSchema = z.object({
   shop: z.string().min(1),
   startsAt: z.string().datetime(),
+  eventTypeId: z.string().uuid().optional(),
   customer: z.object({
     fullName: z.string().trim().min(1).max(120),
     phone: z.string().trim().min(1),
@@ -64,6 +66,7 @@ export async function POST(req: Request) {
   console.warn("[booking-create] request", {
     shopSlug: parsed.data.shop,
     startsAt: parsed.data.startsAt,
+    eventTypeId: parsed.data.eventTypeId ?? null,
     hasSmsOptIn: typeof parsed.data.customer.smsOptIn === "boolean",
     emailOptIn: parsed.data.customer.emailOptIn,
   });
@@ -127,10 +130,23 @@ export async function POST(req: Request) {
       throw new Error("Booking settings not found");
     }
 
+    let effectiveDurationMinutes = bookingSettings.slotMinutes;
+    let eventTypeDepositCents: number | null = null;
+
+    if (parsed.data.eventTypeId) {
+      const eventType = await getEventTypeById(parsed.data.eventTypeId);
+      if (!eventType || eventType.shopId !== shop.id || !eventType.isActive) {
+        return Response.json({ error: "Event type not found" }, { status: 404 });
+      }
+      effectiveDurationMinutes = eventType.durationMinutes;
+      eventTypeDepositCents = eventType.depositAmountCents;
+    }
+
     const endsAt = computeEndsAt({
       startsAt,
       timeZone: bookingSettings.timezone,
       slotMinutes: bookingSettings.slotMinutes,
+      durationMinutes: effectiveDurationMinutes,
     });
 
     await validateBookingConflict({
@@ -143,8 +159,11 @@ export async function POST(req: Request) {
     const result = await createAppointment({
       shopId: shop.id,
       startsAt,
+      durationMinutes: effectiveDurationMinutes,
       customer: customerData,
       bookingBaseUrl,
+      eventTypeId: parsed.data.eventTypeId ?? null,
+      eventTypeDepositCents,
     });
     const manageToken = await createManageToken(result.appointment.id);
     console.warn("[booking-create] success", {

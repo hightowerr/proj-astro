@@ -29,6 +29,7 @@ const makeAppointment = (
     cancelledAt: now,
     cancellationSource: "customer",
     policyVersionId: "policy-123",
+    eventTypeId: null,
     paymentStatus: "paid",
     paymentRequired: true,
     financialOutcome: "settled",
@@ -108,12 +109,29 @@ describe("createSlotOpeningFromCancellation", () => {
       endsAt: appointment.endsAt,
       sourceAppointmentId: appointment.id,
       status: "open",
+      eventTypeId: null,
     });
     expect(fetchMock).toHaveBeenCalledWith(
       "http://localhost:3000/api/jobs/offer-loop",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ slotOpeningId: "slot-123" }),
+      })
+    );
+  });
+
+  it("forwards eventTypeId when appointment has a service", async () => {
+    const appointment = {
+      ...makeAppointment(),
+      eventTypeId: "event-type-uuid-123",
+    };
+    const payment = makePayment("succeeded");
+
+    await createSlotOpeningFromCancellation(appointment, payment);
+
+    expect(valuesMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventTypeId: "event-type-uuid-123",
       })
     );
   });

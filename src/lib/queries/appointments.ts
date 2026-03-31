@@ -1,5 +1,5 @@
 import { toZonedTime } from "date-fns-tz";
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import {
   computeEndsAt,
   formatDateInTimeZone,
@@ -37,6 +37,7 @@ import {
   customerContactPrefs,
   customerNoShowStats,
   customers,
+  eventTypes,
   payments,
   policyVersions,
   shopPolicies,
@@ -101,6 +102,7 @@ export type Availability = {
   date: string;
   timezone: string;
   slotMinutes: number;
+  durationMinutes: number;
   slots: { startsAt: Date; endsAt: Date }[];
 };
 
@@ -144,12 +146,15 @@ export const getBookingSettingsForShop = async (shopId: string) => {
 
 export const getAvailabilityForDate = async (
   shopId: string,
-  dateStr: string
+  dateStr: string,
+  durationMinutes?: number
 ): Promise<Availability> => {
   const settings = await getBookingSettingsForShop(shopId);
   if (!settings) {
     throw new Error("Booking settings not found");
   }
+
+  const effectiveDuration = durationMinutes ?? settings.slotMinutes;
 
   const todayStr = formatDateInTimeZone(new Date(), settings.timezone);
   if (dateStr < todayStr) {
@@ -157,6 +162,7 @@ export const getAvailabilityForDate = async (
       date: dateStr,
       timezone: settings.timezone,
       slotMinutes: settings.slotMinutes,
+      durationMinutes: effectiveDuration,
       slots: [],
     };
   }
@@ -173,6 +179,7 @@ export const getAvailabilityForDate = async (
       date: dateStr,
       timezone: settings.timezone,
       slotMinutes: settings.slotMinutes,
+      durationMinutes: effectiveDuration,
       slots: [],
     };
   }
@@ -185,27 +192,45 @@ export const getAvailabilityForDate = async (
     closeTime: hours.closeTime,
   });
 
+  const sizedSlots =
+    effectiveDuration !== settings.slotMinutes
+      ? slots.map((slot) => ({
+          startsAt: slot.startsAt,
+          endsAt: new Date(
+            slot.startsAt.getTime() + effectiveDuration * 60_000
+          ),
+        }))
+      : slots;
+
   const { start, end } = getDayStartEndUtc(dateStr, settings.timezone);
+  const closeBoundaryUtc = new Date(
+    start.getTime() + parseTimeToMinutes(hours.closeTime) * 60_000
+  );
   const bookedSlots = await db
-    .select({ startsAt: appointments.startsAt })
+    .select({
+      startsAt: appointments.startsAt,
+      endsAt: appointments.endsAt,
+    })
     .from(appointments)
     .where(
       and(
         eq(appointments.shopId, shopId),
-        gte(appointments.startsAt, start),
         lt(appointments.startsAt, end),
+        gt(appointments.endsAt, start),
         inArray(appointments.status, ["booked", "pending"])
       )
     );
 
-  const bookedTimes = new Set(
-    bookedSlots.map((slot) => slot.startsAt.getTime())
-  );
-
   const now = new Date();
   const isToday = dateStr === todayStr;
-  let availableSlots = slots.filter((slot) => {
-    if (bookedTimes.has(slot.startsAt.getTime())) return false;
+  let availableSlots = sizedSlots.filter((slot) => {
+    if (slot.endsAt.getTime() > closeBoundaryUtc.getTime()) return false;
+    const overlaps = bookedSlots.some(
+      (booked) =>
+        slot.startsAt.getTime() < booked.endsAt.getTime() &&
+        slot.endsAt.getTime() > booked.startsAt.getTime()
+    );
+    if (overlaps) return false;
     if (!isToday) return true;
     return slot.startsAt.getTime() > now.getTime();
   });
@@ -232,6 +257,7 @@ export const getAvailabilityForDate = async (
     date: dateStr,
     timezone: settings.timezone,
     slotMinutes: settings.slotMinutes,
+    durationMinutes: effectiveDuration,
     slots: availableSlots,
   };
 };
@@ -655,6 +681,7 @@ export const updateNoShowScoreAtBooking = async (input: {
 export const createAppointment = async (input: {
   shopId: string;
   startsAt: Date;
+  durationMinutes?: number;
   customer: {
     fullName: string;
     phone: string;
@@ -666,6 +693,8 @@ export const createAppointment = async (input: {
   bookingBaseUrl?: string | null;
   source?: "web" | "slot_recovery";
   sourceSlotOpeningId?: string | null;
+  eventTypeId?: string | null;
+  eventTypeDepositCents?: number | null;
 }) => {
   try {
     const created = await db.transaction(async (tx) => {
@@ -695,6 +724,11 @@ export const createAppointment = async (input: {
         throw new InvalidSlotError("Invalid slot length");
       }
 
+      const effectiveDurationMinutes = input.durationMinutes ?? settings.slotMinutes;
+      if (effectiveDurationMinutes <= 0) {
+        throw new InvalidSlotError("Invalid slot length");
+      }
+
       if (
         !isValidSlotStart({
           startsAt: input.startsAt,
@@ -702,6 +736,7 @@ export const createAppointment = async (input: {
           slotMinutes: settings.slotMinutes,
           openTime: hours.openTime,
           closeTime: hours.closeTime,
+          durationMinutes: effectiveDurationMinutes,
         })
       ) {
         throw new InvalidSlotError();
@@ -711,6 +746,11 @@ export const createAppointment = async (input: {
       const closeMinutes = parseTimeToMinutes(hours.closeTime);
       if (openMinutes >= closeMinutes) {
         throw new InvalidSlotError("Invalid shop hours");
+      }
+
+      const startMinutes = localStart.getHours() * 60 + localStart.getMinutes();
+      if (startMinutes + effectiveDurationMinutes > closeMinutes) {
+        throw new InvalidSlotError();
       }
 
       const customer = await upsertCustomer(tx, {
@@ -748,11 +788,16 @@ export const createAppointment = async (input: {
           customer.id,
           input.shopId
         );
+        const tier = customerScore?.tier ?? null;
+        const baseDepositCents =
+          input.eventTypeDepositCents != null
+            ? input.eventTypeDepositCents
+            : policy.depositAmountCents;
         const tierPricing = applyTierPricingOverride(
-          customerScore?.tier ?? null,
+          tier,
           {
             paymentMode: policy.paymentMode,
-            depositAmountCents: policy.depositAmountCents,
+            depositAmountCents: baseDepositCents,
           },
           {
             riskPaymentMode: policy.riskPaymentMode,
@@ -761,10 +806,16 @@ export const createAppointment = async (input: {
             topDepositAmountCents: policy.topDepositAmountCents,
           }
         );
+        const finalDepositCents =
+          tier === "risk" &&
+          input.eventTypeDepositCents != null &&
+          (tierPricing.depositAmountCents ?? 0) < input.eventTypeDepositCents
+            ? input.eventTypeDepositCents
+            : tierPricing.depositAmountCents;
 
         const derived = derivePaymentRequirement({
           paymentMode: tierPricing.paymentMode,
-          depositAmountCents: tierPricing.depositAmountCents,
+          depositAmountCents: finalDepositCents,
         });
         paymentRequired = derived.paymentRequired;
         amountCents = derived.amountCents;
@@ -776,7 +827,7 @@ export const createAppointment = async (input: {
             shopId: input.shopId,
             currency: policy.currency,
             paymentMode: tierPricing.paymentMode,
-            depositAmountCents: tierPricing.depositAmountCents,
+            depositAmountCents: finalDepositCents,
             cancelCutoffMinutes: policy.cancelCutoffMinutes,
             refundBeforeCutoff: policy.refundBeforeCutoff,
             resolutionGraceMinutes: policy.resolutionGraceMinutes,
@@ -794,13 +845,32 @@ export const createAppointment = async (input: {
         startsAt: input.startsAt,
         timeZone: settings.timezone,
         slotMinutes: settings.slotMinutes,
+        durationMinutes: effectiveDurationMinutes,
       });
+
+      const overlapping = await tx
+        .select({ id: appointments.id })
+        .from(appointments)
+        .where(
+          and(
+            eq(appointments.shopId, input.shopId),
+            inArray(appointments.status, ["booked", "pending"]),
+            lt(appointments.startsAt, endsAt),
+            gt(appointments.endsAt, input.startsAt)
+          )
+        )
+        .limit(1);
+
+      if (overlapping.length > 0) {
+        throw new SlotTakenError();
+      }
 
       const appointmentValues: typeof appointments.$inferInsert = {
         shopId: input.shopId,
         customerId: customer.id,
         startsAt: input.startsAt,
         endsAt,
+        eventTypeId: input.eventTypeId ?? null,
         status: paymentRequired ? "pending" : "booked",
         policyVersionId: policyVersion?.id ?? null,
         paymentStatus: paymentRequired ? "pending" : "unpaid",
@@ -1095,6 +1165,7 @@ export const listAppointmentsForShop = async (shopId: string) => {
       customerName: customers.fullName,
       customerEmail: customers.email,
       customerPhone: customers.phone,
+      eventTypeName: eventTypes.name,
       paymentAmountCents: payments.amountCents,
       paymentCurrency: payments.currency,
       noShowStatsTotalAppointments: customerNoShowStats.totalAppointments,
@@ -1104,6 +1175,7 @@ export const listAppointmentsForShop = async (shopId: string) => {
     .from(appointments)
     .innerJoin(customers, eq(appointments.customerId, customers.id))
     .leftJoin(payments, eq(payments.appointmentId, appointments.id))
+    .leftJoin(eventTypes, eq(eventTypes.id, appointments.eventTypeId))
     .leftJoin(
       customerNoShowStats,
       and(
