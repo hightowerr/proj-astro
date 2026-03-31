@@ -532,7 +532,8 @@ export const sendAppointmentReminderSMS = async (params: {
 
   const alreadySent = await checkReminderAlreadySent(
     appointmentId,
-    reminderInterval
+    reminderInterval,
+    "sms"
   );
   if (alreadySent) {
     return "already_sent";
