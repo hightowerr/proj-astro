@@ -4,6 +4,7 @@ import { AttentionRequiredTable } from "@/components/dashboard/attention-require
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { TierDistributionChart } from "@/components/dashboard/tier-distribution-chart";
 import { getDashboardData } from "@/lib/queries/dashboard";
+import { getEventTypesForShop } from "@/lib/queries/event-types";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { requireAuth } from "@/lib/session";
 
@@ -35,6 +36,11 @@ export default async function DashboardPage({
   const { period } = await searchParams;
   const periodHours = parsePeriod(period);
 
+  const [dashboardData, activeEventTypes] = await Promise.all([
+    getDashboardData(shop.id, periodHours),
+    getEventTypesForShop(shop.id, { isActive: true }),
+  ]);
+
   const {
     highRiskAppointments,
     totalUpcoming,
@@ -42,7 +48,11 @@ export default async function DashboardPage({
     monthlyStats,
     tierDistribution,
     allAppointments,
-  } = await getDashboardData(shop.id, periodHours);
+  } = dashboardData;
+
+  const hasOnlyDefaultServices =
+    activeEventTypes.length > 0 &&
+    activeEventTypes.every((eventType) => eventType.isDefault);
 
   return (
     <div className="min-h-screen bg-bg-dark">
@@ -53,6 +63,20 @@ export default async function DashboardPage({
             Monitor high-risk appointments and upcoming reliability trends for {shop.name}.
           </p>
         </header>
+
+        {hasOnlyDefaultServices ? (
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
+            <p className="text-sm text-yellow-200">
+              Your booking page is using a default service. Set up your real services to show customers accurate durations and names.
+            </p>
+            <a
+              href="/app/settings/services"
+              className="shrink-0 rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-bg-dark transition-colors hover:bg-yellow-400"
+            >
+              Set up services
+            </a>
+          </div>
+        ) : null}
 
         <AttentionRequiredTable appointments={highRiskAppointments} currentPeriod={periodHours} />
 

@@ -32,7 +32,8 @@
       "Bash(pkill:*)",
       "Bash(pnpm tsx:*)",
       "Bash(test:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(head -60 docs/shaping/onboarding/*.md)"
     ]
   },
   "enableAllProjectMcpServers": true,

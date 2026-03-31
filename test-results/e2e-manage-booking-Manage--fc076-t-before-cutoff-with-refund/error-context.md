@@ -1,0 +1,146 @@
+# Page snapshot
+
+```yaml
+- generic [active]:
+  - link:
+    - /url: "#main-content"
+    - text: Skip to main content
+  - banner:
+    - navigation:
+      - link:
+        - /url: /
+        - text: Astro
+      - generic:
+        - link:
+          - /url: "#how-it-works"
+          - text: How It Works
+        - link:
+          - /url: "#features"
+          - text: Features
+        - link:
+          - /url: "#pricing"
+          - text: Pricing
+        - link:
+          - /url: "#faq"
+          - text: FAQ
+      - generic:
+        - link:
+          - /url: /login
+          - text: Sign In
+        - link:
+          - /url: /register
+          - text: Start Free Trial
+  - main:
+    - generic:
+      - generic:
+        - heading [level=1]: Manage your booking
+        - paragraph: View appointment details and cancellation eligibility.
+        - link:
+          - /url: /book/manage-shop-862c5b02-1eba-4172-90c3-e9f6f8ae9788
+          - text: Book again
+      - generic:
+        - generic:
+          - generic:
+            - heading [level=2]: Appointment details
+            - paragraph: Ends at 5:27 PM EDT
+          - generic:
+            - img
+            - text: Confirmed
+        - generic:
+          - generic:
+            - img
+            - generic:
+              - paragraph: Date & time
+              - paragraph: Sunday, April 5, 2026 at 4:27 PM EDT
+              - paragraph: "Duration: 60 minutes"
+          - generic:
+            - img
+            - generic:
+              - paragraph: Location
+              - paragraph: Test Barbershop
+          - generic:
+            - img
+            - generic:
+              - paragraph: Customer
+              - paragraph: John Doe
+              - paragraph: john@example.com
+              - paragraph: "+12025550123"
+          - generic:
+            - img
+            - generic:
+              - paragraph: Payment
+              - paragraph: $50.00
+              - paragraph: "Status: succeeded"
+      - generic:
+        - generic:
+          - heading [level=2]: Email preferences
+          - paragraph: Control whether this booking can receive reminder emails.
+        - generic:
+          - checkbox [checked]
+          - generic:
+            - paragraph: Send me email reminders
+            - paragraph: Get an email reminder about 24 hours before your appointment.
+      - generic:
+        - heading [level=2]: Cancellation policy
+        - generic:
+          - img
+          - generic:
+            - paragraph: Cancellation deadline
+            - paragraph: Apr 4, 2026 at 4:27 PM EDT
+            - paragraph: (24 hours before appointment)
+        - generic:
+          - img
+          - generic:
+            - paragraph: Full refund available
+            - paragraph: If you cancel now, you'll receive a full refund of $50.00 to your original payment method.
+      - generic:
+        - button [disabled]: Cancel appointment
+        - paragraph: By clicking “Cancel appointment”, you understand that you will receive a full refund.
+  - contentinfo:
+    - generic:
+      - link:
+        - /url: /
+        - text: Astro
+      - generic:
+        - link:
+          - /url: "#how-it-works"
+          - text: How It Works
+        - link:
+          - /url: "#features"
+          - text: Features
+        - link:
+          - /url: "#pricing"
+          - text: Pricing
+        - link:
+          - /url: "#faq"
+          - text: FAQ
+        - link:
+          - /url: /privacy
+          - text: Privacy Policy
+        - link:
+          - /url: /terms
+          - text: Terms of Service
+        - link:
+          - /url: /contact
+          - text: Contact
+      - paragraph: © 2025 Astro. All rights reserved.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
+    - generic [ref=e9]:
+      - text: Compiling
+      - generic [ref=e10]:
+        - generic [ref=e11]: .
+        - generic [ref=e12]: .
+        - generic [ref=e13]: .
+  - alert
+  - dialog "Cancel appointment?" [ref=e15]:
+    - generic [ref=e16]:
+      - heading "Cancel appointment?" [level=2] [ref=e17]
+      - paragraph [ref=e18]: You will receive a full refund of $50.00 to your original payment method.
+    - generic [ref=e19]:
+      - button "Keep appointment" [disabled]
+      - button "Processing…" [disabled]
+    - button "Close" [ref=e20]:
+      - img
+      - generic [ref=e21]: Close
+```

@@ -12,9 +12,12 @@ export function SiteFooter() {
   ];
 
   return (
-    <footer className="bg-bg-dark border-t border-white/10 py-12">
+    <footer
+      className="py-12"
+      style={{ background: "var(--color-surface-base)", borderTop: "1px solid var(--color-border-default)" }}
+    >
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4">
-        <Link href="/" className="text-xl font-bold text-white">
+        <Link href="/" className="text-xl font-bold" style={{ color: "var(--color-text-primary)" }}>
           Astro
         </Link>
 
@@ -23,14 +26,15 @@ export function SiteFooter() {
             <Link
               key={link.label}
               href={link.href}
-              className="text-text-muted text-sm transition-colors duration-200 hover:text-white"
+              className="text-sm transition-colors duration-200 hover:text-[var(--color-text-primary)]"
+              style={{ color: "var(--color-text-tertiary)" }}
             >
               {link.label}
             </Link>
           ))}
         </div>
 
-        <p className="text-text-light-muted text-sm">© 2025 Astro. All rights reserved.</p>
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>© 2025 Astro. All rights reserved.</p>
       </div>
     </footer>
   );

@@ -14,12 +14,14 @@ type SlotValidationConfig = {
   slotMinutes: number;
   openTime: string;
   closeTime: string;
+  durationMinutes?: number;
 };
 
 type EndsAtConfig = {
   startsAt: Date;
   timeZone: string;
   slotMinutes: number;
+  durationMinutes?: number;
 };
 
 const MINUTES_IN_DAY = 24 * 60;
@@ -89,6 +91,7 @@ export const isValidSlotStart = ({
   slotMinutes,
   openTime,
   closeTime,
+  durationMinutes,
 }: SlotValidationConfig) => {
   if (slotMinutes <= 0) {
     return false;
@@ -103,13 +106,19 @@ export const isValidSlotStart = ({
     return false;
   }
 
-  if (minutesFromStartOfDay + slotMinutes > closeMinutes) {
+  const effectiveDurationMinutes = durationMinutes ?? slotMinutes;
+  if (minutesFromStartOfDay + effectiveDurationMinutes > closeMinutes) {
     return false;
   }
 
   return (minutesFromStartOfDay - openMinutes) % slotMinutes === 0;
 };
 
-export const computeEndsAt = ({ startsAt, slotMinutes }: EndsAtConfig) => {
-  return new Date(startsAt.getTime() + slotMinutes * MS_PER_MINUTE);
+export const computeEndsAt = ({
+  startsAt,
+  slotMinutes,
+  durationMinutes,
+}: EndsAtConfig) => {
+  const effectiveDurationMinutes = durationMinutes ?? slotMinutes;
+  return new Date(startsAt.getTime() + effectiveDurationMinutes * MS_PER_MINUTE);
 };

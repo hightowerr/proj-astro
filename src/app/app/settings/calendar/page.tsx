@@ -12,7 +12,7 @@ export default async function CalendarSettingsPage() {
     return (
       <div className="container mx-auto px-4 py-10">
         <h1 className="text-3xl font-semibold">Calendar settings</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
           Create your shop to connect Google Calendar.
         </p>
       </div>
@@ -34,11 +34,14 @@ export default async function CalendarSettingsPage() {
   return (
     <div className="container mx-auto max-w-3xl space-y-8 px-4 py-10">
       <header className="space-y-2">
-        <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-bg-dark-secondary text-primary">
+        <div
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full"
+          style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)", color: "var(--color-brand)" }}
+        >
           <Calendar className="h-5 w-5" />
         </div>
         <h1 className="text-3xl font-semibold">Calendar settings</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
           Connect Google Calendar to prepare for appointment sync and conflict detection.
         </p>
       </header>

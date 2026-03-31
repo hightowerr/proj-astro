@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3300";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const parsedBaseURL = new URL(baseURL);
 const isLocalBaseURL = ["localhost", "127.0.0.1"].includes(parsedBaseURL.hostname);
 const port = parsedBaseURL.port || "3000";

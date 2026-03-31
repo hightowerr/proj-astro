@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google";
+import { Cormorant_Garamond, Bricolage_Grotesque, Fira_Code } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
@@ -6,8 +6,24 @@ import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 
-const inter = Inter({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+  display: "swap",
+});
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+  display: "swap",
+});
+
+const firaCode = Fira_Code({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  variable: "--font-fira-code",
   display: "swap",
 });
 
@@ -23,7 +39,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" style={{ colorScheme: "dark" }}>
-      <body className={`${inter.className} bg-bg-dark text-white antialiased`}>
+      <body
+        className={`${cormorant.variable} ${bricolage.variable} ${firaCode.variable} antialiased`}
+        style={{ background: "var(--color-surface-base)", color: "var(--color-text-primary)", fontFamily: "var(--font-body, system-ui, sans-serif)" }}
+      >
         {process.env.NODE_ENV === "development" ? (
           <Script id="react-dev-measure-guard" strategy="beforeInteractive">
             {`(() => {

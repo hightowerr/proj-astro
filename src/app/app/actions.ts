@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -57,7 +56,7 @@ export async function createShop(input: {
 
   const existingShop = await getShopByOwnerId(session.user.id);
   if (existingShop) {
-    redirect("/app");
+    return { shopId: existingShop.id };
   }
 
   const slugConflict = await getShopBySlug(normalizedSlug);
@@ -65,13 +64,12 @@ export async function createShop(input: {
     throw new Error("This shop URL is already taken");
   }
 
-  await createShopRecord({
+  const shop = await createShopRecord({
     ownerUserId: session.user.id,
     name: parsed.data.shopName,
     slug: normalizedSlug,
     businessType: parsed.data.businessType,
   });
 
-  revalidatePath("/app");
-  redirect("/app?created=true");
+  return { shopId: shop.id };
 }

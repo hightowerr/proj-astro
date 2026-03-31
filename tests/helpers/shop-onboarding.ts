@@ -34,12 +34,28 @@ export async function completeShopOnboarding(
     await nextButton.click();
   }
 
-  await page.getByLabel("Shop name").fill(shopName);
-  await page.getByLabel("Shop URL slug").fill(slug);
-  await page.getByRole("button", { name: /Create( Shop)?/ }).click();
+  const shopNameInput = page.getByLabel("Shop name");
+  if (await shopNameInput.isVisible().catch(() => false)) {
+    await shopNameInput.fill(shopName);
+    await page.getByLabel("Shop URL slug").fill(slug);
+    await page.getByRole("button", { name: /Create( Shop)?/ }).click();
+  }
 
-  await expect(page).toHaveURL(/\/app/, { timeout: 15000 });
-  await expect(page.getByRole("link", { name: `/book/${slug}` })).toBeVisible({
-    timeout: 15000,
+  const addServiceHeading = page.getByRole("heading", {
+    name: /add your first service/i,
   });
+  const bookingLink = page.getByRole("link", { name: `/book/${slug}` });
+
+  await expect(async () => {
+    const step3Visible = await addServiceHeading.isVisible().catch(() => false);
+    const bookingLinkVisible = await bookingLink.isVisible().catch(() => false);
+    expect(step3Visible || bookingLinkVisible).toBe(true);
+  }).toPass({ timeout: 15000 });
+
+  if (await addServiceHeading.isVisible().catch(() => false)) {
+    await page.getByRole("button", { name: /skip for now/i }).click();
+  }
+
+  await expect(page).toHaveURL(/\/app(\/dashboard)?/, { timeout: 15000 });
+  await expect(bookingLink).toBeVisible({ timeout: 15000 });
 }

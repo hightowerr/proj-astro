@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { appointmentEvents, appointments, payments } from "@/lib/schema";
 import { getStripeClient, stripeIsMocked } from "@/lib/stripe";
@@ -93,13 +93,23 @@ const persistRefundCancellation = async (
         updatedAt: now,
       })
       .where(
-        and(eq(appointments.id, appointment.id), eq(appointments.status, "booked"))
+        and(
+          eq(appointments.id, appointment.id),
+          or(
+            inArray(appointments.status, ["booked", "pending"]),
+            and(
+              eq(appointments.status, "cancelled"),
+              eq(appointments.resolutionReason, "cancelled_no_payment_captured")
+            )
+          )
+        )
       )
       .returning({ id: appointments.id });
 
     await tx
       .update(payments)
       .set({
+        status: "succeeded",
         refundedAmountCents: payment.amountCents,
         stripeRefundId: refundId,
         refundedAt: now,
