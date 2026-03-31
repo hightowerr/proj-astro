@@ -290,6 +290,46 @@ export const bookingSettings = pgTable(
   ]
 );
 
+export const eventTypes = pgTable(
+  "event_types",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shopId: uuid("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    durationMinutes: integer("duration_minutes").notNull(),
+    bufferMinutes: integer("buffer_minutes").notNull().default(0),
+    depositAmountCents: integer("deposit_amount_cents"),
+    isHidden: boolean("is_hidden").notNull().default(false),
+    isActive: boolean("is_active").notNull().default(true),
+    isDefault: boolean("is_default").notNull().default(false),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("event_types_shop_id_idx").on(table.shopId),
+    uniqueIndex("event_types_one_default_per_shop_idx")
+      .on(table.shopId)
+      .where(sql`${table.isDefault} = true`),
+    check(
+      "event_types_buffer_minutes_valid",
+      sql`${table.bufferMinutes} in (0, 5, 10)`
+    ),
+    check(
+      "event_types_duration_minutes_positive",
+      sql`${table.durationMinutes} > 0`
+    ),
+  ]
+);
+
 export const shopPolicies = pgTable(
   "shop_policies",
   {
@@ -488,6 +528,9 @@ export const appointments = pgTable(
       () => policyVersions.id,
       { onDelete: "set null" }
     ),
+    eventTypeId: uuid("event_type_id").references(() => eventTypes.id, {
+      onDelete: "set null",
+    }),
     paymentStatus: appointmentPaymentStatusEnum("payment_status")
       .default("unpaid")
       .notNull(),
@@ -537,6 +580,7 @@ export const appointments = pgTable(
       .where(sql`${table.status} in ('pending', 'booked')`),
     index("appointments_shop_id_idx").on(table.shopId),
     index("appointments_customer_id_idx").on(table.customerId),
+    index("appointments_event_type_id_idx").on(table.eventTypeId),
     index("appointments_shop_ends_idx").on(table.shopId, table.endsAt),
     index("appointments_financial_outcome_idx").on(table.financialOutcome),
     index("appointments_no_show_risk_idx").on(table.noShowRisk),
@@ -713,6 +757,9 @@ export const slotOpenings = pgTable(
     sourceAppointmentId: uuid("source_appointment_id")
       .notNull()
       .references(() => appointments.id, { onDelete: "cascade" }),
+    eventTypeId: uuid("event_type_id").references(() => eventTypes.id, {
+      onDelete: "set null",
+    }),
     status: text("status")
       .$type<"open" | "filled" | "expired">()
       .notNull(),

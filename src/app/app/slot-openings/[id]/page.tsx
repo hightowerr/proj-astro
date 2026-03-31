@@ -4,7 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { getShopByOwnerId } from "@/lib/queries/shops";
-import { appointments, customers, slotOffers } from "@/lib/schema";
+import { appointments, customers, eventTypes, slotOffers, slotOpenings } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
 
 export default async function SlotOpeningDetailPage({
@@ -27,12 +27,24 @@ export default async function SlotOpeningDetailPage({
   }
 
   const { id } = await params;
-  const [settings, slotRow, offers, recoveredBookings] = await Promise.all([
+  const [settings, slotRows, offers, recoveredBookings] = await Promise.all([
     getBookingSettingsForShop(shop.id),
-    db.query.slotOpenings.findFirst({
-      where: (table, { and: whereAnd, eq: whereEq }) =>
-        whereAnd(whereEq(table.id, id), whereEq(table.shopId, shop.id)),
-    }),
+    db
+      .select({
+        id: slotOpenings.id,
+        shopId: slotOpenings.shopId,
+        startsAt: slotOpenings.startsAt,
+        endsAt: slotOpenings.endsAt,
+        status: slotOpenings.status,
+        sourceAppointmentId: slotOpenings.sourceAppointmentId,
+        createdAt: slotOpenings.createdAt,
+        updatedAt: slotOpenings.updatedAt,
+        eventTypeName: eventTypes.name,
+      })
+      .from(slotOpenings)
+      .leftJoin(eventTypes, eq(eventTypes.id, slotOpenings.eventTypeId))
+      .where(and(eq(slotOpenings.id, id), eq(slotOpenings.shopId, shop.id)))
+      .limit(1),
     db
       .select({
         id: slotOffers.id,
@@ -63,6 +75,8 @@ export default async function SlotOpeningDetailPage({
       )
       .orderBy(desc(appointments.createdAt)),
   ]);
+
+  const slotRow = slotRows[0] ?? null;
 
   if (!slotRow) {
     notFound();
@@ -104,6 +118,11 @@ export default async function SlotOpeningDetailPage({
         <p className="text-sm text-muted-foreground">
           Opened {formatter.format(new Date(slotRow.createdAt))}
         </p>
+        {slotRow.eventTypeName ? (
+          <p className="text-sm text-muted-foreground">
+            Service: <span className="text-foreground">{slotRow.eventTypeName}</span>
+          </p>
+        ) : null}
       </div>
 
       <section className="space-y-3">

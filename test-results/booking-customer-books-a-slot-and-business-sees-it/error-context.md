@@ -38,7 +38,7 @@
           - generic [ref=e25]: Email
           - textbox "Email" [disabled]:
             - /placeholder: you@example.com
-            - text: shopper_b5614987-ba55-4502-a73a-0a7ecc1188a0@example.com
+            - text: shopper_8dc47523-4138-4cf2-b300-d30191d7cc18@example.com
         - generic [ref=e26]:
           - generic [ref=e27]: Password
           - textbox "Password" [disabled]:

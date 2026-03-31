@@ -1,0 +1,1 @@
+The user has provided a transcript of a technical discussion with developers about the implementation of promo codes. The goal is to process this using the 'Agentic LNO Note Generation System' to document the technical challenges, decisions, and next steps.

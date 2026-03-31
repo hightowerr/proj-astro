@@ -17,12 +17,20 @@ if (!hasPostgresUrl) {
     "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
 }
 
-const [{ db }, { createShop }, { findHighRiskAppointments }, { checkReminderAlreadySent }, schema] =
+const [
+  { db },
+  { createShop },
+  { findHighRiskAppointments },
+  { checkReminderAlreadySent },
+  { sendAppointmentReminderSMS },
+  schema,
+] =
   await Promise.all([
     import("@/lib/db"),
     import("@/lib/queries/shops"),
     import("@/lib/queries/appointments"),
     import("@/lib/queries/messages"),
+    import("@/lib/messages"),
     import("@/lib/schema"),
   ]);
 
@@ -95,6 +103,23 @@ const makeAppointmentFixture = async (input?: {
   }
 
   return { shop, customer, appointment };
+};
+
+const sendSmsReminderForFixture = async (fixture: Awaited<ReturnType<typeof makeAppointmentFixture>>) => {
+  const { appointment, customer, shop } = fixture;
+
+  return await sendAppointmentReminderSMS({
+    appointmentId: appointment.id,
+    shopId: shop.id,
+    customerId: customer.id,
+    customerName: customer.fullName,
+    customerPhone: customer.phone,
+    startsAt: appointment.startsAt,
+    bookingUrl: appointment.bookingUrl,
+    shopName: shop.name,
+    shopTimezone: "UTC",
+    reminderInterval: "24h",
+  });
 };
 
 beforeAll(() => {
@@ -273,13 +298,17 @@ describeIf("reminder query and dedup", () => {
       sentAt: new Date(),
     });
 
-    await expect(checkReminderAlreadySent(appointment.id, "24h")).resolves.toBe(true);
+    await expect(
+      checkReminderAlreadySent(appointment.id, "24h", "sms")
+    ).resolves.toBe(true);
   });
 
   it("returns false when no reminder has been logged", async () => {
     const { appointment } = await makeAppointmentFixture();
 
-    await expect(checkReminderAlreadySent(appointment.id, "24h")).resolves.toBe(false);
+    await expect(
+      checkReminderAlreadySent(appointment.id, "24h", "sms")
+    ).resolves.toBe(false);
   });
 
   it("returns false when only booking confirmation exists", async () => {
@@ -302,7 +331,9 @@ describeIf("reminder query and dedup", () => {
       sentAt: new Date(),
     });
 
-    await expect(checkReminderAlreadySent(appointment.id, "24h")).resolves.toBe(false);
+    await expect(
+      checkReminderAlreadySent(appointment.id, "24h", "sms")
+    ).resolves.toBe(false);
   });
 
   it("returns false for a different interval even if one interval was already sent", async () => {
@@ -327,7 +358,95 @@ describeIf("reminder query and dedup", () => {
       sentAt: new Date(),
     });
 
-    await expect(checkReminderAlreadySent(appointment.id, "24h")).resolves.toBe(true);
-    await expect(checkReminderAlreadySent(appointment.id, "2h")).resolves.toBe(false);
+    await expect(
+      checkReminderAlreadySent(appointment.id, "24h", "sms")
+    ).resolves.toBe(true);
+    await expect(
+      checkReminderAlreadySent(appointment.id, "2h", "sms")
+    ).resolves.toBe(false);
+  });
+
+  it("does not treat an email reminder as an SMS send", async () => {
+    const fixture = await makeAppointmentFixture();
+    const { appointment, customer, shop } = fixture;
+
+    await db.insert(messageLog).values({
+      shopId: shop.id,
+      appointmentId: appointment.id,
+      customerId: customer.id,
+      channel: "email",
+      purpose: "appointment_reminder_24h",
+      toPhone: customer.email,
+      provider: "resend",
+      status: "sent",
+      bodyHash: "hash-email-reminder",
+      templateKey: "appointment_reminder_24h",
+      templateVersion: 1,
+      renderedBody: "Email reminder body",
+      providerMessageId: `email_${randomUUID()}`,
+      sentAt: new Date(),
+    });
+
+    await expect(
+      checkReminderAlreadySent(appointment.id, "24h", "sms")
+    ).resolves.toBe(false);
+
+    const result = await sendSmsReminderForFixture(fixture);
+    expect(result).toBe("sent");
+  });
+
+  it("does not let failed SMS logs block reminder retries", async () => {
+    const fixture = await makeAppointmentFixture();
+    const { appointment, customer, shop } = fixture;
+
+    await db.insert(messageLog).values({
+      shopId: shop.id,
+      appointmentId: appointment.id,
+      customerId: customer.id,
+      channel: "sms",
+      purpose: "appointment_reminder_24h",
+      toPhone: customer.phone,
+      provider: "twilio",
+      status: "failed",
+      bodyHash: "hash-sms-reminder-failed",
+      templateKey: "appointment_reminder_24h",
+      templateVersion: 1,
+      renderedBody: "Failed reminder body",
+      retryCount: 1,
+      errorCode: "twilio_error",
+      errorMessage: "Twilio send failed",
+    });
+
+    await expect(
+      checkReminderAlreadySent(appointment.id, "24h", "sms")
+    ).resolves.toBe(false);
+
+    const result = await sendSmsReminderForFixture(fixture);
+    expect(result).toBe("sent");
+
+    const smsLogs = await db.query.messageLog.findMany({
+      where: (table, { and, eq }) =>
+        and(eq(table.appointmentId, appointment.id), eq(table.channel, "sms")),
+    });
+    expect(smsLogs.some((log) => log.status === "sent")).toBe(true);
+  });
+
+  it("consent-missing attempts do not dedup and allow a later successful retry", async () => {
+    const fixture = await makeAppointmentFixture({ smsOptIn: false });
+    const { appointment, customer } = fixture;
+
+    await expect(sendSmsReminderForFixture(fixture)).resolves.toBe(
+      "consent_missing"
+    );
+    await expect(
+      checkReminderAlreadySent(appointment.id, "24h", "sms")
+    ).resolves.toBe(false);
+
+    await db
+      .update(customerContactPrefs)
+      .set({ smsOptIn: true })
+      .where(eq(customerContactPrefs.customerId, customer.id));
+
+    await expect(sendSmsReminderForFixture(fixture)).resolves.toBe("sent");
   });
 });

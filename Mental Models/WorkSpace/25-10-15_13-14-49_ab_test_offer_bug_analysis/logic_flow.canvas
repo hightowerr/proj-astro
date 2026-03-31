@@ -1,0 +1,26 @@
+{
+	"nodes":[
+		{"id":"flawed_title","x":-150,"y":-50,"width":400,"height":60,"type":"text","text":"## Current Flawed Logic"},
+		{"id":"flawed_step1","x":0,"y":50,"width":250,"height":60,"type":"text","text":"1. User adds product to basket","color":"5"},
+		{"id":"flawed_step2","x":0,"y":150,"width":250,"height":80,"type":"text","text":"2. Basket requests promotion information from the SPE","color":"5"},
+		{"id":"flawed_step3_bug","x":-50,"y":270,"width":350,"height":120,"type":"text","text":"3. **SPE Logic:**\n`IF coupon is NOT available:`\n  `RETURN false`\n\n**BUG: Incorrectly stops here!**","color":"1"},
+		{"id":"flawed_step4","x":0,"y":430,"width":250,"height":60,"type":"text","text":"4. SPE returns `false`","color":"5"},
+		{"id":"flawed_step5","x":0,"y":530,"width":250,"height":60,"type":"text","text":"5. Basket shows NO offer sticker","color":"5"},
+		{"id":"future_title","x":450,"y":-50,"width":400,"height":60,"type":"text","text":"## Future State Logic"},
+		{"id":"future_step1","x":500,"y":50,"width":250,"height":60,"type":"text","text":"1. User adds product to basket","color":"4"},
+		{"id":"future_step2","x":500,"y":150,"width":250,"height":80,"type":"text","text":"2. Basket requests a \"display model\" from the Promo Engine","color":"4"},
+		{"id":"future_step3","x":450,"y":270,"width":350,"height":120,"type":"text","text":"3. **Engine Logic:**\n`IF user_is_eligible():`\n  `RETURN {show_sticker: true}`\n\n**CORRECT: Logic is direct.**","color":"2"},
+		{"id":"future_step4","x":500,"y":430,"width":250,"height":60,"type":"text","text":"4. Engine returns `{show_sticker: true}`","color":"4"},
+		{"id":"future_step5","x":500,"y":530,"width":250,"height":60,"type":"text","text":"5. Basket SHOWS the offer sticker","color":"4"}
+	],
+	"edges":[
+		{"id":"f_edge1","fromNode":"flawed_step1","fromSide":"bottom","toNode":"flawed_step2","toSide":"top"},
+		{"id":"f_edge2","fromNode":"flawed_step2","fromSide":"bottom","toNode":"flawed_step3_bug","toSide":"top"},
+		{"id":"f_edge3","fromNode":"flawed_step3_bug","fromSide":"bottom","toNode":"flawed_step4","toSide":"top"},
+		{"id":"f_edge4","fromNode":"flawed_step4","fromSide":"bottom","toNode":"flawed_step5","toSide":"top"},
+		{"id":"s_edge1","fromNode":"future_step1","fromSide":"bottom","toNode":"future_step2","toSide":"top"},
+		{"id":"s_edge2","fromNode":"future_step2","fromSide":"bottom","toNode":"future_step3","toSide":"top"},
+		{"id":"s_edge3","fromNode":"future_step3","fromSide":"bottom","toNode":"future_step4","toSide":"top"},
+		{"id":"s_edge4","fromNode":"future_step4","fromSide":"bottom","toNode":"future_step5","toSide":"top"}
+	]
+}

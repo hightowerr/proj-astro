@@ -197,6 +197,27 @@
       "when": 1774121313516,
       "tag": "0027_booking_settings_reminder_constraint_repair",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1774291451368,
+      "tag": "0028_unknown_reavers",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1774296373275,
+      "tag": "0029_event_types_default_unique",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1774335048874,
+      "tag": "0030_round_patch",
+      "breakpoints": true
     }
   ]
 }

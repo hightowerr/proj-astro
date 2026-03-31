@@ -11,6 +11,7 @@ const {
   mockCreateAppointment,
   mockCreateManageToken,
   mockGetBookingSettingsForShop,
+  mockGetEventTypeById,
   mockGetShopBySlug,
   mockNormalizePhoneNumber,
   mockValidateBookingConflict,
@@ -46,6 +47,7 @@ const {
     mockCreateAppointment: vi.fn(),
     mockCreateManageToken: vi.fn(),
     mockGetBookingSettingsForShop: vi.fn(),
+    mockGetEventTypeById: vi.fn(),
     mockGetShopBySlug: vi.fn(),
     mockNormalizePhoneNumber: vi.fn(),
     mockValidateBookingConflict: vi.fn(),
@@ -81,6 +83,10 @@ vi.mock("@/lib/queries/appointments", () => ({
   ShopClosedError: ShopClosedErrorMock,
 }));
 
+vi.mock("@/lib/queries/event-types", () => ({
+  getEventTypeById: mockGetEventTypeById,
+}));
+
 vi.mock("@/lib/queries/shops", () => ({
   getShopBySlug: mockGetShopBySlug,
 }));
@@ -95,6 +101,7 @@ describe("POST /api/bookings/create", () => {
       id: "shop-1",
       slug: "demo-shop",
     });
+    mockGetEventTypeById.mockResolvedValue(null);
     mockNormalizePhoneNumber.mockImplementation((phone: string) => phone);
     mockBuildBookingBaseUrl.mockReturnValue("http://localhost:3000/book/demo-shop");
     mockGetBookingSettingsForShop.mockResolvedValue({
@@ -196,7 +203,90 @@ describe("POST /api/bookings/create", () => {
       endsAt: new Date("2026-03-15T11:00:00.000Z"),
       timezone: "UTC",
     });
+    expect(mockCreateAppointment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventTypeId: null,
+        eventTypeDepositCents: null,
+        durationMinutes: 60,
+      })
+    );
     expect(body.appointment?.id).toBe("appt-1");
     expect(body.manageToken).toBe("manage-token-1");
+  });
+
+  it("uses the selected event type duration and deposit override", async () => {
+    mockGetEventTypeById.mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+      shopId: "shop-1",
+      isActive: true,
+      durationMinutes: 90,
+      depositAmountCents: 5000,
+    });
+    mockComputeEndsAt.mockReturnValue(new Date("2026-03-15T11:30:00.000Z"));
+
+    const request = new Request("http://localhost:3000/api/bookings/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shop: "demo-shop",
+        startsAt: "2026-03-15T10:00:00.000Z",
+        eventTypeId: "11111111-1111-4111-8111-111111111111",
+        customer: {
+          fullName: "Customer Name",
+          phone: "+12025550123",
+          email: "customer@example.com",
+        },
+      }),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockComputeEndsAt).toHaveBeenCalledWith({
+      startsAt: new Date("2026-03-15T10:00:00.000Z"),
+      timeZone: "UTC",
+      slotMinutes: 60,
+      durationMinutes: 90,
+    });
+    expect(mockCreateAppointment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventTypeId: "11111111-1111-4111-8111-111111111111",
+        eventTypeDepositCents: 5000,
+        durationMinutes: 90,
+      })
+    );
+  });
+
+  it("returns 404 when the selected event type is missing or inactive", async () => {
+    mockGetEventTypeById.mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+      shopId: "shop-1",
+      isActive: false,
+      durationMinutes: 90,
+      depositAmountCents: 5000,
+    });
+
+    const request = new Request("http://localhost:3000/api/bookings/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shop: "demo-shop",
+        startsAt: "2026-03-15T10:00:00.000Z",
+        eventTypeId: "11111111-1111-4111-8111-111111111111",
+        customer: {
+          fullName: "Customer Name",
+          phone: "+12025550123",
+          email: "customer@example.com",
+        },
+      }),
+    });
+
+    const response = await POST(request);
+    const body = (await response.json()) as { error?: string };
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Event type not found");
+    expect(mockComputeEndsAt).not.toHaveBeenCalled();
+    expect(mockCreateAppointment).not.toHaveBeenCalled();
   });
 });

@@ -69,7 +69,7 @@ export function BusinessTypeStep({ selected, onSelect, onNext }: BusinessTypeSte
           Next
         </button>
         <p className="text-xs font-medium tracking-wider text-text-light-muted uppercase" aria-live="polite">
-          Step 1 of 2
+          Step 1 of 3
         </p>
       </div>
     </div>

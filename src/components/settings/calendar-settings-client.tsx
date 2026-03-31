@@ -62,7 +62,8 @@ export function CalendarSettingsClient({
       {successMessage ? (
         <div
           role="status"
-          className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+          className="rounded-lg px-4 py-3 text-sm"
+          style={{ border: "1px solid var(--color-success-border)", background: "var(--color-success-subtle)", color: "var(--color-success)" }}
         >
           {successMessage}
         </div>
@@ -71,47 +72,63 @@ export function CalendarSettingsClient({
       {errorMessage ? (
         <div
           role="alert"
-          className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+          className="rounded-lg px-4 py-3 text-sm"
+          style={{ border: "1px solid var(--color-error-border)", background: "var(--color-error-subtle)", color: "var(--color-error)" }}
         >
           {errorMessage}
         </div>
       ) : null}
 
       {!isGoogleOAuthConfigured ? (
-        <section className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5">
+        <section
+          className="space-y-3 rounded-xl p-5"
+          style={{ border: "1px solid var(--color-warning-border)", background: "var(--color-warning-subtle)" }}
+        >
           <h2 className="text-lg font-semibold">Google OAuth not configured</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, and
             `CALENDAR_ENCRYPTION_KEY` to enable calendar connections.
           </p>
         </section>
       ) : null}
 
-      <section className="rounded-xl border border-white/10 bg-bg-dark-secondary p-6">
+      <section
+        className="rounded-xl p-6"
+        style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}
+      >
         <h2 className="text-lg font-semibold">Google Calendar connection</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>
           V1 connects one Google account and stores encrypted OAuth tokens.
         </p>
 
         {connection ? (
           <div className="mt-5 space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
+            <div
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
+              style={{ border: "1px solid var(--color-success-border)", background: "var(--color-success-subtle)", color: "var(--color-success)" }}
+            >
+              <span className="h-2 w-2 rounded-full" style={{ background: "var(--color-success)" }} aria-hidden />
               Connected
             </div>
 
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
-              <div className="rounded-lg border border-white/10 bg-bg-dark p-3">
-                <dt className="text-xs uppercase tracking-wide text-text-light-muted">
+              <div
+                className="rounded-lg p-3"
+                style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-base)" }}
+              >
+                <dt className="text-xs uppercase tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
                   Calendar
                 </dt>
-                <dd className="mt-1 font-medium text-white">{connection.calendarName}</dd>
+                <dd className="mt-1 font-medium" style={{ color: "var(--color-text-primary)" }}>{connection.calendarName}</dd>
               </div>
-              <div className="rounded-lg border border-white/10 bg-bg-dark p-3">
-                <dt className="text-xs uppercase tracking-wide text-text-light-muted">
+              <div
+                className="rounded-lg p-3"
+                style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-base)" }}
+              >
+                <dt className="text-xs uppercase tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
                   Connected
                 </dt>
-                <dd className="mt-1 font-medium text-white">
+                <dd className="mt-1 font-medium" style={{ color: "var(--color-text-primary)" }}>
                   {new Date(connection.createdAt).toLocaleString()}
                 </dd>
               </div>
@@ -128,12 +145,15 @@ export function CalendarSettingsClient({
           </div>
         ) : (
           <div className="mt-5 space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-bg-dark px-3 py-1 text-xs font-medium text-text-light-muted">
-              <span className="h-2 w-2 rounded-full bg-zinc-500" aria-hidden />
+            <div
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
+              style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-base)", color: "var(--color-text-secondary)" }}
+            >
+              <span className="h-2 w-2 rounded-full" style={{ background: "var(--color-text-tertiary)" }} aria-hidden />
               Not connected
             </div>
 
-            <p className="max-w-2xl text-sm text-muted-foreground">
+            <p className="max-w-2xl text-sm" style={{ color: "var(--color-text-secondary)" }}>
               Authorize Google Calendar to prepare automated booking sync in upcoming slices.
               V1 stores the connection and lets you disconnect at any time.
             </p>
@@ -149,9 +169,12 @@ export function CalendarSettingsClient({
         )}
       </section>
 
-      <section className="rounded-xl border border-white/10 bg-muted/10 p-5">
+      <section
+        className="rounded-xl p-5"
+        style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}
+      >
         <h2 className="text-sm font-semibold">What V1 includes</h2>
-        <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+        <ul className="mt-3 space-y-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
           <li>OAuth connection and token storage (encrypted at rest)</li>
           <li>Active connection status on this settings page</li>
           <li>Disconnect flow using soft delete</li>

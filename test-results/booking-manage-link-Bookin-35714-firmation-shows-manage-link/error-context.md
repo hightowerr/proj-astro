@@ -18,64 +18,64 @@
           - /url: "#pricing"
         - link "FAQ" [ref=e10] [cursor=pointer]:
           - /url: "#faq"
-      - generic [ref=e11]:
-        - link "Sign In" [ref=e12] [cursor=pointer]:
-          - /url: /login
-        - link "Start Free Trial" [ref=e13] [cursor=pointer]:
-          - /url: /register
-  - main [ref=e14]:
-    - generic [ref=e16]:
-      - generic [ref=e17]:
-        - heading "Create an account" [level=3] [ref=e18]
-        - paragraph [ref=e19]: Get started with your new account
-      - generic [ref=e21]:
-        - generic [ref=e22]:
-          - generic [ref=e23]: Name
+  - main [ref=e11]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - heading "Create an account" [level=3] [ref=e15]
+        - paragraph [ref=e16]: Get started with your new account
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]: Name
           - textbox "Name" [disabled]:
             - /placeholder: Your name
             - text: Test User
-        - generic [ref=e24]:
-          - generic [ref=e25]: Email
+        - generic [ref=e21]:
+          - generic [ref=e22]: Email
           - textbox "Email" [disabled]:
             - /placeholder: you@example.com
-            - text: shopper_431cc117-9e25-4ad5-8103-39da273ba8bd@example.com
-        - generic [ref=e26]:
-          - generic [ref=e27]: Password
+            - text: shopper_cfd9c132-ee89-41cf-9b12-476326c4dbf0@example.com
+        - generic [ref=e23]:
+          - generic [ref=e24]: Password
           - textbox "Password" [disabled]:
             - /placeholder: Create a password
             - text: Password123!
-        - generic [ref=e28]:
-          - generic [ref=e29]: Confirm Password
+        - generic [ref=e25]:
+          - generic [ref=e26]: Confirm Password
           - textbox "Confirm Password" [disabled]:
             - /placeholder: Confirm your password
             - text: Password123!
         - button "Creating account..." [disabled]
-        - generic [ref=e30]:
+        - generic [ref=e27]:
           - text: Already have an account?
-          - link "Sign in" [ref=e31] [cursor=pointer]:
+          - link "Sign in" [ref=e28] [cursor=pointer]:
             - /url: /login
-  - contentinfo [ref=e32]:
-    - generic [ref=e33]:
-      - link "Astro" [ref=e34] [cursor=pointer]:
+  - contentinfo [ref=e29]:
+    - generic [ref=e30]:
+      - link "Astro" [ref=e31] [cursor=pointer]:
         - /url: /
-      - generic [ref=e35]:
-        - link "How It Works" [ref=e36] [cursor=pointer]:
+      - generic [ref=e32]:
+        - link "How It Works" [ref=e33] [cursor=pointer]:
           - /url: "#how-it-works"
-        - link "Features" [ref=e37] [cursor=pointer]:
+        - link "Features" [ref=e34] [cursor=pointer]:
           - /url: "#features"
-        - link "Pricing" [ref=e38] [cursor=pointer]:
+        - link "Pricing" [ref=e35] [cursor=pointer]:
           - /url: "#pricing"
-        - link "FAQ" [ref=e39] [cursor=pointer]:
+        - link "FAQ" [ref=e36] [cursor=pointer]:
           - /url: "#faq"
-        - link "Privacy Policy" [ref=e40] [cursor=pointer]:
+        - link "Privacy Policy" [ref=e37] [cursor=pointer]:
           - /url: /privacy
-        - link "Terms of Service" [ref=e41] [cursor=pointer]:
+        - link "Terms of Service" [ref=e38] [cursor=pointer]:
           - /url: /terms
-        - link "Contact" [ref=e42] [cursor=pointer]:
+        - link "Contact" [ref=e39] [cursor=pointer]:
           - /url: /contact
-      - paragraph [ref=e43]: © 2025 Astro. All rights reserved.
+      - paragraph [ref=e40]: © 2025 Astro. All rights reserved.
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e49] [cursor=pointer]:
-    - img [ref=e50]
-  - alert [ref=e53]
+  - button "Open Next.js Dev Tools" [ref=e46] [cursor=pointer]:
+    - generic [ref=e49]:
+      - text: Compiling
+      - generic [ref=e50]:
+        - generic [ref=e51]: .
+        - generic [ref=e52]: .
+        - generic [ref=e53]: .
+  - alert [ref=e54]
 ```

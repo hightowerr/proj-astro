@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createShop } from "@/app/app/actions";
+import { createDefaultEventType } from "@/app/app/settings/services/actions";
+import { AddServiceStep } from "./add-service-step";
 import { BusinessTypeStep, type BusinessTypeValue } from "./business-type-step";
 import { ShopDetailsStep } from "./shop-details-step";
 import { StepContainer } from "./step-container";
 
 export function OnboardingFlow() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [businessType, setBusinessType] = useState<BusinessTypeValue | null>(null);
@@ -36,6 +40,18 @@ export function OnboardingFlow() {
       shopName,
       shopSlug,
     });
+
+    setDirection(1);
+    setStep(3);
+  };
+
+  const handleServiceDone = () => {
+    router.push("/app/dashboard");
+  };
+
+  const handleServiceSkip = async () => {
+    await createDefaultEventType();
+    router.push("/app/dashboard");
   };
 
   return (
@@ -44,7 +60,7 @@ export function OnboardingFlow() {
         <StepContainer step={step} direction={direction}>
           {step === 1 ? (
             <BusinessTypeStep selected={businessType} onSelect={setBusinessType} onNext={handleNext} />
-          ) : businessType ? (
+          ) : step === 2 && businessType ? (
             <ShopDetailsStep
               businessType={businessType}
               shopName={shopName}
@@ -54,8 +70,9 @@ export function OnboardingFlow() {
               onBack={handleBack}
               onSubmit={handleSubmit}
             />
-          ) : null
-          }
+          ) : step === 3 ? (
+            <AddServiceStep onDone={handleServiceDone} onSkip={handleServiceSkip} />
+          ) : null}
         </StepContainer>
       </div>
     </div>

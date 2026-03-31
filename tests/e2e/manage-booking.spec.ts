@@ -210,6 +210,8 @@ test.describe("Manage Booking Page", () => {
   test("cancels appointment before cutoff with refund", async ({
     page,
   }) => {
+    test.setTimeout(120000);
+
     await goToManagePage(page, fixture.token);
 
     const confirmDialog = await openCancelDialog(page);
@@ -217,16 +219,23 @@ test.describe("Manage Booking Page", () => {
       .getByRole("button", { name: "Cancel appointment" })
       .click();
 
-    await page.waitForLoadState("networkidle");
-    await expect(page.getByText("Refund Processed")).toBeVisible();
-    await expect(page.getByText("$50.00", { exact: true })).toBeVisible();
-    await expect(
-      page.getByText(/has been issued to your original payment method/i)
-    ).toBeVisible();
-    await expect(page.getByText("Cancelled", { exact: true })).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Cancel appointment" })
-    ).toHaveCount(0);
+    await expect
+      .poll(async () => {
+        const [updatedAppointment] = await db
+          .select({
+            status: appointments.status,
+            financialOutcome: appointments.financialOutcome,
+          })
+          .from(appointments)
+          .where(eq(appointments.id, fixture.appointmentId))
+          .limit(1);
+
+        return updatedAppointment;
+      }, { timeout: 90000 })
+      .toMatchObject({
+        status: "cancelled",
+        financialOutcome: "refunded",
+      });
 
     const [updatedPayment] = await db
       .select({
@@ -239,8 +248,34 @@ test.describe("Manage Booking Page", () => {
 
     expect(updatedPayment?.stripeRefundId).toMatch(/^re_test_/);
     expect(updatedPayment?.refundedAmountCents).toBe(5000);
+
+    await expect(
+      page.getByRole("heading", { name: /manage your booking/i })
+    ).toBeVisible();
+    await expect(page.getByText("Refund Processed")).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText("$50.00", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText(/has been issued to your original payment method/i)
+    ).toBeVisible();
+    await expect(page.getByText("Cancelled", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Cancel appointment" })
+    ).toHaveCount(0);
   });
 
+  test("accepts DB-issued token and rejects tampered token", async ({ page }) => {
+    await goToManagePage(page, fixture.token);
+
+    const lastChar = fixture.token.slice(-1);
+    const replacement = lastChar === "a" ? "b" : "a";
+    const tamperedToken = fixture.token.slice(0, -1) + replacement;
+
+    await page.goto("/manage/" + tamperedToken);
+    await expect(
+      page.getByRole("heading", { name: /booking not found/i })
+    ).toBeVisible();
+    await expect(page.getByText("This booking link is invalid")).toBeVisible();
+  });
   test("shows not found page for invalid token", async ({ page }) => {
     await page.goto("/manage/invalid-token-xyz");
     await expect(

@@ -19,7 +19,7 @@ if (!hasPostgresUrl) {
     "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
 }
 
-const [{ db }, { getAvailabilityForDate }, { createShop }, schema] =
+const [{ db }, { createAppointment, getAvailabilityForDate }, { createShop }, schema] =
   await Promise.all([
     import("@/lib/db"),
     import("@/lib/queries/appointments"),
@@ -119,5 +119,30 @@ describeIf("availability with calendar filtering", () => {
 
     expect(mockFilterSlotsForConflicts).not.toHaveBeenCalled();
     expect(availability.slots).toHaveLength(8);
+  });
+
+  it("hides later grid starts that overlap a longer booked appointment", async () => {
+    const date = nextWeekdayDate();
+    const startsAt = new Date(`${date}T10:00:00.000Z`);
+
+    await createAppointment({
+      shopId,
+      startsAt,
+      durationMinutes: 90,
+      paymentsEnabled: false,
+      customer: {
+        fullName: "Overlap Test Customer",
+        phone: "+12025550155",
+        email: "overlap-test@example.com",
+      },
+    });
+
+    const availability = await getAvailabilityForDate(shopId, date);
+    const slotStarts = availability.slots.map((slot) => slot.startsAt.toISOString());
+
+    expect(slotStarts).not.toContain(`${date}T10:00:00.000Z`);
+    expect(slotStarts).not.toContain(`${date}T11:00:00.000Z`);
+    expect(slotStarts).toContain(`${date}T09:00:00.000Z`);
+    expect(slotStarts).toContain(`${date}T12:00:00.000Z`);
   });
 });

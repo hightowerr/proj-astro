@@ -76,20 +76,22 @@ export function SuccessBanner({ businessTypeName, shopId }: SuccessBannerProps) 
 
   return (
     <div
-      className="mb-8 flex items-center justify-between gap-4 rounded-xl border border-success-green/30 bg-success-green/10 p-4"
+      className="mb-8 flex items-center justify-between gap-4 rounded-xl p-4"
       role="status"
       aria-live="polite"
+      style={{ border: "1px solid var(--color-success-border)", background: "var(--color-success-subtle)" }}
     >
       <div className="flex min-w-0 items-center gap-3">
-        <CheckCircle className="h-5 w-5 shrink-0 text-success-green" aria-hidden="true" />
-        <p className="text-sm font-medium text-white">
+        <CheckCircle className="h-5 w-5 shrink-0" style={{ color: "var(--color-success)" }} aria-hidden="true" />
+        <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
           Your {businessTypeName} is ready to accept bookings!
         </p>
       </div>
       <button
         type="button"
         onClick={handleDismiss}
-        className="shrink-0 text-text-muted transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-dark"
+        className="shrink-0 transition-colors duration-200 hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
+        style={{ color: "var(--color-text-tertiary)" }}
         aria-label="Dismiss banner"
       >
         <X className="h-4 w-4" aria-hidden="true" />

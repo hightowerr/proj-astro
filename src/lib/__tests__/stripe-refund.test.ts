@@ -43,6 +43,7 @@ const makeAppointment = (): typeof appointments.$inferSelect => {
     cancelledAt: null,
     cancellationSource: null,
     policyVersionId: "policy-123",
+    eventTypeId: null,
     paymentStatus: "paid",
     paymentRequired: true,
     financialOutcome: "unresolved",
