@@ -18,15 +18,25 @@ type AvailabilitySettingsFormProps = {
   initial: {
     timezone: string;
     slotMinutes: 15 | 30 | 45 | 60 | 90 | 120;
+    defaultBufferMinutes: 0 | 5 | 10;
     days: DayHoursInput[];
   };
 };
+
+const BUFFER_OPTIONS = [
+  { label: "None", value: 0 },
+  { label: "5 min", value: 5 },
+  { label: "10 min", value: 10 },
+] as const;
 
 export function AvailabilitySettingsForm({
   action,
   initial,
 }: AvailabilitySettingsFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [defaultBufferMinutes, setDefaultBufferMinutes] = useState<0 | 5 | 10>(
+    initial.defaultBufferMinutes
+  );
   const [closedDays, setClosedDays] = useState<Record<number, boolean>>(
     Object.fromEntries(initial.days.map((day) => [day.dayOfWeek, day.isClosed]))
   );
@@ -75,6 +85,58 @@ export function AvailabilitySettingsForm({
           </select>
         </div>
       </div>
+
+      <fieldset className="space-y-3">
+        <legend
+          className="text-sm font-medium"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          Default buffer between appointments
+        </legend>
+        <p className="text-xs" style={{ color: "var(--color-text-tertiary)" }}>
+          Padding after each appointment. Applied to services with no buffer set.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {BUFFER_OPTIONS.map((option) => {
+            const isSelected = defaultBufferMinutes === option.value;
+            return (
+              <label
+                key={option.value}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.375rem",
+                  padding: "0.375rem 0.875rem",
+                  borderRadius: "var(--radius-full)",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  transition: "all 150ms ease",
+                  background: isSelected
+                    ? "var(--color-brand-subtle)"
+                    : "var(--color-surface-overlay)",
+                  border: isSelected
+                    ? "1px solid var(--color-brand-border)"
+                    : "1px solid var(--color-border-default)",
+                  color: isSelected
+                    ? "var(--color-brand)"
+                    : "var(--color-text-secondary)",
+                }}
+              >
+                <input
+                  type="radio"
+                  name="defaultBufferMinutes"
+                  value={option.value}
+                  checked={isSelected}
+                  onChange={() => setDefaultBufferMinutes(option.value)}
+                  className="sr-only"
+                />
+                <span>{option.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Business hours</h2>

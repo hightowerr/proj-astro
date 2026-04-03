@@ -9,7 +9,7 @@ type EventTypeFormValues = {
   name: string;
   description: string;
   durationMinutes: number;
-  bufferMinutes: 0 | 5 | 10;
+  bufferMinutes: 0 | 5 | 10 | null;
   depositAmountCents: number | null;
   isHidden: boolean;
   isActive: boolean;
@@ -25,6 +25,7 @@ type EventTypeFormProps = {
 };
 
 const BUFFER_OPTIONS = [
+  { label: "Shop default", value: null },
   { label: "None", value: 0 },
   { label: "5 min", value: 5 },
   { label: "10 min", value: 10 },
@@ -108,8 +109,8 @@ export function EventTypeForm({
 }: EventTypeFormProps) {
   const id = useId();
   const durationOptions = getDurationOptions(slotMinutes);
-  const [bufferMinutes, setBufferMinutes] = useState<0 | 5 | 10>(
-    initial?.bufferMinutes ?? 0
+  const [bufferMinutes, setBufferMinutes] = useState<0 | 5 | 10 | null>(
+    initial?.bufferMinutes ?? null
   );
   const [isHidden, setIsHidden] = useState(initial?.isHidden ?? false);
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
@@ -126,7 +127,7 @@ export function EventTypeForm({
     try {
       const form = event.currentTarget;
       const formData = new FormData(form);
-      formData.set("bufferMinutes", String(bufferMinutes));
+      formData.set("bufferMinutes", bufferMinutes === null ? "" : String(bufferMinutes));
       if (isHidden) {
         formData.set("isHidden", "on");
       } else {
@@ -139,7 +140,7 @@ export function EventTypeForm({
 
       await action(formData);
       form.reset();
-      setBufferMinutes(initial?.bufferMinutes ?? 0);
+      setBufferMinutes(initial?.bufferMinutes ?? null);
       setIsHidden(initial?.isHidden ?? false);
       setIsActive(initial?.isActive ?? true);
       onSuccess?.();
@@ -233,7 +234,7 @@ export function EventTypeForm({
             const isSelected = bufferMinutes === option.value;
             return (
               <label
-                key={option.value}
+                key={option.value ?? "shop-default"}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -258,7 +259,7 @@ export function EventTypeForm({
                 <input
                   type="radio"
                   name="bufferMinutes"
-                  value={option.value}
+                  value={option.value ?? ""}
                   checked={isSelected}
                   onChange={() => setBufferMinutes(option.value)}
                   className="sr-only"

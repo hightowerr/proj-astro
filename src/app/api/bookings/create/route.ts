@@ -132,6 +132,7 @@ export async function POST(req: Request) {
 
     let effectiveDurationMinutes = bookingSettings.slotMinutes;
     let eventTypeDepositCents: number | null = null;
+    let eventTypeBufferMinutes: number | null = null;
 
     if (parsed.data.eventTypeId) {
       const eventType = await getEventTypeById(parsed.data.eventTypeId);
@@ -140,6 +141,7 @@ export async function POST(req: Request) {
       }
       effectiveDurationMinutes = eventType.durationMinutes;
       eventTypeDepositCents = eventType.depositAmountCents;
+      eventTypeBufferMinutes = eventType.bufferMinutes;
     }
 
     const endsAt = computeEndsAt({
@@ -164,6 +166,7 @@ export async function POST(req: Request) {
       bookingBaseUrl,
       eventTypeId: parsed.data.eventTypeId ?? null,
       eventTypeDepositCents,
+      eventTypeBufferMinutes,
     });
     const manageToken = await createManageToken(result.appointment.id);
     console.warn("[booking-create] success", {

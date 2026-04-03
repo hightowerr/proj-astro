@@ -30,6 +30,7 @@ const makeAppointment = (
     cancellationSource: "customer",
     policyVersionId: "policy-123",
     eventTypeId: null,
+    effectiveBufferAfterMinutes: 0,
     paymentStatus: "paid",
     paymentRequired: true,
     financialOutcome: "settled",

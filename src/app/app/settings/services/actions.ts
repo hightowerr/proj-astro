@@ -13,7 +13,7 @@ const eventTypeSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
   description: z.string().trim().max(500).nullable(),
   durationMinutes: z.number().int().positive().max(240, "Duration must be 240 minutes or less"),
-  bufferMinutes: z.union([z.literal(0), z.literal(5), z.literal(10)]),
+  bufferMinutes: z.union([z.null(), z.literal(0), z.literal(5), z.literal(10)]),
   depositAmountCents: z.number().int().positive().nullable(),
   isHidden: z.boolean(),
   isActive: z.boolean(),
@@ -41,7 +41,10 @@ function parseEventTypeForm(formData: FormData) {
         ? description
         : null,
     durationMinutes: Number(formData.get("durationMinutes")),
-    bufferMinutes: Number(formData.get("bufferMinutes")),
+    bufferMinutes: (() => {
+      const raw = formData.get("bufferMinutes");
+      return typeof raw === "string" && raw !== "" ? Number(raw) : null;
+    })(),
     depositAmountCents: parseOptionalCurrencyInput(
       formData.get("depositAmountCents")
     ),
@@ -149,7 +152,7 @@ export async function createDefaultEventType() {
     name: "Service",
     description: null,
     durationMinutes: slotMinutes,
-    bufferMinutes: 0,
+    bufferMinutes: null,
     depositAmountCents: null,
     isHidden: false,
     isActive: true,

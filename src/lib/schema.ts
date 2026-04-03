@@ -269,6 +269,9 @@ export const bookingSettings = pgTable(
       .array()
       .notNull()
       .default(sql`ARRAY['24h']::text[]`),
+    defaultBufferMinutes: integer("default_buffer_minutes")
+      .notNull()
+      .default(0),
   },
   (table) => [
     check(
@@ -287,6 +290,10 @@ export const bookingSettings = pgTable(
       "booking_settings_reminder_timings_valid",
       sql`${table.reminderTimings} <@ ARRAY['10m','1h','2h','4h','24h','48h','1w']::text[]`
     ),
+    check(
+      "booking_settings_default_buffer_minutes_valid",
+      sql`${table.defaultBufferMinutes} in (0, 5, 10)`
+    ),
   ]
 );
 
@@ -300,7 +307,7 @@ export const eventTypes = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     durationMinutes: integer("duration_minutes").notNull(),
-    bufferMinutes: integer("buffer_minutes").notNull().default(0),
+    bufferMinutes: integer("buffer_minutes"),
     depositAmountCents: integer("deposit_amount_cents"),
     isHidden: boolean("is_hidden").notNull().default(false),
     isActive: boolean("is_active").notNull().default(true),
@@ -531,6 +538,9 @@ export const appointments = pgTable(
     eventTypeId: uuid("event_type_id").references(() => eventTypes.id, {
       onDelete: "set null",
     }),
+    effectiveBufferAfterMinutes: integer("effective_buffer_after_minutes")
+      .notNull()
+      .default(0),
     paymentStatus: appointmentPaymentStatusEnum("payment_status")
       .default("unpaid")
       .notNull(),

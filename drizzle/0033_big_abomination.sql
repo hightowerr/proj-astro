@@ -1,0 +1,2 @@
+ALTER TABLE "booking_settings" ADD COLUMN "default_buffer_minutes" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "booking_settings" ADD CONSTRAINT "booking_settings_default_buffer_minutes_valid" CHECK ("booking_settings"."default_buffer_minutes" in (0, 5, 10));

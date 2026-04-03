@@ -67,7 +67,7 @@ describe("createDefaultEventType", () => {
       name: "Service",
       description: null,
       durationMinutes: 120,
-      bufferMinutes: 0,
+      bufferMinutes: null,
       depositAmountCents: null,
       isHidden: false,
       isActive: true,

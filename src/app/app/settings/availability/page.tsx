@@ -62,6 +62,7 @@ export default async function AvailabilitySettingsPage() {
         initial={{
           timezone: settings?.timezone ?? "UTC",
           slotMinutes: (settings?.slotMinutes ?? 60) as 15 | 30 | 45 | 60 | 90 | 120,
+          defaultBufferMinutes: (settings?.defaultBufferMinutes ?? 0) as 0 | 5 | 10,
           days: DAY_LABELS.map((label, dayOfWeek) => {
             const row = hoursByDay.get(dayOfWeek);
             return {

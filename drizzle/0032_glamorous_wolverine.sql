@@ -1,0 +1,1 @@
+ALTER TABLE "appointments" ADD COLUMN "effective_buffer_after_minutes" integer DEFAULT 0 NOT NULL;

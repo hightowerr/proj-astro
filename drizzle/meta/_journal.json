@@ -218,6 +218,27 @@
       "when": 1774335048874,
       "tag": "0030_round_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1775110271978,
+      "tag": "0031_jittery_shinko_yamashiro",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1775110731245,
+      "tag": "0032_glamorous_wolverine",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1775111779429,
+      "tag": "0033_big_abomination",
+      "breakpoints": true
     }
   ]
 }
