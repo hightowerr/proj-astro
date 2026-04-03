@@ -147,7 +147,8 @@ export const getBookingSettingsForShop = async (shopId: string) => {
 export const getAvailabilityForDate = async (
   shopId: string,
   dateStr: string,
-  durationMinutes?: number
+  durationMinutes?: number,
+  bufferAfterMinutes?: number | null
 ): Promise<Availability> => {
   const settings = await getBookingSettingsForShop(shopId);
   if (!settings) {
@@ -155,6 +156,8 @@ export const getAvailabilityForDate = async (
   }
 
   const effectiveDuration = durationMinutes ?? settings.slotMinutes;
+  const effectiveBufferAfterMinutes =
+    bufferAfterMinutes ?? settings.defaultBufferMinutes ?? 0;
 
   const todayStr = formatDateInTimeZone(new Date(), settings.timezone);
   if (dateStr < todayStr) {
@@ -229,13 +232,15 @@ export const getAvailabilityForDate = async (
   const isToday = dateStr === todayStr;
   let availableSlots = sizedSlots.filter((slot) => {
     if (slot.endsAt.getTime() > closeBoundaryUtc.getTime()) return false;
+    const candidateBlockedEnd =
+      slot.endsAt.getTime() + effectiveBufferAfterMinutes * 60_000;
     const overlaps = bookedSlots.some((booked) => {
       const blockedEnd =
         booked.endsAt.getTime() +
         booked.effectiveBufferAfterMinutes * 60_000;
       return (
         slot.startsAt.getTime() < blockedEnd &&
-        slot.endsAt.getTime() > booked.startsAt.getTime()
+        candidateBlockedEnd > booked.startsAt.getTime()
       );
     });
     if (overlaps) return false;
@@ -858,6 +863,9 @@ export const createAppointment = async (input: {
         slotMinutes: settings.slotMinutes,
         durationMinutes: effectiveDurationMinutes,
       });
+      const blockedEndsAt = new Date(
+        endsAt.getTime() + effectiveBufferAfterMinutes * 60_000
+      );
 
       const overlapping = await tx
         .select({ id: appointments.id })
@@ -866,7 +874,7 @@ export const createAppointment = async (input: {
           and(
             eq(appointments.shopId, input.shopId),
             inArray(appointments.status, ["booked", "pending"]),
-            lt(appointments.startsAt, endsAt),
+            lt(appointments.startsAt, blockedEndsAt),
             sql`${appointments.endsAt} + (${appointments.effectiveBufferAfterMinutes} * interval '1 minute') > ${input.startsAt}`
           )
         )

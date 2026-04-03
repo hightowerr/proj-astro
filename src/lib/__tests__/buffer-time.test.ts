@@ -8,7 +8,7 @@ if (!hasPostgresUrl) {
     "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
 }
 
-const [{ db }, { createAppointment }, { createShop }, schema] = await Promise.all([
+const [{ db }, { createAppointment, SlotTakenError }, { createShop }, schema] = await Promise.all([
   import("@/lib/db"),
   import("@/lib/queries/appointments"),
   import("@/lib/queries/shops"),
@@ -168,5 +168,35 @@ describeIf("buffer time resolver fallback", () => {
       where: (table, { eq }) => eq(table.shopId, shopId),
     });
     expect(repaired?.defaultBufferMinutes ?? 0).toBe(0);
+  });
+
+  it("rejects a booking whose own buffer runs into the next appointment", async () => {
+    await upsertDefaultBuffer(0);
+
+    const date = nextWeekdayDate();
+    await createAppointment({
+      shopId,
+      startsAt: new Date(`${date}T10:00:00.000Z`),
+      paymentsEnabled: false,
+      customer: {
+        fullName: "Existing Appointment Customer",
+        phone: "+12025550155",
+        email: "existing-appointment@example.com",
+      },
+    });
+
+    await expect(
+      createAppointment({
+        shopId,
+        startsAt: new Date(`${date}T09:00:00.000Z`),
+        paymentsEnabled: false,
+        eventTypeBufferMinutes: 10,
+        customer: {
+          fullName: "Buffered Appointment Customer",
+          phone: "+12025550156",
+          email: "buffered-appointment@example.com",
+        },
+      })
+    ).rejects.toBeInstanceOf(SlotTakenError);
   });
 });

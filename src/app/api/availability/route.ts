@@ -33,10 +33,12 @@ export async function GET(req: Request) {
   }
 
   let durationMinutes: number | undefined;
+  let bufferAfterMinutes: number | null | undefined;
   if (parsed.data.service && UUID_RE.test(parsed.data.service)) {
     const eventType = await getEventTypeById(parsed.data.service);
     if (eventType && eventType.shopId === shop.id && eventType.isActive) {
       durationMinutes = eventType.durationMinutes;
+      bufferAfterMinutes = eventType.bufferMinutes;
     }
   }
 
@@ -44,7 +46,8 @@ export async function GET(req: Request) {
     const availability = await getAvailabilityForDate(
       shop.id,
       parsed.data.date,
-      durationMinutes
+      durationMinutes,
+      bufferAfterMinutes
     );
 
     return Response.json({
