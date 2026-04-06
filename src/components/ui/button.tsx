@@ -19,6 +19,13 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        /* ── Atelier Light variants ─────────────────────────────── */
+        "al-primary":
+          "rounded-lg text-white shadow-sm [background:linear-gradient(135deg,#001e40,#003366)] hover:opacity-90 focus-visible:ring-[#001e40]/30",
+        "al-secondary":
+          "rounded-lg [background:#fdd8cb] [color:#785c53] hover:[background:#e2bfb3] focus-visible:ring-[#74584f]/20",
+        "al-ghost":
+          "rounded-lg [color:#1a1c1b] hover:[background:#eeeeec] focus-visible:ring-[#001e40]/20",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

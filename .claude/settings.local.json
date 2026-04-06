@@ -33,7 +33,8 @@
       "Bash(pnpm tsx:*)",
       "Bash(test:*)",
       "Bash(mkdir:*)",
-      "Bash(head -60 docs/shaping/onboarding/*.md)"
+      "Bash(head -60 docs/shaping/onboarding/*.md)",
+      "mcp__stitch__list_design_systems"
     ]
   },
   "enableAllProjectMcpServers": true,

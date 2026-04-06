@@ -1,4 +1,4 @@
-import { Cormorant_Garamond, Bricolage_Grotesque, Fira_Code } from "next/font/google";
+import { Cormorant_Garamond, Bricolage_Grotesque, Fira_Code, Manrope } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
@@ -27,6 +27,13 @@ const firaCode = Fira_Code({
   display: "swap",
 });
 
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-manrope-raw",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Astro",
   description: "Stop losing money to no-shows. Smart booking for beauty professionals.",
@@ -40,7 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en" style={{ colorScheme: "dark" }}>
       <body
-        className={`${cormorant.variable} ${bricolage.variable} ${firaCode.variable} antialiased`}
+        className={`${cormorant.variable} ${bricolage.variable} ${firaCode.variable} ${manrope.variable} antialiased`}
         style={{ background: "var(--color-surface-base)", color: "var(--color-text-primary)", fontFamily: "var(--font-body, system-ui, sans-serif)" }}
       >
         {process.env.NODE_ENV === "development" ? (

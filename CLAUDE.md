@@ -29,12 +29,27 @@ Booking/appointment management system with automated financial outcomes, refunds
 - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
 - Optional: `TWILIO_TEST_MODE=true` for E2E tests (uses magic numbers)
 
+**Email** (from https://resend.com):
+- `RESEND_API_KEY` - Resend email API key
+- `EMAIL_FROM_ADDRESS` - Sender address for outgoing emails
+
 **Upstash Redis** (from https://console.upstash.com):
 - `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+
+**AI** (optional, for chat feature):
+- `OPENROUTER_API_KEY` - OpenRouter API key
+- `OPENROUTER_MODEL` - Model to use (default: `openai/gpt-5-mini`)
+
+**Storage** (optional):
+- `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage (falls back to local if unset)
 
 **Google Calendar** (optional, for conflict detection):
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 - `CALENDAR_ENCRYPTION_KEY` - Base64-encoded 32-byte key (`openssl rand -base64 32`)
+
+## UI Design System
+
+When Creating new pages or components always reference the design system in `docs/design-system/`
 
 ## Commands
 
@@ -153,9 +168,13 @@ Slot recovery priority: `top` → `neutral/null` → `risk` (see `src/lib/slot-r
 - `resolve-outcomes` - Auto-resolve financial outcomes after appointments end
 - `offer-loop` - Process slot recovery offers in tier-sorted order
 - `expire-offers` - Expire unclaimed slot offers
+- `expire-pending-recoveries` - Expire pending slot recovery records
 - `recompute-scores` - Recalculate customer tier scores
 - `recompute-no-show-stats` - Update no-show prediction statistics
-- `send-reminders` - Send appointment reminder messages
+- `send-reminders` - Send appointment SMS reminders
+- `send-email-reminders` - Send appointment email reminders (via Resend)
+- `send-confirmations` - Send confirmation requests to customers
+- `expire-confirmations` - Expire stale confirmation requests
 - `scan-calendar-conflicts` - Detect calendar conflicts with Google Calendar
 
 **PostgreSQL Advisory Locks**: Jobs use `pg_try_advisory_lock` to prevent concurrent execution. Lock IDs configurable via environment or query params (non-production only).
@@ -175,6 +194,10 @@ Slot recovery priority: `top` → `neutral/null` → `risk` (see `src/lib/slot-r
 **Twilio SMS**:
 - Production: Real SMS delivery via `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
 - Test mode: Set `TWILIO_TEST_MODE=true` for magic test numbers (no charges, no delivery)
+
+**Email** (`src/lib/email.ts`):
+- Transactional emails via Resend (`RESEND_API_KEY`, `EMAIL_FROM_ADDRESS`)
+- Templates rendered server-side; `send-email-reminders` cron job drives delivery
 
 ## Payment & Refund Flow
 

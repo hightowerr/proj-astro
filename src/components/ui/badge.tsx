@@ -14,6 +14,17 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        /* ── Atelier Light variants ─────────────────────────────── */
+        "al-primary":
+          "border-transparent [background:#001e40] text-white hover:[background:#003366]",
+        "al-secondary":
+          "border-transparent [background:#fdd8cb] [color:#785c53] hover:[background:#e2bfb3]",
+        "al-curator":
+          "border-transparent [background:#ffdbcf] [color:#2a170f] hover:[background:#e2bfb3]",
+        "al-muted":
+          "border-transparent [background:#eeeeec] [color:#43474f] hover:[background:#e8e8e6]",
+        "al-outline":
+          "[border-color:#c3c6d1] [color:#43474f] hover:[background:#f4f4f2]",
       },
     },
     defaultVariants: {
