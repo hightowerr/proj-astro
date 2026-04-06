@@ -51,5 +51,7 @@ public/uploads
 Prompts/
 Mental Models/WorkSpace/*
 
+.mcp.json
+
 nul
 ```
