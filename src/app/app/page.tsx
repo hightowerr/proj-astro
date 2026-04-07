@@ -1,12 +1,11 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { BookingManagementChoice } from "@/components/dashboard/booking-management-choice";
-import { ShopOverviewCard } from "@/components/dashboard/shop-overview-card";
-import { SuccessBanner } from "@/components/dashboard/success-banner";
+import { AtelierDashboard } from "@/components/dashboard/atelier-dashboard";
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import { auth } from "@/lib/auth";
-import { getBusinessTypeInfo } from "@/lib/business-types";
 import { getShopByOwnerId } from "@/lib/queries/shops";
+
+const appOrigin = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 export default async function AppPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -20,18 +19,19 @@ export default async function AppPage() {
     return <OnboardingFlow />;
   }
 
-  const { label: businessTypeLabel } = getBusinessTypeInfo(shop.businessType);
+  const userName =
+    session.user.name?.split(" ")[0] ??
+    session.user.email?.split("@")[0] ??
+    "there";
+
+  const bookingUrl = `${appOrigin}/book/${shop.slug}`;
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--color-surface-base)" }}>
-      <div className="mx-auto max-w-5xl px-4 py-8 lg:py-12">
-        <SuccessBanner businessTypeName={businessTypeLabel} shopId={shop.id} />
-
-        <div className="space-y-6">
-          <BookingManagementChoice />
-          <ShopOverviewCard shopName={shop.name} shopSlug={shop.slug} businessType={shop.businessType} />
-        </div>
-      </div>
-    </div>
+    <AtelierDashboard
+      userName={userName}
+      shopName={shop.name}
+      shopSlug={shop.slug}
+      bookingUrl={bookingUrl}
+    />
   );
 }

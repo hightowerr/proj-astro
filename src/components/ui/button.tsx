@@ -21,11 +21,11 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         /* ── Atelier Light variants ─────────────────────────────── */
         "al-primary":
-          "rounded-lg text-white shadow-sm [background:linear-gradient(135deg,#001e40,#003366)] hover:opacity-90 focus-visible:ring-[#001e40]/30",
+          "rounded-lg [color:var(--al-on-primary)] shadow-sm [background:var(--al-gradient-cta)] hover:opacity-90 focus-visible:ring-[var(--al-primary)]/30",
         "al-secondary":
-          "rounded-lg [background:#fdd8cb] [color:#785c53] hover:[background:#e2bfb3] focus-visible:ring-[#74584f]/20",
+          "rounded-lg [background:var(--al-secondary-container)] [color:var(--al-on-secondary-container)] hover:[background:var(--al-secondary-fixed-dim)] focus-visible:ring-[var(--al-secondary)]/20",
         "al-ghost":
-          "rounded-lg [color:#1a1c1b] hover:[background:#eeeeec] focus-visible:ring-[#001e40]/20",
+          "rounded-lg [color:var(--al-on-surface)] hover:[background:var(--al-surface-container)] focus-visible:ring-[var(--al-primary)]/20",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

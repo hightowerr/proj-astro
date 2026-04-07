@@ -55,8 +55,8 @@ export function OnboardingFlow() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-dark px-4 py-12">
-      <div className="mx-auto w-full max-w-2xl rounded-2xl border border-white/10 bg-bg-dark p-6 sm:p-8">
+    <div className="min-h-screen bg-background font-manrope px-4 py-16 sm:px-6 sm:py-20 selection:bg-al-primary-fixed/30 selection:text-al-primary">
+      <div className="mx-auto w-full max-w-2xl rounded-[var(--al-radius-2xl)] border border-border/40 bg-card p-8 sm:p-12 shadow-[var(--al-shadow-float)]">
         <StepContainer step={step} direction={direction}>
           {step === 1 ? (
             <BusinessTypeStep selected={businessType} onSelect={setBusinessType} onNext={handleNext} />

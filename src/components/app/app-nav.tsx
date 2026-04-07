@@ -20,6 +20,10 @@ const appNavLinks = [
 export function AppNav() {
   const pathname = usePathname();
 
+  if (pathname === "/app") {
+    return null;
+  }
+
   return (
     <div className="border-b border-[var(--color-border-default)] bg-[var(--color-surface-raised)]/90">
       <nav className="container mx-auto flex gap-4 overflow-x-auto px-4 py-3" aria-label="App navigation">

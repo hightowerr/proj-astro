@@ -1,0 +1,73 @@
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - navigation [ref=e4]:
+      - link "Astro homepage" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - text: Astro
+      - generic [ref=e6]:
+        - link "How It Works" [ref=e7] [cursor=pointer]:
+          - /url: "#how-it-works"
+        - link "Features" [ref=e8] [cursor=pointer]:
+          - /url: "#features"
+        - link "Pricing" [ref=e9] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "FAQ" [ref=e10] [cursor=pointer]:
+          - /url: "#faq"
+      - generic [ref=e75]:
+        - link "Open App" [ref=e76] [cursor=pointer]:
+          - /url: /app
+        - button "Sign Out" [ref=e77]
+  - main [ref=e11]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - heading "What type of business do you run?" [level=1] [ref=e17]
+        - paragraph [ref=e18]: Select your specialty to personalize your hub
+      - generic [ref=e19]:
+        - button "Beauty" [active] [pressed] [ref=e20] [cursor=pointer]:
+          - img [ref=e89]
+          - img [ref=e22]
+          - generic [ref=e25]: Beauty
+        - button "Hair" [ref=e26] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e34]: Hair
+        - button "Spa/Massage" [ref=e35] [cursor=pointer]:
+          - img [ref=e37]
+          - generic [ref=e39]: Spa/Massage
+        - button "Health Clinic" [ref=e40] [cursor=pointer]:
+          - img [ref=e42]
+          - generic [ref=e46]: Health Clinic
+        - button "Personal Trainer" [ref=e47] [cursor=pointer]:
+          - img [ref=e49]
+          - generic [ref=e55]: Personal Trainer
+        - button "General Services" [ref=e56] [cursor=pointer]:
+          - img [ref=e58]
+          - generic [ref=e60]: General Services
+      - generic [ref=e61]:
+        - button "Continue" [ref=e91]
+        - paragraph [ref=e62]: Step 1 of 3
+  - contentinfo [ref=e63]:
+    - generic [ref=e64]:
+      - link "Astro" [ref=e65] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e66]:
+        - link "How It Works" [ref=e67] [cursor=pointer]:
+          - /url: "#how-it-works"
+        - link "Features" [ref=e68] [cursor=pointer]:
+          - /url: "#features"
+        - link "Pricing" [ref=e69] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "FAQ" [ref=e70] [cursor=pointer]:
+          - /url: "#faq"
+        - link "Privacy Policy" [ref=e71] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms of Service" [ref=e72] [cursor=pointer]:
+          - /url: /terms
+        - link "Contact" [ref=e73] [cursor=pointer]:
+          - /url: /contact
+      - paragraph [ref=e74]: © 2025 Astro. All rights reserved.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e83] [cursor=pointer]:
+    - img [ref=e84]
+  - alert [ref=e87]

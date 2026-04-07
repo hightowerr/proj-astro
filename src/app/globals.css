@@ -323,6 +323,9 @@
 
   /* Typography */
   --al-font:            var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
+  --al-font-headline:   var(--al-font);
+  --al-font-body:       var(--al-font);
+  --al-font-label:      var(--al-font);
 
   /* Roundness */
   --al-radius-sm:   4px;

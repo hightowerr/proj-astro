@@ -16,15 +16,15 @@ const badgeVariants = cva(
         outline: "text-foreground",
         /* ── Atelier Light variants ─────────────────────────────── */
         "al-primary":
-          "border-transparent [background:#001e40] text-white hover:[background:#003366]",
+          "border-transparent [background:var(--al-primary)] [color:var(--al-on-primary)] hover:[background:var(--al-primary-container)]",
         "al-secondary":
-          "border-transparent [background:#fdd8cb] [color:#785c53] hover:[background:#e2bfb3]",
+          "border-transparent [background:var(--al-secondary-container)] [color:var(--al-on-secondary-container)] hover:[background:var(--al-secondary-fixed-dim)]",
         "al-curator":
-          "border-transparent [background:#ffdbcf] [color:#2a170f] hover:[background:#e2bfb3]",
+          "border-transparent [background:var(--al-secondary-fixed)] [color:var(--al-on-secondary-fixed)] hover:[background:var(--al-secondary-fixed-dim)]",
         "al-muted":
-          "border-transparent [background:#eeeeec] [color:#43474f] hover:[background:#e8e8e6]",
+          "border-transparent [background:var(--al-surface-container)] [color:var(--al-on-surface-variant)] hover:[background:var(--al-surface-container-high)]",
         "al-outline":
-          "[border-color:#c3c6d1] [color:#43474f] hover:[background:#f4f4f2]",
+          "[border-color:var(--al-outline-variant)] [color:var(--al-on-surface-variant)] hover:[background:var(--al-surface-container-low)]",
       },
     },
     defaultVariants: {

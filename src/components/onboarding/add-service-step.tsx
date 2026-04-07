@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { createEventType } from "@/app/app/settings/services/actions";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { FormInput } from "./form-input";
 
 type AddServiceStepProps = {
@@ -91,17 +93,17 @@ export function AddServiceStep({ onDone, onSkip }: AddServiceStepProps) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="mb-2 text-2xl font-bold lg:text-3xl" style={{ color: "var(--color-text-primary)" }}>
+    <div className="space-y-10">
+      <div className="text-center space-y-3">
+        <h1 className="text-3xl font-extrabold text-primary tracking-tight lg:text-4xl">
           Add your first service
         </h1>
-        <p className="text-base lg:text-lg" style={{ color: "var(--color-text-secondary)" }}>
-          You can add more services later from your dashboard
+        <p className="text-lg text-muted-foreground font-medium">
+          Personalize your shop with a signature treatment
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         <FormInput
           label="Service name"
           id="service-name"
@@ -116,26 +118,22 @@ export function AddServiceStep({ onDone, onSkip }: AddServiceStepProps) {
           placeholder="e.g. Haircut, Full Colour, Deep Tissue Massage"
         />
 
-        <div>
-          <label className="mb-2 block text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
-            Duration <span style={{ color: "var(--color-error)" }}>*</span>
+        <div className="space-y-4">
+          <label className="text-sm font-bold text-primary uppercase tracking-wider">
+            Duration <span className="text-destructive">*</span>
           </label>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {DURATION_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setDurationMinutes(option.value)}
-                className="rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors duration-150"
-                style={durationMinutes === option.value ? {
-                  borderColor: "var(--color-brand-border)",
-                  background: "var(--color-brand-subtle)",
-                  color: "var(--color-brand)",
-                } : {
-                  borderColor: "var(--color-border-default)",
-                  background: "var(--color-surface-raised)",
-                  color: "var(--color-text-primary)",
-                }}
+                className={cn(
+                  "rounded-xl border-2 px-4 py-3.5 text-sm font-bold transition-all duration-300 active:scale-95",
+                  durationMinutes === option.value
+                    ? "border-primary bg-primary/5 text-primary shadow-sm shadow-primary/10"
+                    : "border-border/40 bg-al-surface-low text-muted-foreground/60 hover:border-primary/30"
+                )}
               >
                 {option.label}
               </button>
@@ -143,29 +141,27 @@ export function AddServiceStep({ onDone, onSkip }: AddServiceStepProps) {
           </div>
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
-            Buffer time
-          </label>
-          <p className="mb-2 text-xs" style={{ color: "var(--color-text-secondary)" }}>
-            Built-in wrap-up time at the end of each slot (inclusive of duration)
-          </p>
-          <div className="flex gap-2">
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-bold text-primary uppercase tracking-wider">
+              Buffer time
+            </label>
+            <p className="mt-1 text-xs font-medium text-muted-foreground/60">
+              Wrap-up time at the end of each slot
+            </p>
+          </div>
+          <div className="flex gap-3">
             {BUFFER_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setBufferMinutes(option.value)}
-                className="rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors duration-150"
-                style={bufferMinutes === option.value ? {
-                  borderColor: "var(--color-brand-border)",
-                  background: "var(--color-brand-subtle)",
-                  color: "var(--color-brand)",
-                } : {
-                  borderColor: "var(--color-border-default)",
-                  background: "var(--color-surface-raised)",
-                  color: "var(--color-text-primary)",
-                }}
+                className={cn(
+                  "flex-1 rounded-xl border-2 px-4 py-3.5 text-sm font-bold transition-all duration-300 active:scale-95",
+                  bufferMinutes === option.value
+                    ? "border-primary bg-primary/5 text-primary shadow-sm shadow-primary/10"
+                    : "border-border/40 bg-al-surface-low text-muted-foreground/60 hover:border-primary/30"
+                )}
               >
                 {option.label}
               </button>
@@ -182,65 +178,49 @@ export function AddServiceStep({ onDone, onSkip }: AddServiceStepProps) {
             setSubmitError(null);
           }}
           placeholder="e.g. 25.00"
-          helper="Leave blank to use your shop's default deposit policy"
+          helper="Leave blank to use your shop's default policy"
           type="number"
         />
 
         {submitError ? (
-          <p
-            role="alert"
-            className="rounded-lg p-3 text-sm"
-            style={{
-              border: "1px solid var(--color-error-border)",
-              background: "var(--color-error-subtle)",
-              color: "var(--color-error)",
-            }}
-          >
+          <p role="alert" className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm font-bold text-destructive/80">
             {submitError}
           </p>
         ) : null}
       </div>
 
-      <div className="flex flex-col-reverse justify-between gap-4 sm:flex-row">
-        <button
+      <div className="flex flex-col-reverse justify-between gap-5 sm:flex-row pt-4">
+        <Button
           onClick={handleSkip}
           disabled={isSkipping || isSubmitting}
-          className="rounded-xl px-6 py-3 transition-colors duration-200 disabled:opacity-50"
-          style={{
-            border: "1px solid var(--color-border-medium)",
-            color: "var(--color-text-primary)",
-            background: "var(--color-surface-elevated)",
-          }}
+          variant="al-ghost"
+          className="px-8 py-7 rounded-2xl font-bold text-lg h-auto border border-border/40 hover:bg-background transition-all active:scale-95"
           type="button"
         >
           Skip for now
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleSubmit}
           disabled={isSubmitting || isSkipping}
-          className="flex items-center justify-center gap-2 rounded-xl px-8 py-3 font-semibold transition-colors duration-200 disabled:cursor-wait disabled:opacity-75"
-          style={{
-            background: "var(--color-brand)",
-            color: "var(--color-text-inverse)",
-          }}
+          variant="al-primary"
+          className="flex-1 sm:flex-initial flex items-center justify-center gap-3 px-12 py-7 rounded-2xl font-bold text-lg h-auto shadow-xl hover:shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
           type="button"
         >
           {isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-              <span>Saving...</span>
+              <span>Saving service...</span>
             </>
           ) : (
-            "Add service"
+            <>
+              <Plus className="h-5 w-5" />
+              <span>Add service</span>
+            </>
           )}
-        </button>
+        </Button>
       </div>
 
-      <p
-        className="text-center text-xs font-medium tracking-wider uppercase"
-        style={{ color: "var(--color-text-tertiary)" }}
-        aria-live="polite"
-      >
+      <p className="text-center text-[10px] font-bold tracking-[0.2em] text-muted-foreground/50 uppercase" aria-live="polite">
         Step 3 of 3
       </p>
     </div>

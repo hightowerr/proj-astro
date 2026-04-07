@@ -51,6 +51,10 @@ Booking/appointment management system with automated financial outcomes, refunds
 
 When Creating new pages or components always reference the design system in `docs/design-system/`
 
+## Credentials
+
+playwright credentials:[tester1@example.com] / [tester1@example.com]
+
 ## Commands
 
 ### Development

@@ -1,8 +1,7 @@
 import { Cormorant_Garamond, Bricolage_Grotesque, Fira_Code, Manrope } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
+import { RouteChrome } from "@/components/layout/route-chrome";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 
@@ -75,11 +74,7 @@ export default function RootLayout({
 })();`}
           </Script>
         ) : null}
-        <SiteHeader />
-        <main id="main-content" className="pt-16">
-          {children}
-        </main>
-        <SiteFooter />
+        <RouteChrome>{children}</RouteChrome>
         <Toaster richColors position="top-right" />
       </body>
     </html>

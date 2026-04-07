@@ -1,4 +1,3 @@
-import { Calendar } from "lucide-react";
 import { CalendarSettingsClient } from "@/components/settings/calendar-settings-client";
 import { db } from "@/lib/db";
 import { getShopByOwnerId } from "@/lib/queries/shops";
@@ -8,21 +7,12 @@ export default async function CalendarSettingsPage() {
   const session = await requireAuth();
   const shop = await getShopByOwnerId(session.user.id);
 
-  if (!shop) {
-    return (
-      <div className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-semibold">Calendar settings</h1>
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Create your shop to connect Google Calendar.
-        </p>
-      </div>
-    );
-  }
-
-  const connection = await db.query.calendarConnections.findFirst({
-    where: (table, { and, eq, isNull }) =>
-      and(eq(table.shopId, shop.id), isNull(table.deletedAt)),
-  });
+  const connection = shop
+    ? await db.query.calendarConnections.findFirst({
+        where: (table, { and, eq, isNull }) =>
+          and(eq(table.shopId, shop.id), isNull(table.deletedAt)),
+      })
+    : null;
 
   const isGoogleOAuthConfigured = Boolean(
     process.env.GOOGLE_CLIENT_ID &&
@@ -32,32 +22,53 @@ export default async function CalendarSettingsPage() {
   );
 
   return (
-    <div className="container mx-auto max-w-3xl space-y-8 px-4 py-10">
-      <header className="space-y-2">
-        <div
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)", color: "var(--color-brand)" }}
+    <div
+      className="min-h-screen font-manrope"
+      style={{ background: "var(--al-background)" }}
+    >
+      <main className="mx-auto max-w-screen-xl px-6 md:px-12 py-12 md:py-16">
+        {/* Breadcrumb */}
+        <p
+          className="text-sm font-medium mb-4"
+          style={{ color: "var(--al-on-surface-variant)" }}
         >
-          <Calendar className="h-5 w-5" />
-        </div>
-        <h1 className="text-3xl font-semibold">Calendar settings</h1>
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Connect Google Calendar to prepare for appointment sync and conflict detection.
+          Settings / Calendar
         </p>
-      </header>
 
-      <CalendarSettingsClient
-        isGoogleOAuthConfigured={isGoogleOAuthConfigured}
-        connection={
-          connection
-            ? {
-                id: connection.id,
-                calendarName: connection.calendarName,
-                createdAt: connection.createdAt.toISOString(),
-              }
-            : null
-        }
-      />
+        {/* Header */}
+        <header
+          className="mb-12"
+          style={{ animation: "fade-up 0.4s ease-out both" }}
+        >
+          <h1
+            className="font-manrope text-4xl md:text-5xl font-extrabold tracking-tight mb-4"
+            style={{ color: "var(--al-primary)" }}
+          >
+            Calendar Settings
+          </h1>
+          <p
+            className="text-lg font-light max-w-2xl"
+            style={{ color: "var(--al-on-surface-variant)" }}
+          >
+            Manage how your studio connects to external calendars and define
+            your default booking behavior.
+          </p>
+        </header>
+
+        <CalendarSettingsClient
+          isGoogleOAuthConfigured={isGoogleOAuthConfigured}
+          hasShop={Boolean(shop)}
+          connection={
+            connection
+              ? {
+                  id: connection.id,
+                  calendarName: connection.calendarName,
+                  createdAt: connection.createdAt.toISOString(),
+                }
+              : null
+          }
+        />
+      </main>
     </div>
   );
 }

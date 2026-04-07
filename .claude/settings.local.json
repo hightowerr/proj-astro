@@ -34,7 +34,8 @@
       "Bash(test:*)",
       "Bash(mkdir:*)",
       "Bash(head -60 docs/shaping/onboarding/*.md)",
-      "mcp__stitch__list_design_systems"
+      "mcp__stitch__list_design_systems",
+      "WebFetch(domain:contribution.usercontent.google.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
