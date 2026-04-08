@@ -1,6 +1,16 @@
-import { and, asc, desc, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
+import { formatDateInTimeZone } from "@/lib/booking";
+import { overlapsWithCalendarConflictBuffer } from "@/lib/calendar-conflict-rules";
+import {
+  CalendarConflictError,
+  validateBookingConflict,
+} from "@/lib/calendar-conflicts";
 import { db } from "@/lib/db";
-import { createAppointment } from "@/lib/queries/appointments";
+import {
+  fetchCalendarEventsWithCache,
+  isAllDayEvent,
+} from "@/lib/google-calendar-cache";
+import { createAppointment, getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { acquireLock, isInCooldown, releaseLock, setCooldown } from "@/lib/redis";
 import {
   appointments,
@@ -158,6 +168,71 @@ export async function getEligibleCustomers(
   const excludeHighNoShowFromOffers =
     shopPolicy?.excludeHighNoShowFromOffers ?? false;
 
+  let slotEffectiveBufferMinutes: number | null = null;
+  if (slotOpening.eventTypeId) {
+    const [et] = await db
+      .select({ bufferMinutes: eventTypes.bufferMinutes })
+      .from(eventTypes)
+      .where(eq(eventTypes.id, slotOpening.eventTypeId))
+      .limit(1);
+    slotEffectiveBufferMinutes = et?.bufferMinutes ?? null;
+  }
+  if (slotEffectiveBufferMinutes === null) {
+    const settings = await getBookingSettingsForShop(slotOpening.shopId);
+    slotEffectiveBufferMinutes = settings?.defaultBufferMinutes ?? 0;
+  }
+  const slotBufferedEndsAt = new Date(
+    slotOpening.endsAt.getTime() + slotEffectiveBufferMinutes * 60_000
+  );
+
+  // Check once whether the slot itself is blocked by a calendar event.
+  // If it is, there is no point iterating candidates — return early.
+  const slotSettings = await getBookingSettingsForShop(slotOpening.shopId);
+  if (slotSettings) {
+    try {
+      const slotDateStr = formatDateInTimeZone(
+        slotOpening.startsAt,
+        slotSettings.timezone
+      );
+      const calendarEvents = await fetchCalendarEventsWithCache(
+        slotOpening.shopId,
+        slotDateStr,
+        slotSettings.timezone
+      );
+      const slotIsBlocked = calendarEvents.some((event) => {
+        if (isAllDayEvent(event)) return true;
+        const eventStartMs = event.start.dateTime
+          ? Date.parse(event.start.dateTime)
+          : Number.NaN;
+        const eventEndMs = event.end.dateTime
+          ? Date.parse(event.end.dateTime)
+          : Number.NaN;
+        if (!Number.isFinite(eventStartMs) || !Number.isFinite(eventEndMs)) {
+          return false;
+        }
+        return overlapsWithCalendarConflictBuffer({
+          slotStartMs: slotOpening.startsAt.getTime(),
+          slotEndMs: slotBufferedEndsAt.getTime(),
+          eventStartMs,
+          eventEndMs,
+        });
+      });
+      if (slotIsBlocked) {
+        console.warn(
+          "[slot-recovery] slot blocked by calendar event; aborting offer loop",
+          { slotOpeningId: slotOpening.id }
+        );
+        return [];
+      }
+    } catch (error) {
+      // Calendar check is best-effort — do not block the offer loop on calendar errors
+      console.warn("[slot-recovery] calendar pre-check failed (non-blocking)", {
+        slotOpeningId: slotOpening.id,
+        error,
+      });
+    }
+  }
+
   const candidates = await db
     .select({
       id: customers.id,
@@ -221,18 +296,21 @@ export async function getEligibleCustomers(
   const eligible: EligibleCustomer[] = [];
 
   for (const candidate of candidates) {
-    const overlapping = await db.query.appointments.findFirst({
-      where: (table, { and: whereAnd, eq: whereEq, gt: whereGt, inArray, lt: whereLt }) =>
-        whereAnd(
-          whereEq(table.shopId, slotOpening.shopId),
-          whereEq(table.customerId, candidate.id),
-          inArray(table.status, ["booked", "pending"]),
-          whereLt(table.startsAt, slotOpening.endsAt),
-          whereGt(table.endsAt, slotOpening.startsAt)
-        ),
-    });
+    const overlapping = await db
+      .select({ id: appointments.id })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.shopId, slotOpening.shopId),
+          eq(appointments.customerId, candidate.id),
+          inArray(appointments.status, ["booked", "pending"]),
+          lt(appointments.startsAt, slotBufferedEndsAt),
+          sql`${appointments.endsAt} + (${appointments.effectiveBufferAfterMinutes} * interval '1 minute') > ${slotOpening.startsAt}`
+        )
+      )
+      .limit(1);
 
-    if (!overlapping) {
+    if (overlapping.length === 0) {
       const inCooldown = await isInCooldown(candidate.id);
       if (inCooldown) {
         continue;
@@ -368,6 +446,21 @@ export async function acceptOffer(
   }
 
   try {
+    let eventTypeDepositCents: number | null = null;
+    let eventTypeBufferMinutes: number | null = null;
+    if (slotOpening.eventTypeId) {
+      const [eventType] = await db
+        .select({
+          depositAmountCents: eventTypes.depositAmountCents,
+          bufferMinutes: eventTypes.bufferMinutes,
+        })
+        .from(eventTypes)
+        .where(eq(eventTypes.id, slotOpening.eventTypeId))
+        .limit(1);
+      eventTypeDepositCents = eventType?.depositAmountCents ?? null;
+      eventTypeBufferMinutes = eventType?.bufferMinutes ?? null;
+    }
+
     const [fresh] = await db
       .select({
         slotStatus: slotOpenings.status,
@@ -388,19 +481,28 @@ export async function acceptOffer(
       throw new Error("SLOT_NO_LONGER_AVAILABLE");
     }
 
-    let eventTypeDepositCents: number | null = null;
-    let eventTypeBufferMinutes: number | null = null;
-    if (slotOpening.eventTypeId) {
-      const [eventType] = await db
-        .select({
-          depositAmountCents: eventTypes.depositAmountCents,
-          bufferMinutes: eventTypes.bufferMinutes,
-        })
-        .from(eventTypes)
-        .where(eq(eventTypes.id, slotOpening.eventTypeId))
-        .limit(1);
-      eventTypeDepositCents = eventType?.depositAmountCents ?? null;
-      eventTypeBufferMinutes = eventType?.bufferMinutes ?? null;
+    const bookingSettings = await getBookingSettingsForShop(slotOpening.shopId);
+    if (bookingSettings) {
+      const bufferForValidation =
+        eventTypeBufferMinutes ?? bookingSettings.defaultBufferMinutes ?? 0;
+      try {
+        await validateBookingConflict({
+          shopId: slotOpening.shopId,
+          startsAt: slotOpening.startsAt,
+          endsAt: slotOpening.endsAt,
+          timezone: bookingSettings.timezone,
+          bufferAfterMinutes: bufferForValidation,
+        });
+      } catch (error) {
+        if (error instanceof CalendarConflictError) {
+          throw new Error("SLOT_NO_LONGER_AVAILABLE");
+        }
+        // Non-conflict errors (no calendar connected, API timeout) must not block booking
+        console.warn("[slot-recovery] calendar validation error (non-blocking)", {
+          slotOpeningId: slotOpening.id,
+          error,
+        });
+      }
     }
 
     const durationMinutes = Math.round(

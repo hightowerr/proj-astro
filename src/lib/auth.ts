@@ -1,10 +1,10 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { getTrustedAuthOrigins } from "./auth-origins"
 import { db } from "./db"
 
 const isPlaywrightE2E = process.env.PLAYWRIGHT === "true"
-const appOrigin = process.env.NEXT_PUBLIC_APP_URL
-const trustedOrigins = appOrigin ? [appOrigin] : undefined
+const trustedOrigins = getTrustedAuthOrigins()
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {

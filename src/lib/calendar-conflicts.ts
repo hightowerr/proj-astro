@@ -1,6 +1,9 @@
 import { and, asc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import { formatDateInTimeZone } from "@/lib/booking";
-import { overlapsWithCalendarConflictBuffer } from "@/lib/calendar-conflict-rules";
+import {
+  appointmentBlockedEndMs,
+  overlapsWithCalendarConflictBuffer,
+} from "@/lib/calendar-conflict-rules";
 import { db } from "@/lib/db";
 import {
   type CalendarEvent,
@@ -185,6 +188,7 @@ export async function validateBookingConflict(input: {
   startsAt: Date;
   endsAt: Date;
   timezone: string;
+  bufferAfterMinutes?: number;
 }): Promise<void> {
   const dateStr = formatDateInTimeZone(input.startsAt, input.timezone);
 
@@ -207,7 +211,8 @@ export async function validateBookingConflict(input: {
     }
 
     const bookingStart = input.startsAt.getTime();
-    const bookingEnd = input.endsAt.getTime();
+    const bookingEnd =
+      input.endsAt.getTime() + (input.bufferAfterMinutes ?? 0) * 60_000;
 
     for (const event of events) {
       if (isAllDayEvent(event)) {
@@ -367,6 +372,7 @@ export async function debugScanConflictsForShop(
       startsAt: true,
       endsAt: true,
       calendarEventId: true,
+      effectiveBufferAfterMinutes: true,
     },
   });
 
@@ -433,10 +439,18 @@ export async function debugScanConflictsForShop(
           continue;
         }
 
+        // BOUNDARY: conflict-scanner-buffer-v1 changes scanner overlap semantics only.
         const hasOverlap = allDay
           ? true
-          : eventStart.getTime() < appointment.endsAt.getTime() &&
-            eventEnd.getTime() > appointment.startsAt.getTime();
+          : overlapsWithCalendarConflictBuffer({
+              slotStartMs: appointment.startsAt.getTime(),
+              slotEndMs: appointmentBlockedEndMs(
+                appointment.endsAt,
+                appointment.effectiveBufferAfterMinutes
+              ),
+              eventStartMs: eventStart.getTime(),
+              eventEndMs: eventEnd.getTime(),
+            });
 
         if (hasOverlap) {
           overlapsDetected += 1;
@@ -511,6 +525,7 @@ export async function scanAndDetectConflicts(shopId: string): Promise<{
       startsAt: true,
       endsAt: true,
       calendarEventId: true,
+      effectiveBufferAfterMinutes: true,
     },
   });
 
@@ -549,10 +564,18 @@ export async function scanAndDetectConflicts(shopId: string): Promise<{
             continue;
           }
 
+          // BOUNDARY: conflict-scanner-buffer-v1 keeps all-day handling and reuses shared overlap rules.
           const hasOverlap = allDay
             ? true
-            : eventStart.getTime() < appointment.endsAt.getTime() &&
-              eventEnd.getTime() > appointment.startsAt.getTime();
+            : overlapsWithCalendarConflictBuffer({
+                slotStartMs: appointment.startsAt.getTime(),
+                slotEndMs: appointmentBlockedEndMs(
+                  appointment.endsAt,
+                  appointment.effectiveBufferAfterMinutes
+                ),
+                eventStartMs: eventStart.getTime(),
+                eventEndMs: eventEnd.getTime(),
+              });
 
           if (!hasOverlap) {
             continue;

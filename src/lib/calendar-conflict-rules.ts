@@ -11,3 +11,10 @@ export function overlapsWithCalendarConflictBuffer(input: {
     input.eventEndMs > input.slotStartMs - CALENDAR_CONFLICT_BUFFER_MS
   );
 }
+
+export function appointmentBlockedEndMs(
+  endsAt: Date,
+  bufferMinutes: number
+): number {
+  return endsAt.getTime() + bufferMinutes * 60_000;
+}

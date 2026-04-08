@@ -49,7 +49,7 @@ Booking/appointment management system with automated financial outcomes, refunds
 
 ## UI Design System
 
-When Creating new pages or components always reference the design system in `docs/design-system/`
+When creating new pages or components always reference the design system in `docs/design-system/`
 
 ## Commands
 

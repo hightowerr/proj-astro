@@ -338,6 +338,26 @@ describe("google-calendar-cache", () => {
     ]);
   });
 
+  it("filters out a slot when a calendar event overlaps only the slot buffer window", () => {
+    const slots = [
+      {
+        startsAt: new Date("2026-03-15T13:00:00.000Z"),
+        endsAt: new Date("2026-03-15T14:00:00.000Z"),
+        bufferAfterMinutes: 10,
+      },
+    ];
+    const events = [
+      {
+        id: "evt-buffer",
+        summary: "Buffer Conflict",
+        start: { dateTime: "2026-03-15T14:05:00.000Z" },
+        end: { dateTime: "2026-03-15T14:30:00.000Z" },
+      },
+    ];
+    const result = filterSlotsForConflicts(slots, events);
+    expect(result).toHaveLength(0);
+  });
+
   it("blocks the full day when an all-day event exists", () => {
     const slots = [
       {
