@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { createAppointment } from "@/lib/queries/appointments";
+import { createAppointment, getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { acquireLock, isInCooldown, releaseLock, setCooldown } from "@/lib/redis";
 import {
   appointments,
@@ -157,6 +157,27 @@ export async function getEligibleCustomers(
   const excludeRiskFromOffers = shopPolicy?.excludeRiskFromOffers ?? false;
   const excludeHighNoShowFromOffers =
     shopPolicy?.excludeHighNoShowFromOffers ?? false;
+  // BOUNDARY: slot-recovery-buffer-eligibility-v1 limits this slice to buffer-aware
+  // eligibility filtering only; offer dispatch and acceptance flows stay unchanged.
+  let slotEffectiveBufferMinutes = 0;
+  if (slotOpening.eventTypeId) {
+    const [eventType] = await db
+      .select({ bufferMinutes: eventTypes.bufferMinutes })
+      .from(eventTypes)
+      .where(eq(eventTypes.id, slotOpening.eventTypeId))
+      .limit(1);
+
+    slotEffectiveBufferMinutes = eventType?.bufferMinutes ?? 0;
+  }
+
+  if (slotEffectiveBufferMinutes === 0) {
+    const settings = await getBookingSettingsForShop(slotOpening.shopId);
+    slotEffectiveBufferMinutes = settings?.defaultBufferMinutes ?? 0;
+  }
+
+  const slotBufferedEndsAt = new Date(
+    slotOpening.endsAt.getTime() + slotEffectiveBufferMinutes * 60_000
+  );
 
   const candidates = await db
     .select({
@@ -221,18 +242,21 @@ export async function getEligibleCustomers(
   const eligible: EligibleCustomer[] = [];
 
   for (const candidate of candidates) {
-    const overlapping = await db.query.appointments.findFirst({
-      where: (table, { and: whereAnd, eq: whereEq, gt: whereGt, inArray, lt: whereLt }) =>
-        whereAnd(
-          whereEq(table.shopId, slotOpening.shopId),
-          whereEq(table.customerId, candidate.id),
-          inArray(table.status, ["booked", "pending"]),
-          whereLt(table.startsAt, slotOpening.endsAt),
-          whereGt(table.endsAt, slotOpening.startsAt)
-        ),
-    });
+    const overlapping = await db
+      .select({ id: appointments.id })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.shopId, slotOpening.shopId),
+          eq(appointments.customerId, candidate.id),
+          inArray(appointments.status, ["booked", "pending"]),
+          lt(appointments.startsAt, slotBufferedEndsAt),
+          sql`${appointments.endsAt} + (${appointments.effectiveBufferAfterMinutes} * interval '1 minute') > ${slotOpening.startsAt}`
+        )
+      )
+      .limit(1);
 
-    if (!overlapping) {
+    if (overlapping.length === 0) {
       const inCooldown = await isInCooldown(candidate.id);
       if (inCooldown) {
         continue;
