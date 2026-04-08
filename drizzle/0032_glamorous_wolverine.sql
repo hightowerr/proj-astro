@@ -1,1 +1,1 @@
-ALTER TABLE "appointments" ADD COLUMN "effective_buffer_after_minutes" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "appointments" ADD COLUMN IF NOT EXISTS "effective_buffer_after_minutes" integer DEFAULT 0 NOT NULL;
