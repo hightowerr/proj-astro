@@ -342,6 +342,7 @@ describe("calendar-conflicts", () => {
           startsAt: new Date("2026-03-15T10:00:00.000Z"),
           endsAt: new Date("2026-03-15T11:00:00.000Z"),
           calendarEventId: "evt-own",
+          effectiveBufferAfterMinutes: 0,
         },
       ])
       .mockResolvedValueOnce([]);
@@ -380,6 +381,7 @@ describe("calendar-conflicts", () => {
           startsAt: new Date("2026-03-15T10:00:00.000Z"),
           endsAt: new Date("2026-03-15T11:00:00.000Z"),
           calendarEventId: null,
+          effectiveBufferAfterMinutes: 0,
         },
       ])
       .mockResolvedValueOnce([]);
@@ -409,6 +411,7 @@ describe("calendar-conflicts", () => {
           startsAt: new Date("2026-03-15T10:00:00.000Z"),
           endsAt: new Date("2026-03-15T11:00:00.000Z"),
           calendarEventId: "evt-own",
+          effectiveBufferAfterMinutes: 0,
         },
       ])
       .mockResolvedValueOnce([]);
@@ -430,6 +433,68 @@ describe("calendar-conflicts", () => {
       alertsAutoResolved: 0,
     });
     expect(dbMock.insert).not.toHaveBeenCalled();
+  });
+
+  it("scanAndDetectConflicts detects conflict when event overlaps only the post-appointment buffer", async () => {
+    bookingSettingsFindFirstMock.mockResolvedValue({ timezone: "UTC" });
+    appointmentsFindManyMock
+      .mockResolvedValueOnce([
+        {
+          id: "appt-buf",
+          startsAt: new Date("2026-03-15T13:00:00.000Z"),
+          endsAt: new Date("2026-03-15T14:00:00.000Z"),
+          calendarEventId: null,
+          effectiveBufferAfterMinutes: 15,
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    mockFetchCalendarEventsWithCache.mockResolvedValue([
+      {
+        id: "evt-in-buffer",
+        summary: "Buffer Overlap",
+        start: { dateTime: "2026-03-15T14:05:00.000Z" },
+        end: { dateTime: "2026-03-15T14:30:00.000Z" },
+      },
+    ]);
+    insertReturningMock.mockResolvedValue([{ id: "alert-buf" }]);
+
+    const result = await scanAndDetectConflicts("shop-1");
+
+    expect(result.conflictsDetected).toBe(1);
+    expect(result.alertsCreated).toBe(1);
+    expect(dbMock.insert).toHaveBeenCalledTimes(1);
+  });
+
+  it("scanAndDetectConflicts detects conflict when event overlaps only within the +/- 5 min calendar padding", async () => {
+    bookingSettingsFindFirstMock.mockResolvedValue({ timezone: "UTC" });
+    appointmentsFindManyMock
+      .mockResolvedValueOnce([
+        {
+          id: "appt-pad",
+          startsAt: new Date("2026-03-15T13:00:00.000Z"),
+          endsAt: new Date("2026-03-15T14:00:00.000Z"),
+          calendarEventId: null,
+          effectiveBufferAfterMinutes: 0,
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    mockFetchCalendarEventsWithCache.mockResolvedValue([
+      {
+        id: "evt-in-padding",
+        summary: "Padding Overlap",
+        start: { dateTime: "2026-03-15T11:57:00.000Z" },
+        end: { dateTime: "2026-03-15T13:00:00.000Z" },
+      },
+    ]);
+    insertReturningMock.mockResolvedValue([{ id: "alert-pad" }]);
+
+    const result = await scanAndDetectConflicts("shop-1");
+
+    expect(result.conflictsDetected).toBe(1);
+    expect(result.alertsCreated).toBe(1);
+    expect(dbMock.insert).toHaveBeenCalledTimes(1);
   });
 
   it("scanAndDetectConflicts auto-resolves pending alerts for past appointments", async () => {

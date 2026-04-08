@@ -934,6 +934,7 @@ export const createAppointment = async (input: {
 
       let calendarEventId: string | null = null;
       if (!paymentRequired) {
+        // BOUNDARY: calendar-sync-buffer-v2 limits this slice to the initial sync path in createAppointment().
         try {
           const shop = await tx.query.shops.findFirst({
             where: (table, { eq }) => eq(table.id, input.shopId),
@@ -944,7 +945,10 @@ export const createAppointment = async (input: {
             shopId: input.shopId,
             customerName: customer.fullName,
             startsAt: appointmentWithBookingUrl.startsAt,
-            endsAt: appointmentWithBookingUrl.endsAt,
+            endsAt: new Date(
+              appointmentWithBookingUrl.endsAt.getTime() +
+                appointmentWithBookingUrl.effectiveBufferAfterMinutes * 60_000
+            ),
             bookingUrl,
           };
           if (shop?.name) {
@@ -1214,6 +1218,7 @@ export const listAppointmentsForShop = async (shopId: string) => {
 };
 
 export const syncAppointmentCalendarEvent = async (appointmentId: string) => {
+  // BOUNDARY: calendar-sync-buffer-v1 limits this slice to manual calendar sync only.
   const appointment = await db.query.appointments.findFirst({
     where: (table, { eq }) => eq(table.id, appointmentId),
     columns: {
@@ -1222,6 +1227,7 @@ export const syncAppointmentCalendarEvent = async (appointmentId: string) => {
       customerId: true,
       startsAt: true,
       endsAt: true,
+      effectiveBufferAfterMinutes: true,
       status: true,
       paymentStatus: true,
       paymentRequired: true,
@@ -1271,7 +1277,10 @@ export const syncAppointmentCalendarEvent = async (appointmentId: string) => {
       shopId: appointment.shopId,
       customerName: customer.fullName,
       startsAt: appointment.startsAt,
-      endsAt: appointment.endsAt,
+      endsAt: new Date(
+        appointment.endsAt.getTime() +
+          appointment.effectiveBufferAfterMinutes * 60_000
+      ),
       bookingUrl: appointment.bookingUrl ?? null,
     };
     if (shop?.name) {
