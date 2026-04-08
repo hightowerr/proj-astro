@@ -10,6 +10,11 @@ import { bookingSettings, shopHours } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
 
 const slotMinutesSchema = z.enum(["15", "30", "45", "60", "90", "120"]);
+const defaultBufferMinutesSchema = z.union([
+  z.literal(0),
+  z.literal(5),
+  z.literal(10),
+]);
 const timeSchema = z.string().regex(/^\d{2}:\d{2}$/);
 
 const validateTimezone = (timezone: string) => {
@@ -31,7 +36,11 @@ export async function updateAvailabilitySettings(shopId: string, formData: FormD
 
   const timezone = String(formData.get("timezone") ?? "").trim();
   const slotMinutesRaw = String(formData.get("slotMinutes") ?? "");
+  const defaultBufferMinutesRaw = Number(formData.get("defaultBufferMinutes") ?? 0);
   const parsedSlotMinutes = slotMinutesSchema.safeParse(slotMinutesRaw);
+  const parsedDefaultBufferMinutes = defaultBufferMinutesSchema.safeParse(
+    defaultBufferMinutesRaw
+  );
 
   if (!timezone || !validateTimezone(timezone)) {
     throw new Error("Timezone must be a valid IANA timezone");
@@ -39,8 +48,12 @@ export async function updateAvailabilitySettings(shopId: string, formData: FormD
   if (!parsedSlotMinutes.success) {
     throw new Error("Slot length is invalid");
   }
+  if (!parsedDefaultBufferMinutes.success) {
+    throw new Error("Default buffer time is invalid");
+  }
 
   const slotMinutes = Number.parseInt(parsedSlotMinutes.data, 10);
+  const defaultBufferMinutes = parsedDefaultBufferMinutes.data;
   const hoursToInsert: Array<{
     shopId: string;
     dayOfWeek: number;
@@ -84,12 +97,14 @@ export async function updateAvailabilitySettings(shopId: string, formData: FormD
         shopId,
         timezone,
         slotMinutes,
+        defaultBufferMinutes,
       })
       .onConflictDoUpdate({
         target: bookingSettings.shopId,
         set: {
           timezone,
           slotMinutes,
+          defaultBufferMinutes,
         },
       });
 

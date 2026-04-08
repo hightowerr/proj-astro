@@ -1,0 +1,9 @@
+[     409ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/a191e_next_dist_0da38164._.js:2297
+[     482ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/a191e_next_dist_0da38164._.js:2297
+[     616ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[   48392ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/a191e_next_dist_0da38164._.js:2297
+[   48427ms] [LOG] [Fast Refresh] done in 134ms @ http://localhost:3000/_next/static/chunks/a191e_next_dist_0da38164._.js:2297
+[   48681ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/a191e_next_dist_0da38164._.js:2297
+[   48711ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/a191e_next_dist_0da38164._.js:2297
+[   48840ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/a191e_next_dist_0da38164._.js:2297
+[   48879ms] [LOG] [Fast Refresh] done in 141ms @ http://localhost:3000/_next/static/chunks/a191e_next_dist_0da38164._.js:2297

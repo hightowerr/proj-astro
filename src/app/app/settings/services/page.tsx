@@ -34,7 +34,7 @@ export default async function ServicesPage() {
     name: eventType.name,
     description: eventType.description,
     durationMinutes: eventType.durationMinutes,
-    bufferMinutes: eventType.bufferMinutes as 0 | 5 | 10,
+    bufferMinutes: eventType.bufferMinutes as 0 | 5 | 10 | null,
     depositAmountCents: eventType.depositAmountCents,
     isHidden: eventType.isHidden,
     isActive: eventType.isActive,

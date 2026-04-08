@@ -8,7 +8,7 @@ type EventType = {
   name: string;
   description: string | null;
   durationMinutes: number;
-  bufferMinutes: number;
+  bufferMinutes: number | null;
 };
 
 type ServiceSelectorProps = {
@@ -109,7 +109,7 @@ export function ServiceSelector({
                   {eventType.durationMinutes}
                 </span>{" "}
                 min
-                {eventType.bufferMinutes > 0
+                {eventType.bufferMinutes != null && eventType.bufferMinutes > 0
                   ? ` \u00b7 ${eventType.bufferMinutes} min prep`
                   : ""}
               </p>

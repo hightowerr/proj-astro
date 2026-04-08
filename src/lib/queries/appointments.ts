@@ -147,7 +147,8 @@ export const getBookingSettingsForShop = async (shopId: string) => {
 export const getAvailabilityForDate = async (
   shopId: string,
   dateStr: string,
-  durationMinutes?: number
+  durationMinutes?: number,
+  bufferAfterMinutes?: number | null
 ): Promise<Availability> => {
   const settings = await getBookingSettingsForShop(shopId);
   if (!settings) {
@@ -155,6 +156,8 @@ export const getAvailabilityForDate = async (
   }
 
   const effectiveDuration = durationMinutes ?? settings.slotMinutes;
+  const effectiveBufferAfterMinutes =
+    bufferAfterMinutes ?? settings.defaultBufferMinutes ?? 0;
 
   const todayStr = formatDateInTimeZone(new Date(), settings.timezone);
   if (dateStr < todayStr) {
@@ -206,17 +209,21 @@ export const getAvailabilityForDate = async (
   const closeBoundaryUtc = new Date(
     start.getTime() + parseTimeToMinutes(hours.closeTime) * 60_000
   );
+  // Expand the lower bound by the maximum possible buffer (10 min, schema enforces IN (0,5,10))
+  // so that prior-day appointments whose buffer window spills into this day are included.
+  const MAX_BUFFER_MS = 10 * 60_000;
   const bookedSlots = await db
     .select({
       startsAt: appointments.startsAt,
       endsAt: appointments.endsAt,
+      effectiveBufferAfterMinutes: appointments.effectiveBufferAfterMinutes,
     })
     .from(appointments)
     .where(
       and(
         eq(appointments.shopId, shopId),
         lt(appointments.startsAt, end),
-        gt(appointments.endsAt, start),
+        gt(appointments.endsAt, new Date(start.getTime() - MAX_BUFFER_MS)),
         inArray(appointments.status, ["booked", "pending"])
       )
     );
@@ -225,11 +232,17 @@ export const getAvailabilityForDate = async (
   const isToday = dateStr === todayStr;
   let availableSlots = sizedSlots.filter((slot) => {
     if (slot.endsAt.getTime() > closeBoundaryUtc.getTime()) return false;
-    const overlaps = bookedSlots.some(
-      (booked) =>
-        slot.startsAt.getTime() < booked.endsAt.getTime() &&
-        slot.endsAt.getTime() > booked.startsAt.getTime()
-    );
+    const candidateBlockedEnd =
+      slot.endsAt.getTime() + effectiveBufferAfterMinutes * 60_000;
+    const overlaps = bookedSlots.some((booked) => {
+      const blockedEnd =
+        booked.endsAt.getTime() +
+        booked.effectiveBufferAfterMinutes * 60_000;
+      return (
+        slot.startsAt.getTime() < blockedEnd &&
+        candidateBlockedEnd > booked.startsAt.getTime()
+      );
+    });
     if (overlaps) return false;
     if (!isToday) return true;
     return slot.startsAt.getTime() > now.getTime();
@@ -695,6 +708,7 @@ export const createAppointment = async (input: {
   sourceSlotOpeningId?: string | null;
   eventTypeId?: string | null;
   eventTypeDepositCents?: number | null;
+  eventTypeBufferMinutes?: number | null;
 }) => {
   try {
     const created = await db.transaction(async (tx) => {
@@ -725,6 +739,8 @@ export const createAppointment = async (input: {
       }
 
       const effectiveDurationMinutes = input.durationMinutes ?? settings.slotMinutes;
+      const effectiveBufferAfterMinutes =
+        input.eventTypeBufferMinutes ?? settings.defaultBufferMinutes ?? 0;
       if (effectiveDurationMinutes <= 0) {
         throw new InvalidSlotError("Invalid slot length");
       }
@@ -847,6 +863,9 @@ export const createAppointment = async (input: {
         slotMinutes: settings.slotMinutes,
         durationMinutes: effectiveDurationMinutes,
       });
+      const blockedEndsAt = new Date(
+        endsAt.getTime() + effectiveBufferAfterMinutes * 60_000
+      );
 
       const overlapping = await tx
         .select({ id: appointments.id })
@@ -855,8 +874,8 @@ export const createAppointment = async (input: {
           and(
             eq(appointments.shopId, input.shopId),
             inArray(appointments.status, ["booked", "pending"]),
-            lt(appointments.startsAt, endsAt),
-            gt(appointments.endsAt, input.startsAt)
+            lt(appointments.startsAt, blockedEndsAt),
+            sql`${appointments.endsAt} + (${appointments.effectiveBufferAfterMinutes} * interval '1 minute') > ${input.startsAt}`
           )
         )
         .limit(1);
@@ -871,6 +890,7 @@ export const createAppointment = async (input: {
         startsAt: input.startsAt,
         endsAt,
         eventTypeId: input.eventTypeId ?? null,
+        effectiveBufferAfterMinutes,
         status: paymentRequired ? "pending" : "booked",
         policyVersionId: policyVersion?.id ?? null,
         paymentStatus: paymentRequired ? "pending" : "unpaid",

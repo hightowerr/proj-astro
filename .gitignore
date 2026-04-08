@@ -49,6 +49,10 @@ next-env.d.ts
 # uploads
 public/uploads
 Prompts/
+Mental Models/WorkSpace/*
+
+.mcp.json
 
 nul
 ```
+.mcp.json

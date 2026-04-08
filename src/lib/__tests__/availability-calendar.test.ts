@@ -145,4 +145,26 @@ describeIf("availability with calendar filtering", () => {
     expect(slotStarts).toContain(`${date}T09:00:00.000Z`);
     expect(slotStarts).toContain(`${date}T12:00:00.000Z`);
   });
+
+  it("hides slots whose own buffer would run into a later appointment", async () => {
+    const date = nextWeekdayDate();
+
+    await createAppointment({
+      shopId,
+      startsAt: new Date(`${date}T10:00:00.000Z`),
+      paymentsEnabled: false,
+      customer: {
+        fullName: "Later Appointment Customer",
+        phone: "+12025550156",
+        email: "later-appointment@example.com",
+      },
+    });
+
+    const availability = await getAvailabilityForDate(shopId, date, 60, 10);
+    const slotStarts = availability.slots.map((slot) => slot.startsAt.toISOString());
+
+    expect(slotStarts).not.toContain(`${date}T09:00:00.000Z`);
+    expect(slotStarts).not.toContain(`${date}T10:00:00.000Z`);
+    expect(slotStarts).toContain(`${date}T11:00:00.000Z`);
+  });
 });

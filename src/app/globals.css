@@ -7,9 +7,10 @@
    * ================================================================ */
 
   /* --- Typography --- */
-  --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
-  --font-body: var(--font-bricolage), system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-fira-code), 'Courier New', monospace;
+  --font-display:  var(--font-cormorant), Georgia, 'Times New Roman', serif;
+  --font-body:     var(--font-bricolage), system-ui, -apple-system, sans-serif;
+  --font-mono:     var(--font-fira-code), 'Courier New', monospace;
+  --font-manrope:  var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
 
   /* --- Surface Hierarchy (6 levels, dark-first) --- */
   --color-surface-void:     #070a0f;
@@ -212,42 +213,127 @@
 }
 
 /* ================================================================
-   Root: shadcn/ui CSS Variables (light mode defaults)
+   Root: Atelier Light Design System
+   Source: Stitch · assets/449beb1e286a415881985419132b73bd · v1
    ================================================================ */
 
 :root {
-  --radius: 0.625rem;
-  --background:                oklch(1 0 0);
-  --foreground:                oklch(0.141 0.005 285.823);
-  --card:                      oklch(1 0 0);
-  --card-foreground:           oklch(0.141 0.005 285.823);
-  --popover:                   oklch(1 0 0);
-  --popover-foreground:        oklch(0.141 0.005 285.823);
-  --primary:                   oklch(0.21 0.006 285.885);
-  --primary-foreground:        oklch(0.985 0 0);
-  --secondary:                 oklch(0.967 0.001 286.375);
-  --secondary-foreground:      oklch(0.21 0.006 285.885);
-  --muted:                     oklch(0.967 0.001 286.375);
-  --muted-foreground:          oklch(0.552 0.016 285.938);
-  --accent:                    oklch(0.967 0.001 286.375);
-  --accent-foreground:         oklch(0.21 0.006 285.885);
-  --destructive:               oklch(0.577 0.245 27.325);
-  --border:                    oklch(0.92 0.004 286.32);
-  --input:                     oklch(0.92 0.004 286.32);
-  --ring:                      oklch(0.705 0.015 286.067);
-  --chart-1:                   oklch(0.646 0.222 41.116);
-  --chart-2:                   oklch(0.6 0.118 184.704);
-  --chart-3:                   oklch(0.398 0.07 227.392);
-  --chart-4:                   oklch(0.828 0.189 84.429);
-  --chart-5:                   oklch(0.769 0.188 70.08);
-  --sidebar:                   oklch(0.985 0 0);
-  --sidebar-foreground:        oklch(0.141 0.005 285.823);
-  --sidebar-primary:           oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground:oklch(0.985 0 0);
-  --sidebar-accent:            oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border:            oklch(0.92 0.004 286.32);
-  --sidebar-ring:              oklch(0.705 0.015 286.067);
+  /* ── shadcn/ui compatibility — mapped to Atelier Light ─────── */
+  --radius: 0.5rem; /* ROUND_EIGHT = 8px */
+
+  --background:                 #f9f9f7;  /* al-surface */
+  --foreground:                 #1a1c1b;  /* al-on-surface */
+  --card:                       #ffffff;  /* al-surface-container-lowest */
+  --card-foreground:            #1a1c1b;  /* al-on-surface */
+  --popover:                    #ffffff;  /* al-surface-container-lowest */
+  --popover-foreground:         #1a1c1b;  /* al-on-surface */
+  --primary:                    #001e40;  /* al-primary */
+  --primary-foreground:         #ffffff;  /* al-on-primary */
+  --secondary:                  #fdd8cb;  /* al-secondary-container */
+  --secondary-foreground:       #785c53;  /* al-on-secondary-container */
+  --muted:                      #eeeeec;  /* al-surface-container */
+  --muted-foreground:           #43474f;  /* al-on-surface-variant */
+  --accent:                     #eeeeec;  /* al-surface-container */
+  --accent-foreground:          #1a1c1b;  /* al-on-surface */
+  --destructive:                #ba1a1a;  /* al-error */
+  --border:                     #c3c6d1;  /* al-outline-variant */
+  --input:                      #f4f4f2;  /* al-surface-container-low */
+  --ring:                       #001e40;  /* al-primary */
+  --chart-1:                    #001e40;
+  --chart-2:                    #74584f;
+  --chart-3:                    #3a5f94;
+  --chart-4:                    #d38970;
+  --chart-5:                    #3b1002;
+  --sidebar:                    #f4f4f2;  /* al-surface-container-low */
+  --sidebar-foreground:         #1a1c1b;
+  --sidebar-primary:            #001e40;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:             #eeeeec;
+  --sidebar-accent-foreground:  #1a1c1b;
+  --sidebar-border:             #c3c6d1;
+  --sidebar-ring:               #001e40;
+
+  /* ── Atelier Light raw tokens ───────────────────────────────── */
+
+  /* Primary (deep navy) */
+  --al-primary:                   #001e40;
+  --al-primary-container:         #003366;
+  --al-primary-fixed:             #d5e3ff;
+  --al-primary-fixed-dim:         #a7c8ff;
+  --al-on-primary:                #ffffff;
+  --al-on-primary-container:      #799dd6;
+  --al-on-primary-fixed:          #001b3c;
+  --al-on-primary-fixed-variant:  #1f477b;
+  --al-inverse-primary:           #a7c8ff;
+
+  /* Secondary (warm terracotta) */
+  --al-secondary:                     #74584f;
+  --al-secondary-container:           #fdd8cb;
+  --al-secondary-fixed:               #ffdbcf;
+  --al-secondary-fixed-dim:           #e2bfb3;
+  --al-on-secondary:                  #ffffff;
+  --al-on-secondary-container:        #785c53;
+  --al-on-secondary-fixed:            #2a170f;
+  --al-on-secondary-fixed-variant:    #5a4138;
+
+  /* Tertiary (deep sienna) */
+  --al-tertiary:                      #3b1002;
+  --al-tertiary-container:            #572411;
+  --al-tertiary-fixed:                #ffdbcf;
+  --al-tertiary-fixed-dim:            #ffb59c;
+  --al-on-tertiary:                   #ffffff;
+  --al-on-tertiary-container:         #d38970;
+  --al-on-tertiary-fixed:             #380d01;
+  --al-on-tertiary-fixed-variant:     #6f3723;
+
+  /* Surface hierarchy (light → deepest) */
+  --al-background:                    #f9f9f7;
+  --al-surface:                       #f9f9f7;
+  --al-surface-bright:                #f9f9f7;
+  --al-surface-dim:                   #dadad8;
+  --al-surface-tint:                  #3a5f94;
+  --al-surface-variant:               #e2e3e1;
+  --al-surface-container-lowest:      #ffffff;
+  --al-surface-container-low:         #f4f4f2;
+  --al-surface-container:             #eeeeec;
+  --al-surface-container-high:        #e8e8e6;
+  --al-surface-container-highest:     #e2e3e1;
+  --al-inverse-surface:               #2f3130;
+
+  /* On-surface / text */
+  --al-on-background:                 #1a1c1b;
+  --al-on-surface:                    #1a1c1b;
+  --al-on-surface-variant:            #43474f;
+  --al-inverse-on-surface:            #f1f1ef;
+
+  /* Outline / border */
+  --al-outline:                       #737780;
+  --al-outline-variant:               #c3c6d1;
+
+  /* Error */
+  --al-error:                         #ba1a1a;
+  --al-error-container:               #ffdad6;
+  --al-on-error:                      #ffffff;
+  --al-on-error-container:            #93000a;
+
+  /* Derived convenience tokens */
+  --al-ghost-border:    rgba(195, 198, 209, 0.20);
+  --al-shadow-float:    0px 20px 40px rgba(26, 28, 27, 0.06);
+  --al-gradient-cta:    linear-gradient(135deg, #001e40, #003366);
+
+  /* Typography */
+  --al-font:            var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
+  --al-font-headline:   var(--al-font);
+  --al-font-body:       var(--al-font);
+  --al-font-label:      var(--al-font);
+
+  /* Roundness */
+  --al-radius-sm:   4px;
+  --al-radius-md:   6px;
+  --al-radius-lg:   8px;
+  --al-radius-xl:   12px;
+  --al-radius-2xl:  16px;
+  --al-radius-full: 9999px;
 }
 
 .dark {
@@ -398,4 +484,75 @@
 .focus-brand:focus-visible {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
+}
+
+/* ================================================================
+   Atelier Light Utilities
+   ================================================================ */
+
+/* Font */
+.font-manrope { font-family: var(--al-font); }
+
+/* Surface utilities */
+.al-surface          { background-color: var(--al-surface); }
+.al-surface-lowest   { background-color: var(--al-surface-container-lowest); }
+.al-surface-low      { background-color: var(--al-surface-container-low); }
+.al-surface-mid      { background-color: var(--al-surface-container); }
+.al-surface-high     { background-color: var(--al-surface-container-high); }
+.al-surface-highest  { background-color: var(--al-surface-container-highest); }
+
+/* Text utilities */
+.al-text-primary         { color: var(--al-primary); }
+.al-text-on-surface      { color: var(--al-on-surface); }
+.al-text-on-surface-muted { color: var(--al-on-surface-variant); }
+
+/* Float shadow (ambient — no pure black) */
+.al-shadow-float {
+  box-shadow: var(--al-shadow-float);
+}
+
+/* Glassmorphism — light mode float */
+.al-card-glass {
+  background: rgba(249, 249, 247, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Gradient CTA */
+.al-gradient-cta {
+  background: var(--al-gradient-cta);
+}
+
+/* Ghost border (accessibility fallback — outline-variant at 20%) */
+.al-ghost-border {
+  border: 1px solid var(--al-ghost-border);
+}
+
+/* Atelier Light service card */
+.al-service-card {
+  background: var(--al-surface-container-low);
+  border-radius: var(--al-radius-lg);
+  padding: 1.25rem 1.5rem;
+  transition: background var(--duration-fast) ease;
+}
+.al-service-card:hover {
+  background: var(--al-surface-container);
+}
+
+/* Focus ring */
+.al-focus:focus-visible {
+  outline: 2px solid var(--al-primary);
+  outline-offset: 2px;
+}
+
+/* Light skeleton (Atelier Light) */
+.al-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--al-surface-container-low) 25%,
+    var(--al-surface-container) 50%,
+    var(--al-surface-container-low) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
 }

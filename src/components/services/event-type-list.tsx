@@ -8,7 +8,7 @@ type EventTypeItem = {
   name: string;
   description: string | null;
   durationMinutes: number;
-  bufferMinutes: 0 | 5 | 10;
+  bufferMinutes: 0 | 5 | 10 | null;
   depositAmountCents: number | null;
   isHidden: boolean;
   isActive: boolean;
@@ -140,7 +140,7 @@ export function EventTypeList({
 
                 <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                   {eventType.durationMinutes} min
-                  {eventType.bufferMinutes > 0
+                  {eventType.bufferMinutes != null && eventType.bufferMinutes > 0
                     ? ` \u2022 ${eventType.bufferMinutes} min buffer`
                     : ""}
                 </p>

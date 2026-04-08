@@ -35,8 +35,8 @@ export function FormInput({
 
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-sm font-medium text-white">
-        {label} {required ? <span className="text-error-red">*</span> : null}
+      <label htmlFor={id} className="mb-2.5 block text-sm font-bold text-primary uppercase tracking-wider">
+        {label} {required ? <span className="text-destructive">*</span> : null}
       </label>
       <input
         id={id}
@@ -50,31 +50,31 @@ export function FormInput({
         aria-describedby={descriptionId}
         autoComplete={autoComplete}
         className={`
-          w-full rounded-lg border px-4 py-3 text-base text-white transition-all duration-200
-          placeholder:text-text-light-muted focus:ring-2 focus:outline-none
+          w-full rounded-xl border px-5 py-4 text-base text-primary transition-all duration-300
+          placeholder:text-muted-foreground/40 focus:ring-4 focus:outline-none font-medium
           ${
             error
-              ? "border-error-red bg-error-red/5 focus:border-error-red focus:ring-error-red/20"
+              ? "border-destructive/50 bg-destructive/5 focus:border-destructive focus:ring-destructive/10"
               : success
-                ? "border-success-green bg-bg-dark-secondary focus:border-success-green focus:ring-success-green/20"
-                : "border-white/10 bg-bg-dark-secondary focus:border-primary focus:ring-primary/20"
+                ? "border-success/50 bg-success/5 focus:border-success focus:ring-success/10"
+                : "border-border/60 bg-al-surface-low focus:border-primary/40 focus:ring-primary/5 shadow-sm"
           }
         `}
       />
       {error ? (
-        <p id={`${id}-error`} role="alert" className="mt-1.5 flex items-center gap-1 text-xs text-error-red">
+        <p id={`${id}-error`} role="alert" className="mt-2 flex items-center gap-1.5 text-xs font-bold text-destructive/80">
           <AlertCircle className="h-3.5 w-3.5" aria-hidden />
           <span>{error}</span>
         </p>
       ) : null}
       {!error && success ? (
-        <p className="mt-1.5 flex items-center gap-1 text-xs text-success-green">
+        <p className="mt-2 flex items-center gap-1.5 text-xs font-bold text-success/80">
           <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
           <span>{success}</span>
         </p>
       ) : null}
       {!error && !success && helper ? (
-        <p id={`${id}-helper`} className="mt-1.5 text-xs text-text-light-muted">
+        <p id={`${id}-helper`} className="mt-2 text-xs font-medium text-muted-foreground/60">
           {helper}
         </p>
       ) : null}

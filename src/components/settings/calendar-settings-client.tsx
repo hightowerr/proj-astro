@@ -2,7 +2,11 @@
 
 import { useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AlertTriangle, CheckCircle2, Pencil, Sparkles, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const STITCH_URL =
+  "https://stitch.withgoogle.com/projects/18022274387003063612?node-id=b3ad17d23d0a4caea44e06d57264e171";
 
 type CalendarConnectionView = {
   id: string;
@@ -13,11 +17,24 @@ type CalendarConnectionView = {
 type CalendarSettingsClientProps = {
   connection: CalendarConnectionView | null;
   isGoogleOAuthConfigured: boolean;
+  hasShop: boolean;
 };
+
+function ComingSoon() {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ml-2"
+      style={{ background: "#fef3c7", color: "#92400e" }}
+    >
+      Coming Soon
+    </span>
+  );
+}
 
 export function CalendarSettingsClient({
   connection,
   isGoogleOAuthConfigured,
+  hasShop,
 }: CalendarSettingsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,128 +76,321 @@ export function CalendarSettingsClient({
 
   return (
     <div className="space-y-6">
+      {/* ── Success alert ──────────────────────────────────────────────── */}
       {successMessage ? (
         <div
           role="status"
-          className="rounded-lg px-4 py-3 text-sm"
-          style={{ border: "1px solid var(--color-success-border)", background: "var(--color-success-subtle)", color: "var(--color-success)" }}
+          className="flex items-center gap-3 rounded-2xl p-4 text-sm font-medium"
+          style={{ background: "#dcfce7", color: "#15803d" }}
         >
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
           {successMessage}
         </div>
       ) : null}
 
+      {/* ── Error alert ────────────────────────────────────────────────── */}
       {errorMessage ? (
         <div
           role="alert"
-          className="rounded-lg px-4 py-3 text-sm"
-          style={{ border: "1px solid var(--color-error-border)", background: "var(--color-error-subtle)", color: "var(--color-error)" }}
+          className="flex items-center gap-3 rounded-2xl p-4 text-sm font-medium"
+          style={{
+            background: "var(--al-error-container)",
+            color: "var(--al-on-error-container)",
+          }}
         >
+          <XCircle className="h-4 w-4 shrink-0" />
           {errorMessage}
         </div>
       ) : null}
 
+      {/* ── System Configuration Alert ─────────────────────────────────── */}
       {!isGoogleOAuthConfigured ? (
-        <section
-          className="space-y-3 rounded-xl p-5"
-          style={{ border: "1px solid var(--color-warning-border)", background: "var(--color-warning-subtle)" }}
+        <div
+          className="rounded-2xl p-5 border"
+          style={{
+            background: "#fff1f1",
+            borderColor: "#fca5a5",
+          }}
         >
-          <h2 className="text-lg font-semibold">Google OAuth not configured</h2>
-          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-            Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, and
-            `CALENDAR_ENCRYPTION_KEY` to enable calendar connections.
-          </p>
-        </section>
+          <div className="flex items-start gap-3">
+            <div
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+              style={{ background: "#fee2e2" }}
+            >
+              <AlertTriangle className="h-4 w-4" style={{ color: "#dc2626" }} />
+            </div>
+            <div>
+              <h2
+                className="font-manrope text-sm font-bold"
+                style={{ color: "#dc2626" }}
+              >
+                System Configuration Alert
+              </h2>
+              <p className="mt-1 text-sm" style={{ color: "#7f1d1d" }}>
+                Some environment variables are missing. External calendar
+                synchronization might be limited until these are resolved by
+                your administrator.
+              </p>
+            </div>
+          </div>
+        </div>
       ) : null}
 
-      <section
-        className="rounded-xl p-6"
-        style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}
-      >
-        <h2 className="text-lg font-semibold">Google Calendar connection</h2>
-        <p className="mt-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          V1 connects one Google account and stores encrypted OAuth tokens.
-        </p>
+      {/* ── Two-column grid ────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+        {/* ── Left column ──────────────────────────────────────────────── */}
+        <div className="space-y-5">
+          {/* Google Calendar card */}
+          <div
+            className="rounded-2xl p-6 border bg-white"
+            style={{
+              borderColor: "var(--al-outline-variant)",
+              boxShadow: "0 1px 4px rgba(26,28,27,0.04)",
+            }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {/* Google "G" icon */}
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg font-bold"
+                  style={{
+                    borderColor: "var(--al-outline-variant)",
+                    background: "#fff",
+                    color: "#4285F4",
+                  }}
+                >
+                  G
+                </div>
+                <h2 className="font-manrope text-lg font-extrabold" style={{ color: "var(--al-primary)" }}>
+                  Google Calendar
+                </h2>
+              </div>
 
-        {connection ? (
-          <div className="mt-5 space-y-4">
-            <div
-              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
-              style={{ border: "1px solid var(--color-success-border)", background: "var(--color-success-subtle)", color: "var(--color-success)" }}
-            >
-              <span className="h-2 w-2 rounded-full" style={{ background: "var(--color-success)" }} aria-hidden />
-              Connected
+              {connection ? (
+                <button
+                  type="button"
+                  onClick={handleDisconnect}
+                  disabled={isPending}
+                  className="shrink-0 text-sm font-semibold hover:underline disabled:opacity-50"
+                  style={{ color: "#dc2626" }}
+                >
+                  {isPending ? "Disconnecting…" : "Disconnect Account"}
+                </button>
+              ) : null}
             </div>
 
-            <dl className="grid gap-3 text-sm sm:grid-cols-2">
-              <div
-                className="rounded-lg p-3"
-                style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-base)" }}
-              >
-                <dt className="text-xs uppercase tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
-                  Calendar
-                </dt>
-                <dd className="mt-1 font-medium" style={{ color: "var(--color-text-primary)" }}>{connection.calendarName}</dd>
-              </div>
-              <div
-                className="rounded-lg p-3"
-                style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-base)" }}
-              >
-                <dt className="text-xs uppercase tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
+            {/* Status pill */}
+            <div className="mt-4">
+              {connection ? (
+                <span
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                  style={{ background: "#dcfce7", color: "#15803d" }}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ background: "#15803d" }}
+                    aria-hidden
+                  />
                   Connected
-                </dt>
-                <dd className="mt-1 font-medium" style={{ color: "var(--color-text-primary)" }}>
-                  {new Date(connection.createdAt).toLocaleString()}
-                </dd>
-              </div>
-            </dl>
-
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDisconnect}
-              disabled={isPending}
-            >
-              {isPending ? "Disconnecting..." : "Disconnect Google Calendar"}
-            </Button>
-          </div>
-        ) : (
-          <div className="mt-5 space-y-4">
-            <div
-              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
-              style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-base)", color: "var(--color-text-secondary)" }}
-            >
-              <span className="h-2 w-2 rounded-full" style={{ background: "var(--color-text-tertiary)" }} aria-hidden />
-              Not connected
+                </span>
+              ) : (
+                <span
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                  style={{
+                    background: "var(--al-surface-container)",
+                    color: "var(--al-on-surface-variant)",
+                  }}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ background: "var(--al-on-surface-variant)" }}
+                    aria-hidden
+                  />
+                  Not connected
+                </span>
+              )}
             </div>
 
-            <p className="max-w-2xl text-sm" style={{ color: "var(--color-text-secondary)" }}>
-              Authorize Google Calendar to prepare automated booking sync in upcoming slices.
-              V1 stores the connection and lets you disconnect at any time.
-            </p>
-
-            <Button
-              asChild
-              disabled={!isGoogleOAuthConfigured || isPending}
-              aria-disabled={!isGoogleOAuthConfigured || isPending}
-            >
-              <a href="/api/settings/calendar/connect">Connect Google Calendar</a>
-            </Button>
+            {/* Connected state: info tiles */}
+            {connection ? (
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div
+                  className="rounded-xl p-4"
+                  style={{ background: "var(--al-surface-container-low)" }}
+                >
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: "var(--al-on-surface-variant)" }}
+                  >
+                    Email Address
+                  </p>
+                  <p
+                    className="mt-1 text-sm font-semibold break-all"
+                    style={{ color: "var(--al-primary)" }}
+                  >
+                    {connection.calendarName}
+                  </p>
+                </div>
+                <div
+                  className="rounded-xl p-4"
+                  style={{ background: "var(--al-surface-container-low)" }}
+                >
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: "var(--al-on-surface-variant)" }}
+                  >
+                    Sync Frequency
+                    <ComingSoon />
+                  </p>
+                  <p
+                    className="mt-1 text-sm font-semibold"
+                    style={{ color: "var(--al-on-surface-variant)", opacity: 0.5 }}
+                  >
+                    Real-time bidirectional
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-5 space-y-4">
+                <p
+                  className="max-w-xl text-sm"
+                  style={{ color: "var(--al-on-surface-variant)" }}
+                >
+                  Authorize Google Calendar to prepare automated booking sync in
+                  upcoming slices. V1 stores the connection and lets you
+                  disconnect at any time.
+                </p>
+                <Button
+                  variant="al-primary"
+                  size="lg"
+                  className="rounded-xl px-8"
+                  asChild
+                  disabled={!isGoogleOAuthConfigured || !hasShop || isPending}
+                  aria-disabled={!isGoogleOAuthConfigured || !hasShop || isPending}
+                >
+                  <a href="/api/settings/calendar/connect">
+                    Connect Google Calendar
+                  </a>
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </section>
 
-      <section
-        className="rounded-xl p-5"
-        style={{ border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}
-      >
-        <h2 className="text-sm font-semibold">What V1 includes</h2>
-        <ul className="mt-3 space-y-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          <li>OAuth connection and token storage (encrypted at rest)</li>
-          <li>Active connection status on this settings page</li>
-          <li>Disconnect flow using soft delete</li>
-          <li>Primary Google calendar auto-selected for this version</li>
-        </ul>
-      </section>
+          {/* Available Providers */}
+          <div>
+            <p
+              className="text-[10px] font-bold uppercase tracking-widest mb-3"
+              style={{ color: "var(--al-on-surface-variant)" }}
+            >
+              Available Providers
+            </p>
+            <div
+              className="rounded-2xl p-5 border bg-white flex items-center justify-between gap-4"
+              style={{
+                borderColor: "var(--al-outline-variant)",
+                boxShadow: "0 1px 4px rgba(26,28,27,0.04)",
+              }}
+            >
+              <div className="flex items-center gap-3">
+                {/* Outlook icon placeholder */}
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-sm font-bold"
+                  style={{
+                    borderColor: "#bfdbfe",
+                    background: "#eff6ff",
+                    color: "#1d4ed8",
+                  }}
+                >
+                  Ol
+                </div>
+                <div>
+                  <p className="text-sm font-bold" style={{ color: "var(--al-primary)" }}>
+                    Outlook Calendar
+                  </p>
+                  <p className="text-xs" style={{ color: "var(--al-on-surface-variant)" }}>
+                    Connect your Microsoft 365 account
+                  </p>
+                </div>
+              </div>
+              <a
+                href={STITCH_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+                style={{ background: "var(--al-primary)" }}
+              >
+                Connect Outlook
+                <ComingSoon />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Right column: sidebar ─────────────────────────────────────── */}
+        <div className="space-y-5">
+          {/* Booking Logic panel */}
+          <div
+            className="rounded-2xl p-6"
+            style={{ background: "#1e2a3a" }}
+          >
+            <h3 className="font-manrope text-base font-bold mb-5" style={{ color: "#fff" }}>
+              Booking Logic
+            </h3>
+            <div className="space-y-3">
+              {[
+                { label: "LEAD TIME", value: "24 Hours Notice" },
+                { label: "BUFFER PERIODS", value: "15 Min Intervals" },
+                { label: "BOOKING HORIZON", value: "60 Days Forward" },
+              ].map(({ label, value }) => (
+                <div
+                  key={label}
+                  className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+                  style={{ background: "rgba(255,255,255,0.08)" }}
+                >
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
+                      {label}
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold" style={{ color: "#fff" }}>
+                      {value}
+                    </p>
+                  </div>
+                  <a
+                    href={STITCH_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Coming soon"
+                    className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg opacity-40 hover:opacity-70 transition-opacity"
+                    style={{ background: "rgba(255,255,255,0.12)" }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" style={{ color: "#fff" }} />
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Atelier Tip panel */}
+          <div
+            className="rounded-2xl p-5"
+            style={{ background: "#fdf2f0" }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-3.5 w-3.5" style={{ color: "#c2410c" }} />
+              <p
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: "#c2410c" }}
+              >
+                Atelier Tip
+              </p>
+            </div>
+            <p className="text-sm leading-relaxed" style={{ color: "#7c2d12" }}>
+              Increasing your buffer periods by just 5 minutes can reduce studio
+              stress by up to 20% during peak seasons.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

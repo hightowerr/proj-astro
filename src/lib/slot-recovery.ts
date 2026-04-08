@@ -389,13 +389,18 @@ export async function acceptOffer(
     }
 
     let eventTypeDepositCents: number | null = null;
+    let eventTypeBufferMinutes: number | null = null;
     if (slotOpening.eventTypeId) {
       const [eventType] = await db
-        .select({ depositAmountCents: eventTypes.depositAmountCents })
+        .select({
+          depositAmountCents: eventTypes.depositAmountCents,
+          bufferMinutes: eventTypes.bufferMinutes,
+        })
         .from(eventTypes)
         .where(eq(eventTypes.id, slotOpening.eventTypeId))
         .limit(1);
       eventTypeDepositCents = eventType?.depositAmountCents ?? null;
+      eventTypeBufferMinutes = eventType?.bufferMinutes ?? null;
     }
 
     const durationMinutes = Math.round(
@@ -409,6 +414,7 @@ export async function acceptOffer(
       durationMinutes,
       eventTypeId: slotOpening.eventTypeId ?? null,
       eventTypeDepositCents,
+      eventTypeBufferMinutes,
       customer: {
         fullName: customer.fullName,
         phone: customer.phone,

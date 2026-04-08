@@ -54,6 +54,7 @@ describe("GET /api/availability", () => {
     expect(mockGetAvailabilityForDate).toHaveBeenCalledWith(
       "shop-1",
       "2026-03-15",
+      undefined,
       undefined
     );
     expect(body.durationMinutes).toBe(60);
@@ -65,6 +66,7 @@ describe("GET /api/availability", () => {
       shopId: "shop-1",
       isActive: true,
       durationMinutes: 90,
+      bufferMinutes: 10,
     });
     mockGetAvailabilityForDate.mockResolvedValue({
       date: "2026-03-15",
@@ -93,7 +95,8 @@ describe("GET /api/availability", () => {
     expect(mockGetAvailabilityForDate).toHaveBeenCalledWith(
       "shop-1",
       "2026-03-15",
-      90
+      90,
+      10
     );
     expect(body.durationMinutes).toBe(90);
     expect(body.slots?.[0]?.endsAt).toBe("2026-03-15T11:30:00.000Z");
@@ -117,6 +120,7 @@ describe("GET /api/availability", () => {
     expect(mockGetAvailabilityForDate).toHaveBeenCalledWith(
       "shop-1",
       "2026-03-15",
+      undefined,
       undefined
     );
   });

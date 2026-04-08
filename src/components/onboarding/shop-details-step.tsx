@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { FormInput } from "./form-input";
+import { Button } from "@/components/ui/button";
 import type { BusinessTypeValue } from "./business-type-step";
+import { FormInput } from "./form-input";
 
 type ShopDetailsStepProps = {
   businessType: BusinessTypeValue;
@@ -127,15 +128,15 @@ export function ShopDetailsStep({
   };
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="mb-2 text-2xl font-bold text-white lg:text-3xl">
-          Great! Now let&apos;s set up your {businessTypeLabels[businessType]}
+    <div className="space-y-10">
+      <div className="text-center space-y-3">
+        <h1 className="text-3xl font-extrabold text-primary tracking-tight lg:text-4xl">
+          Set up your {businessTypeLabels[businessType]}
         </h1>
-        <p className="text-base text-text-muted lg:text-lg">We just need a few details to get started</p>
+        <p className="text-lg text-muted-foreground font-medium">Define your public brand and URL</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         <FormInput
           label="Shop name"
           id="shop-name"
@@ -147,11 +148,11 @@ export function ShopDetailsStep({
           onBlur={validateShopName}
           error={errors.name}
           required
-          placeholder="My Awesome Shop"
+          placeholder="e.g. Atelier Studio"
           autoComplete="organization"
         />
 
-        <div>
+        <div className="space-y-3">
           <FormInput
             label="Shop URL slug"
             id="shop-slug"
@@ -163,50 +164,56 @@ export function ShopDetailsStep({
             onBlur={validateShopSlug}
             error={errors.slug}
             required
-            placeholder="my-shop"
+            placeholder="e.g. atelier-studio"
             autoComplete="off"
           />
-          <p className="mt-1.5 text-xs font-mono text-text-light-muted">
-            astro.com/book/<span className="text-primary">{shopSlug || "your-shop-slug"}</span>
-          </p>
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">Public link</span>
+            <div className="h-px flex-1 bg-border/40" />
+            <p className="text-xs font-mono text-muted-foreground font-medium">
+              astro.com/book/<span className="text-primary font-bold">{shopSlug || "your-slug"}</span>
+            </p>
+          </div>
         </div>
 
         {submitError ? (
-          <p role="alert" className="rounded-lg border border-error-red/40 bg-error-red/10 p-3 text-sm text-error-red">
+          <p role="alert" className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm font-bold text-destructive/80 animate-in fade-in zoom-in-95">
             {submitError}
           </p>
         ) : null}
       </div>
 
-      <div className="flex flex-col-reverse justify-between gap-4 sm:flex-row">
-        <button
+      <div className="flex flex-col-reverse justify-between gap-5 sm:flex-row pt-4">
+        <Button
           onClick={() => {
             setSubmitError(null);
             onBack();
           }}
-          className="rounded-xl border border-white/30 px-6 py-3 text-white transition-colors duration-200 hover:bg-white/10"
+          variant="al-ghost"
+          className="px-8 py-7 rounded-2xl font-bold text-lg h-auto border border-border/40 hover:bg-background transition-all active:scale-95"
           type="button"
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="flex items-center justify-center gap-2 rounded-xl bg-accent-coral px-8 py-3 font-semibold text-bg-dark transition-colors duration-200 hover:bg-[#F09070] disabled:cursor-wait disabled:opacity-75"
+          variant="al-primary"
+          className="flex-1 sm:flex-initial flex items-center justify-center gap-3 px-12 py-7 rounded-2xl font-bold text-lg h-auto shadow-xl hover:shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
           type="button"
         >
           {isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-              <span>Creating shop...</span>
+              <span>Building shop...</span>
             </>
           ) : (
             "Create Shop"
           )}
-        </button>
+        </Button>
       </div>
 
-      <p className="text-center text-xs font-medium tracking-wider text-text-light-muted uppercase" aria-live="polite">
+      <p className="text-center text-[10px] font-bold tracking-[0.2em] text-muted-foreground/50 uppercase" aria-live="polite">
         Step 2 of 3
       </p>
     </div>

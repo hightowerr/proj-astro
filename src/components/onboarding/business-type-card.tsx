@@ -21,35 +21,41 @@ export function BusinessTypeCard({
 }: BusinessTypeCardProps) {
   return (
     <motion.button
-      whileHover={{ scale: 1.03 }}
+      whileHover={{ scale: 1.05, y: -4 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.2 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
       onClick={() => onClick(value)}
       className={`
-        relative flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border p-6
-        transition-all duration-200
-        focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg-dark focus:outline-none
+        relative flex min-h-40 cursor-pointer flex-col items-center justify-center gap-4 rounded-[var(--al-radius-2xl)] border p-8
+        transition-all duration-300
+        focus:ring-4 focus:ring-primary/10 focus:outline-none
         ${
           selected
-            ? "border-2 border-primary bg-primary/5 shadow-xl shadow-primary/10"
-            : "border-white/10 bg-bg-dark-secondary hover:border-primary-light/50 hover:shadow-lg hover:shadow-primary/5"
+            ? "border-2 border-primary bg-primary/5 shadow-[var(--al-shadow-float)]"
+            : "border-border/40 bg-al-surface-low hover:border-primary/30 hover:shadow-[var(--al-shadow-float)]"
         }
       `}
       aria-pressed={selected}
       type="button"
     >
       {selected ? (
-        <span className="absolute top-3 right-3 rounded-full border border-primary/40 bg-primary/20 p-1 text-primary">
-          <Check className="h-3.5 w-3.5" aria-hidden />
+        <span className="absolute top-4 right-4 rounded-full border border-primary/40 bg-background p-1.5 text-primary shadow-[var(--al-shadow-float)]">
+          <Check className="h-4 w-4" aria-hidden />
         </span>
       ) : null}
-      <Icon
-        className={`h-12 w-12 transition-colors duration-200 ${
-          selected ? "text-primary" : "text-text-muted"
-        }`}
-        aria-hidden
-      />
-      <span className="text-base font-semibold text-white">{label}</span>
+      <div className={`rounded-[var(--al-radius-xl)] p-4 transition-all duration-300 ${
+          selected ? "bg-primary/10" : "bg-background/50"
+        }`}>
+        <Icon
+          className={`h-12 w-12 transition-colors duration-300 ${
+            selected ? "text-primary" : "text-muted-foreground/60"
+          }`}
+          aria-hidden
+        />
+      </div>
+      <span className={`font-manrope text-base font-bold transition-colors duration-300 ${
+        selected ? "text-primary" : "text-primary/70"
+      }`}>{label}</span>
     </motion.button>
   );
 }
