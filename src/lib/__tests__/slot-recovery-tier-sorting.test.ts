@@ -422,6 +422,48 @@ describeIf("getEligibleCustomers tier prioritization", () => {
     expect(eligible.some((customer) => customer.id === riskCustomerId)).toBe(true);
   });
 
+  it("excludes a customer whose existing appointment buffer overlaps the offered slot", async () => {
+    const slotOpening = await db.query.slotOpenings.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, slotOpeningId),
+    });
+
+    if (!slotOpening) {
+      throw new Error("Slot opening not found");
+    }
+
+    // candidateA: existing appt ends 5 min before slot start, but has a 10-min buffer.
+    // Raw endsAt < slotOpening.startsAt -> would pass the old check (bug).
+    // Buffered end (endsAt + 10 min) > slotOpening.startsAt -> fails new check (fix).
+    const bufferConflictId = await seedCandidate({
+      shopId,
+      fullName: "Buffer Conflict Customer",
+      phone: "+12025550191",
+      email: `buffer-conflict-${randomUUID()}@example.com`,
+    });
+    await db.insert(appointments).values({
+      shopId,
+      customerId: bufferConflictId,
+      startsAt: new Date(slotOpening.startsAt.getTime() - 65 * 60_000),
+      endsAt: new Date(slotOpening.startsAt.getTime() - 5 * 60_000),
+      effectiveBufferAfterMinutes: 10,
+      status: "booked",
+    });
+
+    // candidateB: no conflicting appointment -- should still be included.
+    const cleanId = await seedCandidate({
+      shopId,
+      fullName: "Clean Customer",
+      phone: "+12025550192",
+      email: `clean-${randomUUID()}@example.com`,
+    });
+
+    const eligible = await getEligibleCustomers(slotOpening);
+    const ids = eligible.map((c) => c.id);
+
+    expect(ids).not.toContain(bufferConflictId);
+    expect(ids).toContain(cleanId);
+  });
+
   it("prioritizes higher completed attendance when score and tier are tied", async () => {
     const highAttendanceId = await seedCandidate({
       shopId,
@@ -470,45 +512,5 @@ describeIf("getEligibleCustomers tier prioritization", () => {
     expect(highIndex).toBeGreaterThan(-1);
     expect(lowIndex).toBeGreaterThan(-1);
     expect(highIndex).toBeLessThan(lowIndex);
-  });
-
-  it("excludes a customer whose existing appointment buffer overlaps the offered slot", async () => {
-    const slotOpening = await db.query.slotOpenings.findFirst({
-      where: (table, { eq: whereEq }) => whereEq(table.id, slotOpeningId),
-    });
-
-    if (!slotOpening) {
-      throw new Error("Slot opening not found");
-    }
-
-    // BOUNDARY: slot-recovery-buffer-eligibility-v1 covers only eligibility filtering.
-    // This test proves the buffered overlap gate without expanding offer acceptance coverage.
-    const bufferConflictId = await seedCandidate({
-      shopId,
-      fullName: "Buffer Conflict Customer",
-      phone: "+12025550191",
-      email: `buffer-conflict-${randomUUID()}@example.com`,
-    });
-    await db.insert(appointments).values({
-      shopId,
-      customerId: bufferConflictId,
-      startsAt: new Date(slotOpening.startsAt.getTime() - 65 * 60_000),
-      endsAt: new Date(slotOpening.startsAt.getTime() - 5 * 60_000),
-      effectiveBufferAfterMinutes: 10,
-      status: "booked",
-    });
-
-    const cleanId = await seedCandidate({
-      shopId,
-      fullName: "Clean Customer",
-      phone: "+12025550192",
-      email: `clean-${randomUUID()}@example.com`,
-    });
-
-    const eligible = await getEligibleCustomers(slotOpening);
-    const ids = eligible.map((customer) => customer.id);
-
-    expect(ids).not.toContain(bufferConflictId);
-    expect(ids).toContain(cleanId);
   });
 });

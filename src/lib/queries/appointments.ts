@@ -202,8 +202,12 @@ export const getAvailabilityForDate = async (
           endsAt: new Date(
             slot.startsAt.getTime() + effectiveDuration * 60_000
           ),
+          bufferAfterMinutes: effectiveBufferAfterMinutes,
         }))
-      : slots;
+      : slots.map((slot) => ({
+          ...slot,
+          bufferAfterMinutes: effectiveBufferAfterMinutes,
+        }));
 
   const { start, end } = getDayStartEndUtc(dateStr, settings.timezone);
   const closeBoundaryUtc = new Date(

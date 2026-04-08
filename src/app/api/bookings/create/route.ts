@@ -151,11 +151,15 @@ export async function POST(req: Request) {
       durationMinutes: effectiveDurationMinutes,
     });
 
+    const effectiveBufferAfterMinutes =
+      eventTypeBufferMinutes ?? bookingSettings.defaultBufferMinutes ?? 0;
+
     await validateBookingConflict({
       shopId: shop.id,
       startsAt,
       endsAt,
       timezone: bookingSettings.timezone,
+      bufferAfterMinutes: effectiveBufferAfterMinutes,
     });
 
     const result = await createAppointment({

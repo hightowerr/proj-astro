@@ -288,10 +288,9 @@ export async function invalidateCalendarCache(
   }
 }
 
-export function filterSlotsForConflicts(
-  slots: { startsAt: Date; endsAt: Date }[],
-  events: CalendarEvent[]
-): { startsAt: Date; endsAt: Date }[] {
+export function filterSlotsForConflicts<
+  T extends { startsAt: Date; endsAt: Date; bufferAfterMinutes?: number },
+>(slots: T[], events: CalendarEvent[]): T[] {
   if (events.some(isAllDayEvent)) {
     console.warn("[calendar-cache] All-day event detected; blocking all slots");
     return [];
@@ -316,7 +315,7 @@ export function filterSlotsForConflicts(
 
   return slots.filter((slot) => {
     const slotStart = slot.startsAt.getTime();
-    const slotEnd = slot.endsAt.getTime();
+    const slotEnd = slot.endsAt.getTime() + (slot.bufferAfterMinutes ?? 0) * 60_000;
 
     for (const interval of timedIntervals) {
       if (

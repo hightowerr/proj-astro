@@ -173,6 +173,28 @@ describe("calendar-conflicts", () => {
     ).rejects.toBeInstanceOf(CalendarConflictError);
   });
 
+  it("throws CalendarConflictError when event overlaps only within the candidate's buffer window", async () => {
+    // Event starts after raw endsAt (14:00) but inside the 10-min buffer window (14:10)
+    mockFetchCalendarEventsWithCache.mockResolvedValue([
+      {
+        id: "evt-in-buffer",
+        summary: "Buffer Overlap",
+        start: { dateTime: "2026-03-15T14:05:00.000Z" },
+        end: { dateTime: "2026-03-15T14:30:00.000Z" },
+      },
+    ]);
+
+    await expect(
+      validateBookingConflict({
+        shopId: "shop-1",
+        startsAt: new Date("2026-03-15T13:00:00.000Z"),
+        endsAt: new Date("2026-03-15T14:00:00.000Z"),
+        timezone: "UTC",
+        bufferAfterMinutes: 10,
+      })
+    ).rejects.toThrow(CalendarConflictError);
+  });
+
   it("allows booking when events are outside overlap + buffer", async () => {
     mockFetchCalendarEventsWithCache.mockResolvedValue([
       {

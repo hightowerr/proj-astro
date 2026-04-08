@@ -188,6 +188,7 @@ export async function validateBookingConflict(input: {
   startsAt: Date;
   endsAt: Date;
   timezone: string;
+  bufferAfterMinutes?: number;
 }): Promise<void> {
   const dateStr = formatDateInTimeZone(input.startsAt, input.timezone);
 
@@ -210,7 +211,8 @@ export async function validateBookingConflict(input: {
     }
 
     const bookingStart = input.startsAt.getTime();
-    const bookingEnd = input.endsAt.getTime();
+    const bookingEnd =
+      input.endsAt.getTime() + (input.bufferAfterMinutes ?? 0) * 60_000;
 
     for (const event of events) {
       if (isAllDayEvent(event)) {
