@@ -35,7 +35,10 @@
       "Bash(mkdir:*)",
       "Bash(head -60 docs/shaping/onboarding/*.md)",
       "mcp__stitch__list_design_systems",
-      "WebFetch(domain:contribution.usercontent.google.com)"
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "mcp__plugin_vercel-plugin_vercel__get_deployment_build_logs",
+      "mcp__plugin_vercel-plugin_vercel__get_runtime_logs",
+      "mcp__plugin_vercel-plugin_vercel__get_deployment"
     ]
   },
   "enableAllProjectMcpServers": true,
