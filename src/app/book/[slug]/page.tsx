@@ -99,6 +99,36 @@ export default async function BookingPage({
     );
   }
 
+  if (eventTypes.length === 0) {
+    return (
+      <div className="container mx-auto space-y-6 px-4 py-10">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold">Book with {shop.name}</h1>
+        </div>
+        <div
+          className="max-w-xl p-8 text-center"
+          style={{
+            borderRadius: "var(--radius-xl)",
+            border: "1px solid var(--color-border-default)",
+            background: "var(--color-surface-raised)",
+          }}
+        >
+          <p className="text-sm font-medium mb-1">No services available</p>
+          <p className="text-sm mb-4" style={{ color: "var(--color-text-secondary)" }}>
+            This shop hasn&apos;t added any bookable services yet.
+          </p>
+          <a
+            href="/app/settings/services"
+            className="inline-flex items-center gap-1 text-sm font-medium underline underline-offset-4"
+            style={{ color: "var(--color-text-primary)" }}
+          >
+            Add a service &rarr;
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto space-y-6 px-4 py-10">
       <div className="space-y-2">

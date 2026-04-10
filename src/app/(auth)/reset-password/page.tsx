@@ -1,14 +1,8 @@
 import { Suspense } from "react"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { AuthShell } from "@/components/auth/auth-shell"
 import { ResetPasswordForm } from "@/components/auth/reset-password-form"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 
 export default async function ResetPasswordPage() {
@@ -19,18 +13,16 @@ export default async function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>Reset password</CardTitle>
-          <CardDescription>Enter your new password below</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center">
-          <Suspense fallback={<div>Loading...</div>}>
-            <ResetPasswordForm />
-          </Suspense>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthShell
+      heroHeadline="Almost There."
+      heroBody="Choose a strong password and get back to doing what you love."
+      formTitle="Set a new password"
+      formSubtitle="Your reset link is valid for 1 hour."
+    >
+      {/* TODO: Stitch polish — replace simple loading copy with an Atelier skeleton or spinner if the reset form loads asynchronously. */}
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading...</p>}>
+        <ResetPasswordForm />
+      </Suspense>
+    </AuthShell>
   )
 }

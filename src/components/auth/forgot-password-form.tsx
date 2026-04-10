@@ -2,10 +2,16 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { requestPasswordReset } from "@/lib/auth-client"
+
+const INPUT_CLASS_NAME =
+  "w-full rounded-xl border-0 bg-input px-5 py-4 text-foreground outline-none transition-all placeholder:text-[#737780]/50 focus:ring-1 focus:ring-primary/20 disabled:opacity-50"
+
+const PRIMARY_BUTTON_CLASS_NAME =
+  "w-full rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-xl shadow-primary/5 transition-all duration-300 hover:bg-[#003366] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
+
+const SECONDARY_LINK_CLASS_NAME =
+  "block w-full rounded-xl bg-muted py-4 text-center font-semibold text-primary transition-all duration-300 hover:bg-[var(--al-surface-container-high)]"
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("")
@@ -38,25 +44,29 @@ export function ForgotPasswordForm() {
 
   if (success) {
     return (
-      <div className="space-y-4 w-full max-w-sm text-center">
+      <div className="w-full space-y-5 text-center">
+        {/* BOUNDARY: auth-redesign-v2 keeps the existing reset-link flow and only restyles the truthful dev delivery state. */}
         <p className="text-sm text-muted-foreground">
           If an account exists with that email, a password reset link has been sent.
           Check your terminal for the reset URL.
         </p>
-        <Link href="/login">
-          <Button variant="outline" className="w-full">
-            Back to sign in
-          </Button>
+        <Link href="/login" className={SECONDARY_LINK_CLASS_NAME}>
+          Back to sign in
         </Link>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
+    <form onSubmit={handleSubmit} className="w-full space-y-5">
+      <div>
+        <label
+          htmlFor="email"
+          className="mb-2 block text-sm font-semibold text-primary"
+        >
+          Email Address
+        </label>
+        <input
           id="email"
           type="email"
           placeholder="you@example.com"
@@ -64,20 +74,38 @@ export function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={isPending}
+          autoComplete="email"
+          aria-describedby={error ? "forgot-password-error" : undefined}
+          aria-invalid={error ? "true" : undefined}
+          className={INPUT_CLASS_NAME}
         />
       </div>
+
       {error && (
-        <p className="text-sm text-destructive">{error}</p>
+        <p
+          id="forgot-password-error"
+          role="alert"
+          aria-live="polite"
+          className="text-sm text-destructive"
+        >
+          {error}
+        </p>
       )}
-      <Button type="submit" className="w-full" disabled={isPending}>
+
+      <button
+        type="submit"
+        className={PRIMARY_BUTTON_CLASS_NAME}
+        disabled={isPending}
+      >
         {isPending ? "Sending..." : "Send reset link"}
-      </Button>
-      <div className="text-center text-sm text-muted-foreground">
+      </button>
+
+      <p className="text-center text-sm text-muted-foreground">
         Remember your password?{" "}
-        <Link href="/login" className="text-primary hover:underline">
+        <Link href="/login" className="font-bold text-primary hover:underline">
           Sign in
         </Link>
-      </div>
+      </p>
     </form>
   )
 }

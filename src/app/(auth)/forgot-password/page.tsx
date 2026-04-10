@@ -1,13 +1,7 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { AuthShell } from "@/components/auth/auth-shell"
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 
 export default async function ForgotPasswordPage() {
@@ -18,18 +12,13 @@ export default async function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>Forgot password</CardTitle>
-          <CardDescription>
-            Enter your email address and we&apos;ll send you a reset link
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center">
-          <ForgotPasswordForm />
-        </CardContent>
-      </Card>
-    </div>
+    <AuthShell
+      heroHeadline="We've Got You."
+      heroBody="A fresh start is just one email away."
+      formTitle="Reset your password"
+      formSubtitle="Enter your email and we'll send a reset link to your terminal."
+    >
+      <ForgotPasswordForm />
+    </AuthShell>
   )
 }

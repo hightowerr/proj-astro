@@ -6,6 +6,82 @@
 
 ---
 
+## 0. Auth Redesign Bet (2026-04-10)
+
+### What 3 patterns should I memorize for next time?
+
+#### Pattern 1: Server Guard + Client Form Split
+- **What it is:** Put access control on the server page, but keep the interactive form itself as a client component.
+- **Where we used it:** `src/app/(auth)/login/page.tsx`, `src/app/(auth)/register/page.tsx`, `src/app/(auth)/forgot-password/page.tsx`, `src/app/(auth)/reset-password/page.tsx`.
+- **Why it matters:** The server decides "should this person even see this page?" before rendering. The client component only handles typing, button clicks, and local error state.
+- **How to recognize it next time:** If a page needs both secure redirect logic and interactive form behavior, split them. In Python terms: think of the page as the secure Flask/Django view, and the form component as the small JavaScript widget inside it.
+
+#### Pattern 2: Route-Specific Chrome Gating
+- **What it is:** A global layout can still choose different wrappers for different route families.
+- **Where we used it:** `src/components/layout/route-chrome.tsx`.
+- **Why it matters:** `/app` and auth pages should not inherit the same marketing header/footer as the public site. We solved that by teaching the global chrome layer which routes should bypass marketing chrome entirely.
+- **How to recognize it next time:** If a design says "this area of the product has its own shell," check the top-level layout first. The bug is often not inside the page itself, but in the shared wrapper above it.
+
+#### Pattern 3: Visual Refactor, Logic Stable
+- **What it is:** Change the presentation layer aggressively, but preserve the business behavior underneath.
+- **Where we used it:** `src/components/auth/auth-shell.tsx`, `src/components/auth/sign-in-button.tsx`, `src/components/auth/sign-up-form.tsx`, `src/components/auth/forgot-password-form.tsx`, `src/components/auth/reset-password-form.tsx`.
+- **Why it matters:** The auth redesign replaced cards with an editorial shell and replaced shadcn inputs/buttons with native elements, but we kept the same flows: redirect on existing session, password reset success, invalid-token handling, and post-auth navigation.
+- **How to recognize it next time:** When a ticket is mostly design/UI, identify the "behavior contract" first and leave it untouched. Restyle the frame, not the rules.
+
+### What 1 anti-pattern did we use that I should avoid?
+
+#### Anti-Pattern: Duplicating Server Truth With a Client Loading Gate
+- **What happened:** In `src/components/auth/sign-in-button.tsx` we originally hid the entire login form while `useSession().isPending` was loading, even though the server page had already checked the session and decided the user was unauthenticated.
+- **Why it's bad:** This created a fake loading state and made the page feel broken for no real benefit.
+- **Rule to memorize:** If the server already made the decision, don't add a second client-side gate unless it protects something the server truly cannot know.
+
+### The Most Complex Technical Decision, Explained Like a PM
+
+- **Decision:** Should auth pages use the normal site header/footer, or should they bypass the global marketing chrome and render inside their own dedicated shell?
+- **Where it lives:** `src/app/layout.tsx`, `src/components/layout/route-chrome.tsx`, and `src/components/auth/auth-shell.tsx`.
+
+**Plain-English version:**
+
+Think of the app like a Python web app with one big base template:
+
+- The global layout is like `base.html`.
+- `RouteChrome` is a helper that says, "for most pages, wrap the content with the marketing nav and footer."
+- `AuthShell` is a different template just for auth pages.
+
+The hard part was this: even after we built the correct login page, the wrong header and footer still appeared. That happened because the bug was not inside `/login` itself. The bug was one level above it, in the shared wrapper.
+
+So the real decision was:
+
+1. Keep one universal wrapper for every route and try to style around it.
+2. Teach the wrapper that auth routes are special and should skip the marketing chrome.
+
+We chose option 2.
+
+That was the right call because:
+- It matches the design more closely.
+- It keeps auth pages focused.
+- It prevents repeated hacks inside each auth page.
+
+**Python analogy:**
+
+Imagine every Flask view automatically gets wrapped by a decorator that adds the public navbar and footer:
+
+```python
+@public_chrome
+def login():
+    return render_template("login.html")
+```
+
+If login should have a special shell, the clean fix is not to fight the decorator inside `login.html`. The clean fix is to change the wrapper logic so auth routes do not get `@public_chrome` in the first place.
+
+That is exactly what `route-chrome.tsx` became: a route-aware wrapper selector.
+
+### What to memorize from this bet in one sentence
+
+- First decide which layer owns the rule: server page, shared layout, or client form. Most regressions happen when the same decision gets implemented in two layers.
+
+---
+
 ## 1. Patterns to Memorise
 
 ### Pattern 1: The Configuration Snapshot (Immutability)

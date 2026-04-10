@@ -1,44 +1,38 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { SignInButton } from "@/components/auth/sign-in-button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { auth } from "@/lib/auth";
+import { headers } from "next/headers"
+import { redirect } from "next/navigation"
+import { AuthShell } from "@/components/auth/auth-shell"
+import { SignInButton } from "@/components/auth/sign-in-button"
+import { auth } from "@/lib/auth"
 
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string }>;
+  searchParams: Promise<{ reset?: string }>
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: await headers() })
 
   if (session) {
-    redirect("/app");
+    redirect("/app")
   }
 
-  const { reset } = await searchParams;
+  const { reset } = await searchParams
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center">
-          {reset === "success" && (
-            <p className="mb-4 text-sm text-green-600 dark:text-green-400">
-              Password reset successfully. Please sign in with your new password.
-            </p>
-          )}
-          <SignInButton />
-        </CardContent>
-      </Card>
-    </div>
-  );
+    <AuthShell
+      heroHeadline="The Modern Atelier."
+      heroBody="Elevate your appointment experience with precision tools designed for the artisan."
+      formTitle="Log in"
+      formSubtitle="Welcome back. Please enter your details."
+    >
+      <>
+        {/* BOUNDARY: auth-redesign-v1 keeps email/password-only sign-in and the existing form component behavior. */}
+        {reset === "success" && (
+          <div className="mb-4 rounded-xl bg-muted px-4 py-3 text-sm text-primary">
+            Password reset successfully. Please sign in with your new password.
+          </div>
+        )}
+        <SignInButton />
+      </>
+    </AuthShell>
+  )
 }
