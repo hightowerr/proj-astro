@@ -38,7 +38,9 @@
       "WebFetch(domain:contribution.usercontent.google.com)",
       "mcp__plugin_vercel-plugin_vercel__get_deployment_build_logs",
       "mcp__plugin_vercel-plugin_vercel__get_runtime_logs",
-      "mcp__plugin_vercel-plugin_vercel__get_deployment"
+      "mcp__plugin_vercel-plugin_vercel__get_deployment",
+      "WebFetch(domain:unsplash.com)",
+      "WebFetch(domain:images.unsplash.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
