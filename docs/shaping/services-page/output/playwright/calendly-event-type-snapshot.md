@@ -1,0 +1,173 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - navigation [ref=e4]:
+      - generic [ref=e5]:
+        - link "Calendly logo" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img "Calendly logo" [ref=e9]
+        - list [ref=e10]:
+          - listitem [ref=e11]:
+            - link "Log In" [ref=e12] [cursor=pointer]:
+              - /url: /login?return_to=undefined
+          - listitem [ref=e14]:
+            - link "Get started" [ref=e16] [cursor=pointer]:
+              - /url: /signup
+          - listitem [ref=e18]:
+            - button "Open menu" [ref=e19]
+      - generic:
+        - generic:
+          - generic: Product
+        - generic:
+          - generic:
+            - generic
+    - generic [ref=e22]:
+      - complementary [ref=e23]:
+        - generic [ref=e24]:
+          - button "Search... ⌘ K" [ref=e25] [cursor=pointer]:
+            - img [ref=e26]
+            - text: Search...
+            - generic [ref=e29]
+          - navigation "Sidebar banner" [ref=e32]:
+            - link "Help Center" [ref=e33] [cursor=pointer]:
+              - /url: /help
+            - link "Learning Hub" [ref=e38] [cursor=pointer]:
+              - /url: /learn
+        - generic [ref=e45]:
+          - paragraph [ref=e46]: Categories
+          - generic "Account" [ref=e47]:
+            - button "Account" [ref=e49] [cursor=pointer]
+          - generic "Integrations" [ref=e54]:
+            - button "Integrations" [ref=e56] [cursor=pointer]
+          - generic "Scheduling" [ref=e61]:
+            - button "Scheduling" [expanded] [ref=e63] [cursor=pointer]
+            - generic [ref=e68]
+          - generic "Notetaker" [ref=e81]:
+            - button "Notetaker Limited" [ref=e83] [cursor=pointer]
+          - generic "Admins" [ref=e90]:
+            - button "Admins" [ref=e92] [cursor=pointer]
+          - generic "AI Assistant" [ref=e97]:
+            - button "AI Assistant Beta" [ref=e99] [cursor=pointer]
+          - generic "Contacts" [ref=e106]:
+            - button "Contacts" [ref=e108] [cursor=pointer]
+          - generic "Payments" [ref=e113]:
+            - button "Payments" [ref=e115] [cursor=pointer]
+          - generic "Mobile app" [ref=e120]:
+            - button "Mobile app" [ref=e122] [cursor=pointer]
+        - generic [ref=e127]:
+          - link "Contact support" [ref=e128] [cursor=pointer]:
+            - /url: /help/support
+            - img [ref=e129]
+            - generic [ref=e132]: Contact support
+          - link "Report abuse" [ref=e133] [cursor=pointer]:
+            - /url: /help/report-abuse-to-calendly
+            - img [ref=e134]
+            - generic [ref=e137]: Report abuse
+          - link "Calendly community" [ref=e138] [cursor=pointer]:
+            - /url: https://community.calendly.com/
+            - img [ref=e140]
+            - generic [ref=e144]: Calendly community
+            - img [ref=e145]
+          - link "Developer docs" [ref=e147] [cursor=pointer]:
+            - /url: https://developer.calendly.com/
+            - img [ref=e148]
+            - generic [ref=e153]: Developer docs
+            - img [ref=e154]
+      - button "0.3333333333333333 Table of contents Overview" [ref=e159]:
+        - progressbar [ref=e160]
+        - generic [ref=e163]:
+          - generic: Table of contents
+          - generic [ref=e164]: Overview
+        - img [ref=e165]
+      - article [ref=e167]:
+        - generic [ref=e168]:
+          - generic [ref=e170]:
+            - generic [ref=e171]
+            - link "Event types" [ref=e179] [cursor=pointer]:
+              - /url: /help/event-types
+          - generic [ref=e181]:
+            - heading "How to set up an event type" [level=1] [ref=e182]
+            - generic [ref=e183]
+          - generic [ref=e192]:
+            - generic [ref=e193]
+            - link "View plans" [ref=e196] [cursor=pointer]:
+              - /url: /pricing
+          - iframe [ref=e204]:
+            - generic [active] [ref=f6e1]:
+              - region "Notifications alt+T"
+              - generic [ref=f6e6]:
+                - generic [ref=f6e7]:
+                  - generic [ref=f6e8]:
+                    - generic [ref=f6e9]:
+                      - button [ref=f6e10] [cursor=pointer]:
+                        - img [ref=f6e11]
+                      - button [ref=f6e13] [cursor=pointer]:
+                        - img [ref=f6e14]
+                    - generic [ref=f6e19]:
+                      - button [ref=f6e20] [cursor=pointer]:
+                        - img [ref=f6e21]
+                      - button [ref=f6e25] [cursor=pointer]:
+                        - img [ref=f6e26]
+                  - generic [ref=f6e30]:
+                    - button [ref=f6e31] [cursor=pointer]
+                    - button [ref=f6e32] [cursor=pointer]
+                    - button [ref=f6e33] [cursor=pointer]
+                    - button [ref=f6e34] [cursor=pointer]
+                    - button [ref=f6e35] [cursor=pointer]
+                    - button [ref=f6e36] [cursor=pointer]
+                    - button [ref=f6e37] [cursor=pointer]
+                    - button [ref=f6e38] [cursor=pointer]
+                    - button [ref=f6e39] [cursor=pointer]
+                - img "Demo step image" [ref=f6e44]
+              - region "Notifications alt+T"
+              - alert [ref=f6e42]
+          - heading "Overview" [level=2] [ref=e205]
+          - paragraph [ref=e206]:
+            - text: Learn how to create an event type in Calendly. This article covers the general steps, and you can explore
+            - link "more event types" [ref=e207] [cursor=pointer]:
+              - /url: /help/event-types-overview
+            - text: with different scheduling options.
+          - separator [ref=e208]
+          - heading "Create an event type" [level=2] [ref=e209]
+          - list [ref=e210]:
+            - listitem [ref=e211]
+            - listitem [ref=e213]
+            - listitem [ref=e215]: "After selecting an event type, you’ll see the event editor on the right. From here, customize your event details:"
+            - list [ref=e216]
+            - listitem [ref=e233]
+            - listitem [ref=e236]
+          - separator [ref=e238]
+          - heading "What's next?" [level=2] [ref=e239]
+          - paragraph [ref=e240]: "Now that you've created an event type, here are some ways to start scheduling and managing your meetings:"
+          - list [ref=e241]:
+            - listitem [ref=e242]
+            - listitem [ref=e244]
+            - listitem [ref=e246]
+          - generic [ref=e248]:
+            - generic [ref=e249]
+            - generic [ref=e252]
+          - generic [ref=e259]:
+            - heading "Related articles" [level=5] [ref=e261]
+            - generic [ref=e262]
+        - generic [ref=e295]:
+          - separator [ref=e296]
+          - generic [ref=e298]:
+            - generic [ref=e299]
+            - generic [ref=e303]
+          - separator [ref=e328]
+          - generic [ref=e332]:
+            - generic "Language selector" [ref=e333] [cursor=pointer]
+            - generic [ref=e342]
+            - generic [ref=e358]: Copyright Calendly 2026
+  - region "Cookie banner" [ref=e359]:
+    - dialog "Privacy" [ref=e360]:
+      - generic [ref=e361]:
+        - generic [ref=e364]:
+          - text: We use cookies and similar technologies, including necessary cookies to provide our website, and optional cookies to improve and personalize your experience, to understand website interactions (including clicks, cursor movement and screen recordings), and for marketing. You may accept all, decline all optional cookies, or manage your optional cookies. To learn more, visit our
+          - link "privacy notice" [ref=e365] [cursor=pointer]:
+            - /url: https://calendly.com/privacy
+          - text: .
+        - generic [ref=e367]:
+          - button "Cookie settings, Opens the preference center dialog" [ref=e368] [cursor=pointer]: Cookie settings
+          - generic [ref=e369]:
+            - button "Decline all" [ref=e370] [cursor=pointer]
+            - button "Accept all" [ref=e371] [cursor=pointer]

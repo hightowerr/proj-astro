@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Atelier | Services Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#3a5f94",
+                        "error": "#ba1a1a",
+                        "background": "#f9f9f7",
+                        "primary-container": "#003366",
+                        "outline-variant": "#c3c6d1",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e2e3e1",
+                        "inverse-surface": "#2f3130",
+                        "primary-fixed": "#d5e3ff",
+                        "secondary": "#74584f",
+                        "on-surface": "#1a1c1b",
+                        "surface-variant": "#e2e3e1",
+                        "on-surface-variant": "#43474f",
+                        "secondary-fixed-dim": "#e2bfb3",
+                        "surface-container-high": "#e8e8e6",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#d38970",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#799dd6",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "tertiary-fixed": "#ffdbcf",
+                        "error-container": "#ffdad6",
+                        "on-background": "#1a1c1b",
+                        "tertiary": "#3b1002",
+                        "on-secondary-fixed-variant": "#5a4138",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "secondary-container": "#fdd8cb",
+                        "inverse-primary": "#a7c8ff",
+                        "primary": "#001e40",
+                        "on-primary-fixed": "#001b3c",
+                        "surface-dim": "#dadad8",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9f7",
+                        "on-secondary-container": "#785c53",
+                        "surface-container-low": "#f4f4f2",
+                        "tertiary-container": "#572411",
+                        "outline": "#737780",
+                        "surface-container": "#eeeeec",
+                        "on-secondary-fixed": "#2a170f",
+                        "tertiary-fixed-dim": "#ffb59c",
+                        "on-tertiary-fixed": "#380d01",
+                        "secondary-fixed": "#ffdbcf",
+                        "surface-bright": "#f9f9f7",
+                        "on-tertiary-fixed-variant": "#6f3723",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.25rem",
+                        "3xl": "1.75rem",
+                        "4xl": "2.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+<!-- Desktop Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-72 bg-white dark:bg-slate-900 border-r border-stone-100 dark:border-slate-800 hidden lg:flex flex-col z-40">
+<div class="p-8">
+<div class="flex items-center gap-3 text-primary dark:text-blue-400">
+<span class="material-symbols-outlined text-3xl">dashboard_customize</span>
+<span class="text-xl font-extrabold tracking-widest uppercase">Atelier</span>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-2 mt-4">
+<a class="flex items-center gap-4 px-4 py-4 text-on-surface-variant hover:bg-stone-100 dark:hover:bg-slate-800 rounded-2xl transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Home Hub</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-4 text-on-surface-variant hover:bg-stone-100 dark:hover:bg-slate-800 rounded-2xl transition-all" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-medium">Appointments</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-4 bg-primary text-on-primary rounded-2xl shadow-lg shadow-primary/10" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="font-bold">Shop Catalog</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-4 text-on-surface-variant hover:bg-stone-100 dark:hover:bg-slate-800 rounded-2xl transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-medium">Business Reports</span>
+</a>
+<div class="pt-8 pb-4 px-4">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant opacity-50">Settings</span>
+</div>
+<a class="flex items-center gap-4 px-4 py-4 text-on-surface-variant hover:bg-stone-100 dark:hover:bg-slate-800 rounded-2xl transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Shop Profile</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-4 text-on-surface-variant hover:bg-stone-100 dark:hover:bg-slate-800 rounded-2xl transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-medium">Help Center</span>
+</a>
+</nav>
+<div class="p-6 border-t border-stone-100 dark:border-slate-800">
+<div class="flex items-center gap-4">
+<img alt="Profile" class="w-10 h-10 rounded-full object-cover ring-2 ring-stone-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa_trS9Ine5HoCiQQCIww3vhRLofOztZcc96P7wLZgtKZoK2AR59ciNVf-WfI8QiSqdwvhuw2UVcBkuVvWxaRsYcGyoyN0Bezb3OLgIZwdgHDzyynNLqZl387E5y6FUT3BNYYYMQvbDcFXu0UFNSdvvUnPxCtsR0IWHU8i3ziKO3fumlJpvhYp0ZCHT8Gjp90MbRpwP8KlzVVhkFTqVfdasEuFH6PqX_LSTTrjHV2PiSGekDJ2MMW5ULlBSd1FwhMz8k0pS09KmibE"/>
+<div>
+<p class="text-sm font-bold text-primary">Atelier Admin</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Professional Plan</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Mobile Header -->
+<header class="lg:hidden bg-background/80 backdrop-blur-xl sticky top-0 z-50 flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">menu</span>
+<h1 class="text-xl font-extrabold tracking-widest text-primary uppercase">Atelier</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/10">
+<img alt="User profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3YKS3Ja1OTVLVSy2PVQpcc1wbHJb8JwkyurwjgQGz3ODeNkBEktDuC9mMfI6Iy1dQkOUZtYkEWIU_TWxgfS9zE30RCHxhPzfMkWSH1fEd4EbeMPHj0T9GahInNPI6qFyshi4FVDEbqAtx3DL6q6vDEgABL2kqpAiE5RFlrYoCO1ENcNR39t6F5YQsemD7F_mdrLHprZsfGDKMEaVFHSr6y8O-mTRKQ2onR1uqKjnm_9RESBCfUgBxfSCvn4gW04mStZgLDOHKQPUv"/>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="lg:ml-72 min-h-screen p-6 md:p-10 lg:p-16">
+<header class="mb-8 max-w-full">
+<div class="flex items-center gap-2 text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-4 opacity-60">
+<span>Settings</span>
+<span class="material-symbols-outlined text-[10px]">chevron_right</span>
+<span class="text-primary opacity-100">Service Catalog</span>
+</div>
+<h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-primary mb-2">Services Management</h1>
+<p class="text-on-surface-variant text-base font-medium max-w-2xl leading-relaxed">
+                Define your craft. Configure service durations, buffers, and bespoke deposit requirements.
+            </p>
+</header>
+<div class="flex flex-col xl:flex-row gap-8 items-start">
+<!-- Left Pane: Service List -->
+<section class="w-full xl:w-1/2 space-y-4">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant opacity-60">Your Services</h2>
+<button class="flex items-center gap-2 text-primary font-bold text-sm hover:underline">
+<span class="material-symbols-outlined text-sm">add</span> Add New
+                    </button>
+</div>
+<!-- Active Service -->
+<div class="bg-white dark:bg-slate-900 rounded-2xl p-5 flex items-center justify-between gap-4 border-2 border-primary shadow-sm">
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-bold text-primary truncate">Bespoke Suit Consultation</h3>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed/30 text-primary-fixed-variant text-[8px] font-bold uppercase tracking-widest">Default</span>
+</div>
+<div class="flex gap-3 text-xs text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> 60m</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">payments</span> $50</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary">chevron_right</span>
+</div>
+<!-- Another Service -->
+<div class="bg-white dark:bg-slate-900 rounded-2xl p-5 flex items-center justify-between gap-4 border border-stone-100 dark:border-slate-800 hover:border-primary/30 transition-all cursor-pointer shadow-sm">
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-on-surface truncate">Executive Alterations</h3>
+<div class="flex gap-3 text-xs text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> 30m</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">hourglass_empty</span> Shop Default</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant opacity-30">chevron_right</span>
+</div>
+<!-- Inactive Service -->
+<div class="bg-stone-50 dark:bg-slate-800/50 rounded-2xl p-5 flex items-center justify-between gap-4 border border-stone-100 dark:border-slate-800 opacity-60">
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-on-surface-variant truncate">Bridal Gown Sculpting</h3>
+<span class="text-[8px] font-bold uppercase text-on-surface-variant/60">Hidden</span>
+</div>
+</div>
+<button class="text-xs font-bold text-primary underline">Restore</button>
+</div>
+</section>
+<!-- Right Pane: Edit Form -->
+<section class="w-full xl:w-1/2 sticky top-24">
+<div class="bg-white dark:bg-slate-900 rounded-3xl border border-stone-100 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col">
+<!-- Form Content Area -->
+<div class="p-8 space-y-6">
+<div class="mb-2">
+<h3 class="text-2xl font-extrabold text-primary">Edit Service</h3>
+<p class="text-sm text-on-surface-variant mt-1">Updating: Executive Alterations</p>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant ml-1 opacity-60">Service Name</label>
+<input class="w-full bg-background dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-on-surface" type="text" value="Executive Alterations"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant ml-1 opacity-60">Duration (min)</label>
+<input class="w-full bg-background dark:bg-slate-800 border-none rounded-xl px-4 py-3" type="number" value="30"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant ml-1 opacity-60">Deposit Override ($)</label>
+<input class="w-full bg-background dark:bg-slate-800 border-none rounded-xl px-4 py-3" placeholder="Same as policy" type="number" value=""/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant ml-1 opacity-60">Description</label>
+<textarea class="w-full bg-background dark:bg-slate-800 border-none rounded-xl px-4 py-3" rows="3">Express fitting and pinning for suit jackets, trousers, or skirts. Guaranteed 48-hour turnaround.</textarea>
+</div>
+<div class="space-y-3">
+<label class="text-[10px] font-extrabold uppercase tracking-widest text-on-surface-variant ml-1 opacity-60">Buffer Selection</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 text-xs font-bold border border-outline-variant/30 rounded-lg hover:bg-white transition-all text-on-surface-variant">None</button>
+<button class="px-4 py-2 text-xs font-bold border border-outline-variant/30 rounded-lg hover:bg-white transition-all text-on-surface-variant">5m</button>
+<button class="px-4 py-2 text-xs font-bold border border-outline-variant/30 rounded-lg hover:bg-white transition-all text-on-surface-variant">10m</button>
+<button class="px-4 py-2 text-xs font-bold bg-primary text-on-primary rounded-lg shadow-md">Shop Default</button>
+</div>
+</div>
+</div>
+<!-- Refactored Footer Section -->
+<div class="bg-stone-50/50 dark:bg-slate-800/30 p-8 border-t border-stone-100 dark:border-slate-800">
+<div class="flex flex-col md:flex-row items-end justify-between gap-8">
+<!-- Toggles Section -->
+<div class="flex flex-col gap-5 w-full md:w-auto">
+<label class="flex items-center justify-between md:justify-start gap-4 cursor-pointer group">
+<div class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-outline-variant/30 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</div>
+<span class="text-[11px] font-extrabold uppercase tracking-widest text-on-surface">Active</span>
+</label>
+<label class="flex items-center justify-between md:justify-start gap-4 cursor-pointer group">
+<div class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-outline-variant/30 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</div>
+<span class="text-[11px] font-extrabold uppercase tracking-widest text-on-surface-variant opacity-70">Hide from Public Page</span>
+</label>
+</div>
+<!-- Action Buttons Section -->
+<div class="flex items-center gap-6 w-full md:w-auto">
+<button class="px-2 py-2 text-xs font-bold text-on-surface-variant uppercase tracking-widest hover:text-primary transition-colors border-b-2 border-transparent hover:border-primary/20">Cancel</button>
+<button class="flex-1 md:flex-none px-10 py-4 bg-primary text-on-primary rounded-xl text-xs font-bold uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Save Changes</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Mobile Bottom Navigation -->
+<nav class="lg:hidden bg-background/90 backdrop-blur-2xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-3 shadow-[0px_-10px_40px_rgba(0,0,0,0.05)] border-t border-stone-100">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 px-6 py-2.5" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold uppercase tracking-wider mt-1">Hub</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 px-6 py-2.5" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px] font-bold uppercase tracking-wider mt-1">Book</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-full px-6 py-2.5 transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="text-[10px] font-bold uppercase tracking-wider mt-1">Catalog</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 px-6 py-2.5" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-wider mt-1">Shop</span>
+</a>
+</nav>
+</body></html>

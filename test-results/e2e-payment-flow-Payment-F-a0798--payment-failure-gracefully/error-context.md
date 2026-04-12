@@ -1,69 +1,37 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
-  - link "Skip to main content" [ref=e2] [cursor=pointer]:
-    - /url: "#main-content"
-  - banner [ref=e3]:
-    - navigation [ref=e4]:
-      - link "Astro homepage" [ref=e5] [cursor=pointer]:
-        - /url: /
-        - text: Astro
-      - generic [ref=e6]:
-        - link "How It Works" [ref=e7] [cursor=pointer]:
-          - /url: "#how-it-works"
-        - link "Features" [ref=e8] [cursor=pointer]:
-          - /url: "#features"
-        - link "Pricing" [ref=e9] [cursor=pointer]:
-          - /url: "#pricing"
-        - link "FAQ" [ref=e10] [cursor=pointer]:
-          - /url: "#faq"
-      - generic [ref=e11]:
-        - link "Open App" [ref=e12] [cursor=pointer]:
-          - /url: /app
-        - button "Sign Out" [ref=e13]
-  - main [ref=e14]:
-    - generic [ref=e18]:
-      - generic [ref=e19]:
-        - heading "Great! Now let's set up your Hair Salon" [level=1] [ref=e20]
-        - paragraph [ref=e21]: We just need a few details to get started
-      - generic [ref=e22]:
-        - generic [ref=e23]:
-          - generic [ref=e24]: Shop name *
-          - textbox "Shop name *" [ref=e25]:
-            - /placeholder: My Awesome Shop
-        - generic [ref=e26]:
-          - generic [ref=e27]:
-            - generic [ref=e28]: Shop URL slug *
-            - textbox "Shop URL slug *" [ref=e29]:
-              - /placeholder: my-shop
-          - paragraph [ref=e30]: astro.com/book/your-shop-slug
-      - generic [ref=e31]:
-        - button "Back" [ref=e32]
-        - button "Create Shop" [ref=e33]
-      - paragraph [ref=e34]: Step 2 of 3
-  - contentinfo [ref=e35]:
-    - generic [ref=e36]:
-      - link "Astro" [ref=e37] [cursor=pointer]:
-        - /url: /
-      - generic [ref=e38]:
-        - link "How It Works" [ref=e39] [cursor=pointer]:
-          - /url: "#how-it-works"
-        - link "Features" [ref=e40] [cursor=pointer]:
-          - /url: "#features"
-        - link "Pricing" [ref=e41] [cursor=pointer]:
-          - /url: "#pricing"
-        - link "FAQ" [ref=e42] [cursor=pointer]:
-          - /url: "#faq"
-        - link "Privacy Policy" [ref=e43] [cursor=pointer]:
-          - /url: /privacy
-        - link "Terms of Service" [ref=e44] [cursor=pointer]:
-          - /url: /terms
-        - link "Contact" [ref=e45] [cursor=pointer]:
-          - /url: /contact
-      - paragraph [ref=e46]: © 2025 Astro. All rights reserved.
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "What type of business do you run?" [level=1] [ref=e8]
+        - paragraph [ref=e9]: Select your specialty to personalize your hub
+      - generic [ref=e10]:
+        - button "Beauty" [ref=e11] [cursor=pointer]:
+          - img [ref=e13]
+          - generic [ref=e16]: Beauty
+        - button "Hair" [active] [pressed] [ref=e17] [cursor=pointer]:
+          - img [ref=e19]
+          - img [ref=e22]
+          - generic [ref=e28]: Hair
+        - button "Spa/Massage" [ref=e29] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e33]: Spa/Massage
+        - button "Health Clinic" [ref=e34] [cursor=pointer]:
+          - img [ref=e36]
+          - generic [ref=e40]: Health Clinic
+        - button "Personal Trainer" [ref=e41] [cursor=pointer]:
+          - img [ref=e43]
+          - generic [ref=e49]: Personal Trainer
+        - button "General Services" [ref=e50] [cursor=pointer]:
+          - img [ref=e52]
+          - generic [ref=e54]: General Services
+      - generic [ref=e55]:
+        - button "Continue" [ref=e56]
+        - paragraph [ref=e57]: Step 1 of 3
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e52] [cursor=pointer]:
-    - img [ref=e53]
-  - alert [ref=e56]
+  - button "Open Next.js Dev Tools" [ref=e63] [cursor=pointer]:
+    - img [ref=e64]
+  - alert [ref=e67]
 ```

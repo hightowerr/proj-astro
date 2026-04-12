@@ -1,0 +1,131 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#content-area"
+    - generic [ref=e5]:
+      - generic [ref=e10]:
+        - generic [ref=e12]:
+          - link "Cal.com Help home page light logo" [ref=e14] [cursor=pointer]:
+            - /url: /help
+            - generic [ref=e15]: Cal.com Help home page
+            - img "light logo" [ref=e16]
+          - generic [ref=e17]:
+            - button "Open search" [ref=e18] [cursor=pointer]
+            - button [ref=e21] [cursor=pointer]
+            - button "More actions" [ref=e26] [cursor=pointer]
+        - button "Navigation Event Types Create your first event type" [ref=e28] [cursor=pointer]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: Navigation
+            - img [ref=e31]
+          - generic [ref=e33]:
+            - generic [ref=e34]
+            - generic [ref=e38]: Create your first event type
+      - generic [ref=e42]:
+        - banner [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]: Event Types
+            - heading "Create your first event type" [level=1] [ref=e47]
+        - generic [ref=e48]:
+          - iframe [ref=e53]:
+            - generic [active] [ref=f19e1]:
+              - generic "YouTube Video Player" [ref=f19e3]
+              - generic [ref=f19e5]:
+                - generic:
+                  - generic:
+                    - button "Play video" [ref=f19e10] [cursor=pointer]:
+                      - generic [ref=f19e13]:
+                        - img
+                    - button "Hide player controls" [ref=f19e14] [cursor=pointer]
+                    - generic [ref=f19e16]:
+                      - generic [ref=f19e21]:
+                        - generic [ref=f19e22]:
+                          - link "Creating your first event type - Cal.com" [ref=f19e23] [cursor=pointer]:
+                            - /url: https://www.youtube.com/watch?v=DboZrQjHgWU
+                          - link "Cal.com, Inc." [ref=f19e24] [cursor=pointer]:
+                            - /url: /channel/UClEgmwP_8Sejae6KXCzd_bQ
+                            - generic [ref=f19e25]: Cal.com, Inc.
+                        - generic [ref=f19e26]:
+                          - button "thumbnail-image" [ref=f19e27] [cursor=pointer]:
+                            - img "thumbnail-image" [ref=f19e28]
+                          - generic [ref=f19e30]:
+                            - generic: Cal.com, Inc.
+                            - generic: 2.4K subscribers
+                      - generic [ref=f19e31]:
+                        - button "Share" [ref=f19e34] [cursor=pointer]:
+                          - generic [ref=f19e38]:
+                            - img
+                        - link "Watch on YouTube" [ref=f19e45] [cursor=pointer]:
+                          - /url: https://www.youtube.com/watch?v=DboZrQjHgWU
+                          - generic [ref=f19e48]:
+                            - text: Watch on
+                            - img [ref=f19e50]:
+                              - generic [ref=f19e52]:
+                                - img
+          - generic [ref=e54]: A quick walkthrough of how to create event types.
+          - heading "Navigate to header The basics" [level=2] [ref=e55]:
+            - link "Navigate to header" [ref=e56] [cursor=pointer]:
+              - /url: "#the-basics"
+            - generic [ref=e60] [cursor=pointer]: The basics
+          - generic [ref=e61]:
+            - text: Head over to the
+            - strong [ref=e62]: event types
+            - text: page, then click the
+            - strong [ref=e63]: New event type
+            - text: button in the top right.
+          - generic [ref=e64]: "You’ll now be presented with the create event type dialog, which prompts you to enter in the basic information needed to get a working event type set up:"
+          - list [ref=e65]:
+            - listitem [ref=e66]: Title
+            - listitem [ref=e67]
+            - listitem [ref=e69]: Description
+            - listitem [ref=e70]: Length
+          - link "Expand image" [ref=e72] [cursor=pointer]:
+            - /url: https://downloads.intercomcdn.com/i/o/1195433173/459d590315726cde2c3da6a6/i973x933-2xQuLlTcg2xz_cvs7li.png?expires=1736301600&signature=cb4a1bc917705b98367e3e8b391fcde42d13240eeb044c61f2d3805509eec0e5&req=dSEuE819noBYWvMW1HO4zdvMofsCtCGMAPo%2BOL%2BAzF%2B0SWwGv6se8fklfFKd%0ARDLOujK%2Boq3LGcxdQ5Q%3D%0A
+            - generic [ref=e73]
+          - generic [ref=e75]: New event type dialog
+          - generic [ref=e76]: This is all you need to get an event type up and running, but you can configure additional settings for greater control.
+        - generic [ref=e77]:
+          - link "Collective Events" [ref=e78] [cursor=pointer]:
+            - /url: /help/event-types/collective-events
+            - img [ref=e79]
+            - generic [ref=e81]: Collective Events
+          - link "Create a phone-only event type" [ref=e82] [cursor=pointer]:
+            - /url: /help/event-types/create-phone-only-event-type
+            - generic [ref=e83]: Create a phone-only event type
+            - img [ref=e84]
+        - generic [ref=e87]:
+          - textbox "Ask a question..." [ref=e88]
+          - generic: Ctrl+I
+          - button "Send message" [disabled] [ref=e89]:
+            - img [ref=e90]
+        - contentinfo [ref=e92]:
+          - generic [ref=e93]:
+            - link "x" [ref=e94] [cursor=pointer]:
+              - /url: https://x.com/calcom
+            - link "github" [ref=e97] [cursor=pointer]:
+              - /url: https://github.com/calcom
+            - link "linkedin" [ref=e100] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/cal-com
+          - link "Powered by This documentation is built and hosted on Mintlify, a developer documentation platform" [ref=e105] [cursor=pointer]:
+            - /url: https://www.mintlify.com?utm_campaign=poweredBy&utm_medium=referral&utm_source=calcomhelp
+            - generic [ref=e106]: Powered by
+            - img [ref=e107]
+            - generic [ref=e116]: This documentation is built and hosted on Mintlify, a developer documentation platform
+  - alert [ref=e117]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - img
+            - generic: Assistant
+          - generic:
+            - button
+        - generic:
+          - generic:
+            - generic
+        - generic [ref=e118]:
+          - textbox [ref=e120]:
+            - /placeholder: Ask a question...
+          - generic [ref=e121]:
+            - button [ref=e122] [cursor=pointer]
+            - button [disabled] [ref=e125]

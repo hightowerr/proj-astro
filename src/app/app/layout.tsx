@@ -19,8 +19,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <AppNav />
-      {children}
+      <AppNav user={session.user} shopName={shop.name} />
+      <div className="lg:pl-72 min-h-screen">
+        {children}
+      </div>
     </>
   );
 }

@@ -202,6 +202,7 @@ describe("POST /api/bookings/create", () => {
       startsAt: new Date("2026-03-15T10:00:00.000Z"),
       endsAt: new Date("2026-03-15T11:00:00.000Z"),
       timezone: "UTC",
+      bufferAfterMinutes: 0,
     });
     expect(mockCreateAppointment).toHaveBeenCalledWith(
       expect.objectContaining({
