@@ -12,15 +12,12 @@ export default async function ServicesPage() {
 
   if (!shop) {
     return (
-      <div className="min-h-screen" style={{ background: "var(--al-background)" }}>
+      <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <h1
-            className="text-3xl font-extrabold"
-            style={{ color: "var(--al-primary)", fontFamily: "var(--al-font-headline)" }}
-          >
+          <h1 className="text-3xl font-extrabold text-al-primary font-manrope">
             Services
           </h1>
-          <p className="mt-2 text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
+          <p className="mt-2 text-sm text-on-surface-variant">
             Create your shop to manage services.
           </p>
         </div>
@@ -57,38 +54,30 @@ export default async function ServicesPage() {
   }));
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--al-background)" }}>
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-        <header className="space-y-3">
-          <div
-            className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest opacity-60"
-            style={{ color: "var(--al-on-surface-variant)" }}
-          >
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-12">
+        <header className="mb-12 max-w-full">
+          <div className="flex items-center gap-2 text-on-surface-variant text-[10px] font-extrabold uppercase tracking-[0.2em] mb-6 opacity-60">
             <span>Settings</span>
             <span
               aria-hidden="true"
-              className="material-symbols-outlined"
-              style={{ fontSize: "14px" }}
+              className="material-symbols-outlined text-[10px]"
             >
               chevron_right
             </span>
             <span style={{ color: "var(--al-primary)", opacity: 1 }}>Service Catalog</span>
           </div>
-          <div className="space-y-2">
-            <h1
-              className="font-[family-name:var(--al-font-headline)] text-3xl font-extrabold tracking-tight text-balance sm:text-5xl"
-              style={{ color: "var(--al-primary)" }}
-            >
-              Services Management
-            </h1>
-            <p
-              className="max-w-2xl text-base font-medium text-pretty leading-relaxed"
-              style={{ color: "var(--al-on-surface-variant)" }}
-            >
-              Define your craft. Configure service durations, buffers, and bespoke deposit
-              requirements.
-            </p>
-          </div>
+          <h1
+            className="text-5xl md:text-7xl font-extrabold tracking-tighter mb-4 leading-[0.9] text-al-primary font-manrope"
+          >
+            Services Management
+          </h1>
+          <p
+            className="text-on-surface-variant text-lg font-medium max-w-2xl leading-relaxed"
+          >
+            Define your craft. Configure service durations, buffers, and bespoke deposit
+            requirements.
+          </p>
         </header>
 
         <ServicesEditorShell services={services} shopContext={shopContext} />

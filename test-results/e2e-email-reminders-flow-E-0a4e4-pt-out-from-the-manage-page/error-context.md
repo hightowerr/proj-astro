@@ -29,12 +29,12 @@
         - heading "Manage your booking" [level=1] [ref=e17]
         - paragraph [ref=e18]: View appointment details and cancellation eligibility.
         - link "Book again" [ref=e19] [cursor=pointer]:
-          - /url: /book/email-reminder-shop-5eb7f468
+          - /url: /book/email-reminder-shop-e528d0cd
       - generic [ref=e20]:
         - generic [ref=e21]:
           - generic [ref=e22]:
             - heading "Appointment details" [level=2] [ref=e23]
-            - paragraph [ref=e24]: Ends at 5:26 PM EDT
+            - paragraph [ref=e24]: Ends at 8:42 AM EDT
           - generic [ref=e25]:
             - img [ref=e26]
             - text: Confirmed
@@ -43,7 +43,7 @@
             - img [ref=e31]
             - generic [ref=e33]:
               - paragraph [ref=e34]: Date & time
-              - paragraph [ref=e35]: Monday, March 30, 2026 at 4:26 PM EDT
+              - paragraph [ref=e35]: Monday, April 13, 2026 at 7:42 AM EDT
               - paragraph [ref=e36]: "Duration: 60 minutes"
           - generic [ref=e37]:
             - img [ref=e38]
@@ -55,7 +55,7 @@
             - generic [ref=e48]:
               - paragraph [ref=e49]: Customer
               - paragraph [ref=e50]: Email Reminder Customer
-              - paragraph [ref=e51]: email-reminder-6a401026-3fae-422b-b0f6-9cf25c80f060@example.com
+              - paragraph [ref=e51]: email-reminder-ca028e70-a035-4343-b1dc-a52168c93520@example.com
               - paragraph [ref=e52]: "+12025550128"
           - generic [ref=e53]:
             - img [ref=e54]
@@ -77,7 +77,7 @@
           - img [ref=e71]
           - generic [ref=e74]:
             - paragraph [ref=e75]: Cancellation deadline
-            - paragraph [ref=e76]: Mar 29, 2026 at 4:26 PM EDT
+            - paragraph [ref=e76]: Apr 12, 2026 at 7:42 AM EDT
             - paragraph [ref=e77]: (24 hours before appointment)
         - generic [ref=e79]:
           - img [ref=e80]
@@ -109,11 +109,6 @@
       - paragraph [ref=e99]: © 2025 Astro. All rights reserved.
   - region "Notifications alt+T"
   - button "Open Next.js Dev Tools" [ref=e105] [cursor=pointer]:
-    - generic [ref=e108]:
-      - text: Compiling
-      - generic [ref=e109]:
-        - generic [ref=e110]: .
-        - generic [ref=e111]: .
-        - generic [ref=e112]: .
-  - alert [ref=e113]
+    - img [ref=e106]
+  - alert [ref=e109]
 ```

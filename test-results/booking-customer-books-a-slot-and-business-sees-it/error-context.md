@@ -2,80 +2,35 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - link "Skip to main content" [ref=e2] [cursor=pointer]:
-    - /url: "#main-content"
-  - banner [ref=e3]:
-    - navigation [ref=e4]:
-      - link "Astro homepage" [ref=e5] [cursor=pointer]:
-        - /url: /
-        - text: Astro
-      - generic [ref=e6]:
-        - link "How It Works" [ref=e7] [cursor=pointer]:
-          - /url: "#how-it-works"
-        - link "Features" [ref=e8] [cursor=pointer]:
-          - /url: "#features"
-        - link "Pricing" [ref=e9] [cursor=pointer]:
-          - /url: "#pricing"
-        - link "FAQ" [ref=e10] [cursor=pointer]:
-          - /url: "#faq"
-      - generic [ref=e11]:
-        - link "Sign In" [ref=e12] [cursor=pointer]:
-          - /url: /login
-        - link "Start Free Trial" [ref=e13] [cursor=pointer]:
-          - /url: /register
-  - main [ref=e14]:
-    - generic [ref=e16]:
-      - generic [ref=e17]:
-        - heading "Create an account" [level=3] [ref=e18]
-        - paragraph [ref=e19]: Get started with your new account
-      - generic [ref=e21]:
-        - generic [ref=e22]:
-          - generic [ref=e23]: Name
-          - textbox "Name" [disabled]:
-            - /placeholder: Your name
-            - text: Test User
-        - generic [ref=e24]:
-          - generic [ref=e25]: Email
-          - textbox "Email" [disabled]:
-            - /placeholder: you@example.com
-            - text: shopper_8dc47523-4138-4cf2-b300-d30191d7cc18@example.com
-        - generic [ref=e26]:
-          - generic [ref=e27]: Password
-          - textbox "Password" [disabled]:
-            - /placeholder: Create a password
-            - text: Password123!
-        - generic [ref=e28]:
-          - generic [ref=e29]: Confirm Password
-          - textbox "Confirm Password" [disabled]:
-            - /placeholder: Confirm your password
-            - text: Password123!
-        - button "Creating account..." [disabled]
-        - generic [ref=e30]:
-          - text: Already have an account?
-          - link "Sign in" [ref=e31] [cursor=pointer]:
-            - /url: /login
-  - contentinfo [ref=e32]:
-    - generic [ref=e33]:
-      - link "Astro" [ref=e34] [cursor=pointer]:
-        - /url: /
-      - generic [ref=e35]:
-        - link "How It Works" [ref=e36] [cursor=pointer]:
-          - /url: "#how-it-works"
-        - link "Features" [ref=e37] [cursor=pointer]:
-          - /url: "#features"
-        - link "Pricing" [ref=e38] [cursor=pointer]:
-          - /url: "#pricing"
-        - link "FAQ" [ref=e39] [cursor=pointer]:
-          - /url: "#faq"
-        - link "Privacy Policy" [ref=e40] [cursor=pointer]:
-          - /url: /privacy
-        - link "Terms of Service" [ref=e41] [cursor=pointer]:
-          - /url: /terms
-        - link "Contact" [ref=e42] [cursor=pointer]:
-          - /url: /contact
-      - paragraph [ref=e43]: © 2025 Astro. All rights reserved.
+  - main [ref=e2]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "What type of business do you run?" [level=1] [ref=e8]
+        - paragraph [ref=e9]: Select your specialty to personalize your hub
+      - generic [ref=e10]:
+        - button "Beauty" [ref=e11] [cursor=pointer]:
+          - img [ref=e13]
+          - generic [ref=e16]: Beauty
+        - button "Hair" [ref=e17] [cursor=pointer]:
+          - img [ref=e19]
+          - generic [ref=e25]: Hair
+        - button "Spa/Massage" [ref=e26] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e30]: Spa/Massage
+        - button "Health Clinic" [ref=e31] [cursor=pointer]:
+          - img [ref=e33]
+          - generic [ref=e37]: Health Clinic
+        - button "Personal Trainer" [ref=e38] [cursor=pointer]:
+          - img [ref=e40]
+          - generic [ref=e46]: Personal Trainer
+        - button "General Services" [ref=e47] [cursor=pointer]:
+          - img [ref=e49]
+          - generic [ref=e51]: General Services
+      - generic [ref=e52]:
+        - button "Continue" [disabled]
+        - paragraph [ref=e53]: Step 1 of 3
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e49] [cursor=pointer]:
-    - img [ref=e50]
-  - alert [ref=e53]
+  - button "Open Next.js Dev Tools" [ref=e59] [cursor=pointer]:
+    - img [ref=e60]
+  - alert [ref=e63]
 ```

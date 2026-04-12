@@ -44,7 +44,6 @@ export function ServiceListRow({
 
   // Inactive / hidden services render with the dimmed treatment and expose the Restore control.
   const isDimmed = service.isHidden || !service.isActive;
-  const showRestore = isDimmed;
   const showCopyLink = service.isActive;
 
   const handleCopyLink = async () => {
@@ -59,19 +58,13 @@ export function ServiceListRow({
     }
   };
 
-  // BOUNDARY: R2.4 requires the currently selected row to remain visually distinct — selected rows
-  // render with a 2px navy border while unselected active rows fall back to a soft warm outline.
+  // BOUNDARY: R2.4 requires the currently selected row to remain visually distinct.
   const rowClasses = cn(
-    "group relative rounded-2xl p-5 flex items-center justify-between gap-4 transition-colors shadow-sm cursor-pointer text-left w-full",
-    isSelected && "bg-white border-2",
-    !isSelected && !isDimmed && "bg-white border hover:border-[rgba(0,30,64,0.30)]",
-    isDimmed && "border opacity-60",
+    "group relative rounded-[1.5rem] p-6 flex items-center justify-between gap-4 transition cursor-pointer text-left w-full",
+    isSelected && "bg-white dark:bg-slate-900 shadow-[0px_20px_40px_rgba(26,28,27,0.06)] ring-1 ring-primary/5",
+    !isSelected && !isDimmed && "bg-al-surface-low/50 dark:bg-slate-800/30 hover:bg-al-surface-low dark:hover:bg-slate-800/50",
+    isDimmed && "bg-stone-100/40 dark:bg-slate-800/20 opacity-50",
   );
-
-  const rowStyle = {
-    borderColor: isSelected ? "var(--al-primary)" : "rgba(195, 198, 209, 0.35)",
-    background: isDimmed ? "var(--al-surface-container-low)" : "#ffffff",
-  } as const;
 
   return (
     <article className="flex flex-col gap-2">
@@ -79,140 +72,111 @@ export function ServiceListRow({
         type="button"
         onClick={() => onSelect(service.id)}
         className={rowClasses}
-        style={rowStyle}
         whileTap={{ scale: 0.985 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
       >
-        {/* Animated selection accent */}
-        <motion.span
-          className="absolute left-1.5 top-4 bottom-4 w-0.5 rounded-full pointer-events-none"
-          style={{ background: "var(--al-primary)" }}
-          initial={false}
-          animate={{ scaleY: isSelected ? 1 : 0, opacity: isSelected ? 1 : 0 }}
-          transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        />
-
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
+          <div className="flex items-center gap-3 mb-2">
             <h3
-              className="font-bold truncate"
-              style={{ color: "var(--al-primary)" }}
+              className={cn(
+                "font-bold truncate text-base tracking-tight",
+                isSelected ? "text-primary" : "text-foreground",
+                isDimmed && "text-foreground",
+              )}
             >
               {service.name}
             </h3>
             {service.isDefault ? (
               <span
-                className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest"
-                style={{
-                  background: "rgba(213, 227, 255, 0.35)",
-                  color: "var(--al-on-primary-fixed-variant)",
-                }}
+                className="px-2.5 py-0.5 rounded-full bg-secondary text-secondary-foreground text-[9px] font-extrabold uppercase tracking-widest shadow-sm"
               >
                 Default
               </span>
             ) : null}
             {service.isHidden ? (
               <span
-                className="text-[8px] font-bold uppercase tracking-wider opacity-60"
-                style={{ color: "var(--al-on-surface-variant)" }}
+                className="text-[9px] font-extrabold uppercase tracking-widest text-on-surface-variant/50"
               >
                 Hidden
               </span>
             ) : null}
-            {!service.isActive ? (
+            {!service.isActive && !service.isHidden ? (
               <span
-                className="text-[8px] font-bold uppercase tracking-wider opacity-60"
-                style={{ color: "var(--al-on-surface-variant)" }}
+                className="text-[9px] font-extrabold uppercase tracking-widest text-on-surface-variant/50"
               >
                 Inactive
               </span>
             ) : null}
           </div>
 
-          <div
-            className="flex flex-wrap items-center gap-3 text-xs tabular-nums"
-            style={{ color: "var(--al-on-surface-variant)" }}
-          >
-            <span className="flex items-center gap-1">
-              <span
-                aria-hidden="true"
-                className="material-symbols-outlined"
-                style={{ fontSize: "14px" }}
-              >
-                schedule
-              </span>
-              {service.durationMinutes}m
-            </span>
-            <span className="flex items-center gap-1">
-              <span
-                aria-hidden="true"
-                className="material-symbols-outlined"
-                style={{ fontSize: "14px" }}
-              >
-                payments
-              </span>
-              {depositLabel}
-            </span>
-          </div>
-
-          {service.description ? (
-            <p
-              className="mt-1 line-clamp-2 text-xs text-pretty"
-              style={{ color: "var(--al-on-surface-variant)" }}
+          {!isDimmed && (
+            <div
+              className="flex gap-4 text-xs font-medium text-on-surface-variant opacity-70"
             >
-              {service.description}
-            </p>
-          ) : null}
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-[16px] opacity-50"
+                >
+                  schedule
+                </span>
+                {service.durationMinutes}m
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-[16px] opacity-50"
+                >
+                  payments
+                </span>
+                {depositLabel}
+              </span>
+            </div>
+          )}
         </div>
 
-        <motion.span
-          aria-hidden="true"
-          className="material-symbols-outlined flex-shrink-0"
-          style={{
-            color: isSelected ? "var(--al-primary)" : "var(--al-on-surface-variant)",
-          }}
-          animate={{ opacity: isSelected ? 1 : 0.3 }}
-          transition={{ duration: 0.18 }}
-        >
-          chevron_right
-        </motion.span>
+        {!isDimmed ? (
+          <span
+            aria-hidden="true"
+            className={cn(
+              "material-symbols-outlined transition-transform duration-300",
+              isSelected ? "text-primary scale-110" : "text-on-surface-variant opacity-20 group-hover:opacity-40",
+            )}
+          >
+            arrow_forward
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRestore(service.id);
+            }}
+            disabled={restorePending || savePending}
+            className={cn(
+              "text-[11px] font-extrabold uppercase tracking-widest text-primary underline underline-offset-4 hover:opacity-70 transition-opacity",
+              (restorePending || savePending) && "cursor-not-allowed opacity-40",
+            )}
+          >
+            {restorePending ? "Restoring..." : "Restore"}
+          </button>
+        )}
       </motion.button>
 
-      {(showCopyLink || showRestore || copyState === "error") ? (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pl-5">
-          {showCopyLink ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                void handleCopyLink();
-              }}
-              className="text-xs font-bold underline underline-offset-2"
-              style={{ color: "var(--al-primary)" }}
-            >
-              {copyState === "copied" ? "Copied" : "Copy link"}
-            </button>
-          ) : null}
-          {showRestore ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onRestore(service.id);
-              }}
-              disabled={restorePending || savePending}
-              className={cn(
-                "text-xs font-bold underline underline-offset-2",
-                (restorePending || savePending) && "cursor-not-allowed opacity-60",
-              )}
-              style={{ color: "var(--al-primary)" }}
-            >
-              {/* BOUNDARY: R6.1 limits Restore to hidden or inactive services; R6.4 requires pending feedback inline. */}
-              {restorePending ? "Restoring..." : "Restore"}
-            </button>
-          ) : null}
+      {showCopyLink && !isDimmed ? (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 pl-6">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              void handleCopyLink();
+            }}
+            className="text-[10px] font-extrabold uppercase tracking-widest text-primary/60 hover:text-primary hover:underline underline-offset-4 transition-colors"
+          >
+            {copyState === "copied" ? "Copied to clipboard" : "Copy booking link"}
+          </button>
           {copyState === "error" ? (
-            <span className="text-xs" style={{ color: "var(--al-error)" }}>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-error">
               Copy failed
             </span>
           ) : null}

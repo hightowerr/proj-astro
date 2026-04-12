@@ -193,9 +193,17 @@
   --color-al-outline:              var(--al-outline);
   --color-al-outline-variant:      var(--al-outline-variant);
 
+  /* ── Unprefixed aliases for component utility classes ── */
+  --color-on-primary:              var(--primary-foreground);    /* #ffffff light / dark oklch(0.21) */
+  --color-on-surface-variant:      var(--al-on-surface-variant); /* #43474f */
+
   --color-al-error:                var(--al-error);
   --color-al-error-container:      var(--al-error-container);
   --color-al-on-error-container:   var(--al-on-error-container);
+
+  /* --- Atelier Spacing & Typography --- */
+  --spacing-editorial: 24; /* 6rem */
+  --font-editorial: var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
 }
 
 /* ================================================================

@@ -51,6 +51,8 @@ export default function RootLayout({
           `display=swap` is the Next.js-recommended value and prevents blocked text rendering
           while the icon font loads; raw ligature names are briefly visible but swap in on load.
         */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           rel="stylesheet"
@@ -58,8 +60,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${cormorant.variable} ${bricolage.variable} ${firaCode.variable} ${manrope.variable} antialiased`}
-        style={{ background: "var(--color-surface-base)", color: "var(--color-text-primary)", fontFamily: "var(--font-body, system-ui, sans-serif)" }}
+        className={`${cormorant.variable} ${bricolage.variable} ${firaCode.variable} ${manrope.variable} antialiased bg-surface-base`}
       >
         {process.env.NODE_ENV === "development" ? (
           <Script id="react-dev-measure-guard" strategy="beforeInteractive">

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,55 +30,37 @@ type ToggleFieldProps = {
 
 // Shared label style — tiny uppercase caps with generous tracking per Stitch reference.
 const labelClassName =
-  "block text-[10px] font-extrabold uppercase tracking-widest ml-1 opacity-60";
+  "block text-[10px] font-extrabold uppercase tracking-[0.2em] ml-1 opacity-50";
 
 // Shared input/select chrome — flat surface, no border, rounded-xl, generous padding.
 const surfaceFieldClassName = cn(
-  "w-full border-none rounded-xl px-4 py-3 text-sm outline-none transition-colors shadow-none",
-  "bg-[var(--al-background)] text-[var(--al-on-surface)]",
-  "placeholder:text-[var(--al-outline)]",
-  "focus-visible:bg-[var(--al-surface-container-high)]",
-  "focus-visible:ring-1 focus-visible:ring-[var(--al-ghost-border)]",
+  "w-full bg-al-surface-low dark:bg-slate-800/50 border-none rounded-xl px-5 py-4 text-foreground outline-none transition-colors shadow-none",
+  "placeholder:text-on-surface-variant/30",
+  "focus:bg-muted dark:focus:bg-slate-800 focus:ring-1 focus:ring-primary/20",
 );
 
 function getFieldClassName(hasError: boolean) {
-  return cn(surfaceFieldClassName, hasError && "bg-[var(--al-error-container)]");
+  return cn(surfaceFieldClassName, hasError && "ring-1 ring-error/30 bg-error-container/20");
 }
 
-function ToggleField({ checked, description, label, name, onChange }: ToggleFieldProps) {
+function ToggleField({ checked, label, name, onChange }: Omit<ToggleFieldProps, "description">) {
   return (
-    <label className="flex cursor-pointer items-center gap-4">
-      {/*
-        CSS-driven toggle switch — the `<input>` below remains in the DOM (sr-only) so
-        keyboard users can focus/toggle it, and its onChange still drives the behavior.
-      */}
-      <span
-        className="al-toggle-track"
-        data-checked={checked ? "true" : "false"}
-        aria-hidden="true"
-      >
-        <span className="al-toggle-thumb" />
-      </span>
-      <input
-        className="sr-only"
-        type="checkbox"
-        name={name}
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      <span className="space-y-0.5">
-        <span
-          className="block text-[11px] font-extrabold uppercase tracking-widest"
-          style={{ color: checked ? "var(--al-on-surface)" : "var(--al-on-surface-variant)" }}
-        >
-          {label}
-        </span>
-        <span
-          className="block text-xs"
-          style={{ color: "var(--al-on-surface-variant)", opacity: 0.7 }}
-        >
-          {description}
-        </span>
+    <label className="flex items-center justify-between md:justify-start gap-4 cursor-pointer group">
+      <div className="relative inline-flex items-center cursor-pointer">
+        <input
+          className="sr-only peer"
+          type="checkbox"
+          name={name}
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+        />
+        <div className="w-12 h-6.5 bg-muted dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-5.5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:bg-primary transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2"></div>
+      </div>
+      <span className={cn(
+        "text-[11px] font-extrabold uppercase tracking-widest transition-colors",
+        checked ? "text-primary opacity-100" : "text-on-surface-variant opacity-50"
+      )}>
+        {label}
       </span>
     </label>
   );
@@ -96,6 +78,8 @@ export function ServiceEditorForm({
   savePending = false,
   saveSuccess = false,
 }: ServiceEditorFormProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   const durationOptions = Array.from(
     { length: Math.max(1, Math.floor(480 / shopContext.slotMinutes)) },
     (_, index) => (index + 1) * shopContext.slotMinutes,
@@ -109,7 +93,7 @@ export function ServiceEditorForm({
     { value: 0, label: "None" },
     { value: 5, label: "5m" },
     { value: 10, label: "10m" },
-    { value: null, label: "Shop Default" },
+    { value: null, label: "Default" },
   ];
 
   const depositValue =
@@ -117,89 +101,92 @@ export function ServiceEditorForm({
 
   return (
     <form
-      className="space-y-6"
+      className="space-y-8"
       onSubmit={(event) => {
         event.preventDefault();
         void onSave();
       }}
     >
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {formError ? (
           <motion.div
             key="form-error"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="rounded-2xl p-4 text-sm"
-            style={{
-              background: "var(--al-error-container)",
-              color: "var(--al-on-error-container)",
-            }}
+            className="rounded-2xl p-5 text-sm font-semibold bg-al-error-container text-al-on-error-container"
           >
-            {formError}
+            <div className="flex items-center gap-3">
+              <span aria-hidden="true" className="material-symbols-outlined">error</span>
+              {formError}
+            </div>
           </motion.div>
         ) : null}
       </AnimatePresence>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <label className={labelClassName} htmlFor="service-name">
-          Service name
+          {mode === "create" ? "New Service Label" : "Service Identification"}
         </label>
         <Input
           aria-invalid={fieldErrors.name ? true : undefined}
+          autoComplete="off"
           className={getFieldClassName(Boolean(fieldErrors.name))}
           id="service-name"
           onChange={(event) => onFieldChange("name", event.target.value)}
-          placeholder="Signature fitting"
+          placeholder="e.g. Bespoke Tailoring"
           value={draft.name}
         />
         {fieldErrors.name ? (
-          <p className="text-xs" style={{ color: "var(--al-error)" }}>
+          <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-error">
             {fieldErrors.name}
           </p>
         ) : null}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-3">
           <label className={labelClassName} htmlFor="service-duration">
-            Duration
+            Time Commitment
           </label>
-          <select
-            className={cn(
-              getFieldClassName(Boolean(fieldErrors.durationMinutes)),
-              "appearance-none",
-            )}
-            id="service-duration"
-            onChange={(event) => onFieldChange("durationMinutes", Number(event.target.value))}
-            value={String(draft.durationMinutes)}
-          >
-            {durationOptions.map((minutes) => (
-              <option key={minutes} value={minutes}>
-                {minutes} minutes
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              className={cn(
+                getFieldClassName(Boolean(fieldErrors.durationMinutes)),
+                "appearance-none pr-12",
+              )}
+              id="service-duration"
+              onChange={(event) => onFieldChange("durationMinutes", Number(event.target.value))}
+              value={String(draft.durationMinutes)}
+            >
+              {durationOptions.map((minutes) => (
+                <option key={minutes} value={minutes}>
+                  {minutes} mins
+                </option>
+              ))}
+            </select>
+            <span
+              aria-hidden="true"
+              className="material-symbols-outlined text-xl absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-30"
+            >
+              expand_more
+            </span>
+          </div>
           {fieldErrors.durationMinutes ? (
-            <p className="text-xs" style={{ color: "var(--al-error)" }}>
+            <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-error">
               {fieldErrors.durationMinutes}
             </p>
           ) : null}
-          <p
-            className="text-xs text-pretty ml-1 opacity-70"
-            style={{ color: "var(--al-on-surface-variant)" }}
-          >
-            Uses your {shopContext.slotMinutes}-minute slot grid.
-          </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           <label className={labelClassName} htmlFor="service-deposit">
-            Deposit override
+            Deposit override ($)
           </label>
           <Input
             aria-invalid={fieldErrors.depositAmountCents ? true : undefined}
+            autoComplete="off"
             className={getFieldClassName(Boolean(fieldErrors.depositAmountCents))}
             id="service-deposit"
             inputMode="decimal"
@@ -218,49 +205,44 @@ export function ServiceEditorForm({
             }}
             placeholder={
               shopContext.defaultDepositCents === null
-                ? "Policy default"
-                : `Policy default (${(shopContext.defaultDepositCents / 100).toFixed(2)})`
+                ? "0.00"
+                : `${(shopContext.defaultDepositCents / 100).toFixed(2)}`
             }
             type="number"
             value={depositValue}
           />
           {fieldErrors.depositAmountCents ? (
-            <p className="text-xs" style={{ color: "var(--al-error)" }}>
+            <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-error">
               {fieldErrors.depositAmountCents}
             </p>
           ) : null}
-          <p
-            className="text-xs text-pretty ml-1 opacity-70"
-            style={{ color: "var(--al-on-surface-variant)" }}
-          >
-            Leave blank to inherit the booking policy default.
-          </p>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <label className={labelClassName} htmlFor="service-description">
-          Description
+          Experience Narrative
         </label>
         <Textarea
           aria-invalid={fieldErrors.description ? true : undefined}
-          className={getFieldClassName(Boolean(fieldErrors.description))}
+          autoComplete="off"
+          className={cn(getFieldClassName(Boolean(fieldErrors.description)), "resize-y min-h-[100px]")}
           id="service-description"
           onChange={(event) => onFieldChange("description", event.target.value)}
-          placeholder="Add optional details customers should know before booking."
-          rows={4}
+          placeholder="Describe the artisanal journey..."
+          rows={3}
           value={draft.description}
         />
         {fieldErrors.description ? (
-          <p className="text-xs" style={{ color: "var(--al-error)" }}>
+          <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-error">
             {fieldErrors.description}
           </p>
         ) : null}
       </div>
 
-      <div className="space-y-2">
-        <span className={labelClassName}>Buffer</span>
-        <div className="flex flex-wrap gap-2">
+      <div className="space-y-4">
+        <span id="buffer-group-label" className={labelClassName}>Operational Buffer</span>
+        <div className="flex flex-wrap gap-3" role="group" aria-labelledby="buffer-group-label">
           {bufferOptions.map((option) => {
             const key = option.value === null ? "default" : String(option.value);
             const isSelected =
@@ -270,26 +252,15 @@ export function ServiceEditorForm({
               <motion.button
                 key={key}
                 type="button"
-                // BOUNDARY: buffer still fires onFieldChange with the same typed values (0 | 5 | 10 | null).
+                aria-pressed={isSelected}
                 onClick={() => onFieldChange("bufferMinutes", option.value)}
                 className={cn(
-                  "px-4 py-2 text-xs font-bold rounded-lg transition-all",
+                  "px-6 py-2.5 text-[11px] font-extrabold uppercase tracking-widest rounded-full transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   isSelected
-                    ? "shadow-md"
-                    : "border hover:bg-[var(--al-surface-container-lowest)]",
+                    ? "bg-primary text-on-primary border-primary shadow-lg shadow-primary/20"
+                    : "bg-transparent border-on-surface-variant/10 text-on-surface-variant hover:border-on-surface-variant/30 hover:bg-al-surface-low",
                 )}
-                style={
-                  isSelected
-                    ? {
-                        background: "var(--al-primary)",
-                        color: "var(--al-on-primary)",
-                      }
-                    : {
-                        borderColor: "rgba(195, 198, 209, 0.35)",
-                        color: "var(--al-on-surface-variant)",
-                      }
-                }
-                whileTap={{ scale: 0.91 }}
+                {...(!prefersReducedMotion && { whileTap: { scale: 0.94 } })}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               >
                 {option.label}
@@ -297,110 +268,71 @@ export function ServiceEditorForm({
             );
           })}
         </div>
-        {fieldErrors.bufferMinutes ? (
-          <p className="text-xs" style={{ color: "var(--al-error)" }}>
-            {fieldErrors.bufferMinutes}
-          </p>
-        ) : null}
       </div>
-
-      {fieldErrors.isActive || fieldErrors.isHidden ? (
-        <div className="space-y-1">
-          {fieldErrors.isActive ? (
-            <p className="text-xs" style={{ color: "var(--al-error)" }}>
-              {fieldErrors.isActive}
-            </p>
-          ) : null}
-          {fieldErrors.isHidden ? (
-            <p className="text-xs" style={{ color: "var(--al-error)" }}>
-              {fieldErrors.isHidden}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
 
       {/*
         Footer region — uses negative margins to bleed to the card edge and is painted with a tonal
         surface + top border to match the Stitch reference footer bar.
       */}
       <div
-        className="-mx-8 -mb-8 mt-8 px-8 py-8 border-t"
-        style={{
-          background: "rgba(244, 244, 242, 0.50)",
-          borderColor: "rgba(195, 198, 209, 0.30)",
-        }}
+        className="-mx-10 md:-mx-12 -mb-10 md:-mb-12 mt-12 p-10 md:p-12 border-t border-on-surface-variant/5 bg-al-surface-low"
       >
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-4">
-            {/* BOUNDARY: toggles still fire onFieldChange("isActive"/"isHidden", checked). */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-10">
+          <div className="flex flex-col gap-6 w-full md:w-auto">
             <ToggleField
               checked={draft.isActive}
-              description="Inactive services cannot be booked."
-              label="Active"
+              label="Availability Status"
               name="isActive"
               onChange={(value) => onFieldChange("isActive", value)}
             />
             <ToggleField
               checked={draft.isHidden}
-              description="Publicly hidden - bookable via direct link only."
-              label="Hide from public page"
+              label="Private Listing Only"
               name="isHidden"
               onChange={(value) => onFieldChange("isHidden", value)}
             />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-8 w-full md:w-auto justify-end">
             <AnimatePresence>
               {saveSuccess ? (
                 <motion.span
                   key="saved"
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest"
-                  style={{ color: "var(--color-success)" }}
+                  className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-widest text-success"
                 >
                   <span
                     aria-hidden="true"
-                    className="material-symbols-outlined"
-                    style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
+                    className="material-symbols-outlined text-base"
                   >
-                    check_circle
+                    done_all
                   </span>
-                  Saved
+                  Refined
                 </motion.span>
               ) : null}
             </AnimatePresence>
             <button
               type="button"
               onClick={onCancel}
-              className="px-2 py-2 text-[11px] font-bold uppercase tracking-widest border-b-2 border-transparent transition-colors hover:border-[var(--al-primary)]/20 hover:underline"
-              style={{ color: "var(--al-on-surface-variant)" }}
+              className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-on-surface-variant opacity-40 hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
             >
-              {mode === "create" ? "Cancel" : "Cancel"}
+              Reset
             </button>
-            {/* BOUNDARY: Save click still invokes the form's onSubmit → onSave. */}
             <motion.button
               type="submit"
               disabled={savePending}
-              className="px-10 py-4 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all disabled:cursor-not-allowed disabled:opacity-70 inline-flex items-center gap-2"
-              style={{
-                background: "var(--al-primary)",
-                color: "var(--al-on-primary)",
-                boxShadow: "0 8px 24px rgba(0, 30, 64, 0.20)",
-              }}
-              whileHover={!savePending ? { scale: 1.02 } : {}}
-              whileTap={!savePending ? { scale: 0.96 } : {}}
+              className="flex-1 md:flex-none px-12 py-5 bg-primary text-on-primary rounded-[2rem] text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-[0px_20px_40px_rgba(0,30,64,0.25)] transition-[opacity,transform] disabled:opacity-40 disabled:cursor-not-allowed motion-safe:hover:scale-[1.02] motion-safe:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
               {savePending ? (
-                <>
-                  <Spinner className="text-[var(--al-on-primary)]" size="sm" />
-                  <span>{mode === "create" ? "Creating..." : "Saving..."}</span>
-                </>
+                <div className="flex items-center gap-3">
+                  <Spinner className="text-on-primary" size="sm" />
+                  <span>Committing...</span>
+                </div>
               ) : (
-                <span>{mode === "create" ? "Create Service" : "Save Changes"}</span>
+                <span>Save Changes</span>
               )}
             </motion.button>
           </div>

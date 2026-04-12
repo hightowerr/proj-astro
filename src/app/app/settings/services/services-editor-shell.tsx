@@ -381,61 +381,78 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
 
   const addNewDisabled = savePending || restorePendingId !== null;
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 30,
+      },
+    },
+  } as const;
+
   return (
-    <div className="flex flex-col xl:flex-row gap-8 items-start">
+    <div className="flex flex-col xl:flex-row gap-12 items-start">
       {/* Left column — service list. No section background per Stitch; cards carry their own shadow. */}
-      <section className={cn("w-full xl:w-1/2 flex flex-col gap-4", mode !== "empty" && "max-xl:hidden")}>
-        <div className="flex items-center justify-between gap-4">
+      <section className={cn("w-full xl:w-1/2 space-y-6", mode !== "empty" && "max-xl:hidden")}>
+        <div className="flex items-center justify-between mb-2">
           <h2
-            className="text-xs font-bold uppercase tracking-widest opacity-60"
-            style={{ color: "var(--al-on-surface-variant)" }}
+            className="text-[10px] font-extrabold uppercase tracking-[0.2em] opacity-50 text-on-surface-variant"
           >
             Your Services
           </h2>
-          <motion.button
+          <button
             type="button"
             onClick={handleAddNew}
             disabled={addNewDisabled}
             className={cn(
-              "flex items-center gap-1.5 text-sm font-bold hover:underline underline-offset-4",
-              addNewDisabled && "cursor-not-allowed opacity-60",
+              "flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-al-primary hover:underline underline-offset-4 transition-colors",
+              addNewDisabled && "cursor-not-allowed opacity-40",
             )}
-            style={{ color: "var(--al-primary)" }}
-            whileHover={!addNewDisabled ? { scale: 1.04 } : {}}
-            whileTap={!addNewDisabled ? { scale: 0.96 } : {}}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
             <span
               aria-hidden="true"
-              className="material-symbols-outlined"
-              style={{ fontSize: "16px" }}
+              className="material-symbols-outlined text-sm"
             >
               add
             </span>
-            Add New
-          </motion.button>
+            Add New Service
+          </button>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {restoreError ? (
             <p
-              className="rounded-2xl px-4 py-3 text-sm"
-              style={{
-                background: "var(--al-error-container)",
-                color: "var(--al-on-error-container)",
-              }}
+              className="rounded-2xl px-6 py-4 text-sm font-medium bg-al-error-container text-al-on-error-container"
             >
               {restoreError}
             </p>
           ) : null}
-          <div className="flex flex-col gap-3">
+          <motion.div
+            className="flex flex-col gap-4"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
             <AnimatePresence initial={false}>
               {serviceRows.map((service) => (
                 <motion.div
                   key={service.id}
                   layout
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  variants={itemVariants}
                   exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
@@ -451,22 +468,20 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
                 </motion.div>
               ))}
             </AnimatePresence>
-          </div>
+          </motion.div>
           {serviceRows.length === 0 && (
             <div
-              className="xl:hidden rounded-2xl p-8 text-center"
-              style={{ background: "var(--al-surface-container-low)" }}
+              className="xl:hidden rounded-[2rem] p-12 text-center bg-al-surface-low"
             >
               <span
                 aria-hidden="true"
-                className="material-symbols-outlined mx-auto block mb-3"
-                style={{ fontSize: "2rem", color: "var(--al-outline-variant)" }}
+                className="material-symbols-outlined mx-auto block mb-4 opacity-20 text-5xl text-al-primary"
               >
                 inventory_2
               </span>
-              <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
+              <p className="text-sm font-medium text-on-surface-variant">
                 No services yet. Click{" "}
-                <strong style={{ color: "var(--al-primary)" }}>Add New</strong> to create your first.
+                <strong className="text-al-primary">Add New</strong> to create your first.
               </p>
             </div>
           )}
@@ -476,95 +491,90 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
       {/* Right column — sticky white card with split content + footer regions. */}
       <section
         className={cn(
-          "w-full xl:w-1/2 xl:sticky xl:top-24 rounded-3xl border overflow-hidden flex flex-col",
+          "w-full xl:w-1/2 xl:sticky xl:top-24",
           mode === "empty" && "max-xl:hidden",
         )}
-        style={{
-          background: "var(--al-surface-container-lowest)",
-          borderColor: "rgba(195, 198, 209, 0.30)",
-          boxShadow: "0 8px 32px rgba(26, 28, 27, 0.08)",
-        }}
       >
-        <AnimatePresence mode="wait">
-          {mode === "empty" ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <EmptyPane hasServices={serviceRows.length > 0} />
-            </motion.div>
-          ) : draft ? (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              className="flex-1 flex flex-col"
-            >
-              {/* Mobile back navigation — hidden on xl+ */}
-              <div
-                className="xl:hidden flex items-center px-6 pt-5 pb-4 border-b"
-                style={{ borderColor: "rgba(195, 198, 209, 0.22)" }}
+        <div
+          className="bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden flex flex-col shadow-[0px_40px_80px_rgba(26,28,27,0.08)]"
+        >
+          <AnimatePresence mode="wait">
+            {mode === "empty" ? (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
               >
-                <button
-                  type="button"
-                  onClick={() => handleNavIntent({ kind: "empty" })}
-                  disabled={savePending || restorePendingId !== null}
-                  className={cn(
-                    "flex items-center gap-1.5 text-sm font-semibold transition-opacity",
-                    (savePending || restorePendingId !== null) && "opacity-40 cursor-not-allowed",
-                  )}
-                  style={{ color: "var(--al-on-surface-variant)" }}
+                <EmptyPane hasServices={serviceRows.length > 0} />
+              </motion.div>
+            ) : draft ? (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="flex-1 flex flex-col"
+              >
+                {/* Mobile back navigation — hidden on xl+ */}
+                <div
+                  className="xl:hidden flex items-center px-8 pt-6 pb-4 border-b"
+                  style={{ borderColor: "var(--al-outline-variant)20" }}
                 >
-                  <span
-                    aria-hidden="true"
-                    className="material-symbols-outlined"
-                    style={{ fontSize: "18px" }}
+                  <button
+                    type="button"
+                    onClick={() => handleNavIntent({ kind: "empty" })}
+                    disabled={savePending || restorePendingId !== null}
+                    className={cn(
+                      "flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-on-surface-variant transition-opacity",
+                      (savePending || restorePendingId !== null) && "opacity-40 cursor-not-allowed",
+                    )}
                   >
-                    arrow_back
-                  </span>
-                  <span>All services</span>
-                </button>
-              </div>
-
-              <div className="p-8 flex-1 flex flex-col gap-6">
-                <div>
-                  <h3
-                    className="font-[family-name:var(--al-font-headline)] text-2xl font-extrabold text-balance"
-                    style={{ color: "var(--al-primary)" }}
-                  >
-                    {mode === "create" ? "New Service" : "Edit Service"}
-                  </h3>
-                  <p
-                    className="text-sm mt-1 text-pretty"
-                    style={{ color: "var(--al-on-surface-variant)" }}
-                  >
-                    {mode === "create"
-                      ? "Set up the draft values for a new service before saving it."
-                      : `Updating: ${selectedService?.name ?? "this service"}`}
-                  </p>
+                    <span
+                      aria-hidden="true"
+                      className="material-symbols-outlined text-sm"
+                    >
+                      arrow_back
+                    </span>
+                    <span>All services</span>
+                  </button>
                 </div>
 
-                <ServiceEditorForm
-                  mode={mode}
-                  draft={draft}
-                  shopContext={shopContext}
-                  fieldErrors={fieldErrors}
-                  formError={formError}
-                  onFieldChange={handleFieldChange}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                  savePending={savePending}
-                  saveSuccess={saveSuccess}
-                />
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+                <div className="p-10 md:p-12 flex-1 flex flex-col">
+                  <div className="mb-10">
+                    <h3
+                      className="font-manrope text-3xl font-extrabold tracking-tight mb-2 text-al-primary"
+                    >
+                      {mode === "create" ? "New Service" : "Edit Service"}
+                    </h3>
+                    <p
+                      className="text-sm font-medium opacity-70 text-on-surface-variant"
+                    >
+                      {mode === "create"
+                        ? "Set up the draft values for a new service before saving it."
+                        : `Updating: ${selectedService?.name ?? "this service"}`}
+                    </p>
+                  </div>
+
+                  <ServiceEditorForm
+                    mode={mode}
+                    draft={draft}
+                    shopContext={shopContext}
+                    fieldErrors={fieldErrors}
+                    formError={formError}
+                    onFieldChange={handleFieldChange}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                    savePending={savePending}
+                    saveSuccess={saveSuccess}
+                  />
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
       </section>
 
       <DiscardConfirmationDialog

@@ -2,71 +2,35 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - link "Skip to main content" [ref=e2] [cursor=pointer]:
-    - /url: "#main-content"
-  - banner [ref=e3]:
-    - navigation [ref=e4]:
-      - link "Astro homepage" [ref=e5] [cursor=pointer]:
-        - /url: /
-        - text: Astro
-      - generic [ref=e6]:
-        - link "How It Works" [ref=e7] [cursor=pointer]:
-          - /url: "#how-it-works"
-        - link "Features" [ref=e8] [cursor=pointer]:
-          - /url: "#features"
-        - link "Pricing" [ref=e9] [cursor=pointer]:
-          - /url: "#pricing"
-        - link "FAQ" [ref=e10] [cursor=pointer]:
-          - /url: "#faq"
-  - main [ref=e11]:
-    - generic [ref=e15]:
-      - generic [ref=e16]:
-        - heading "What type of business do you run?" [level=1] [ref=e17]
-        - paragraph [ref=e18]: Select one option below to get started
-      - generic [ref=e19]:
-        - button "Beauty" [ref=e20] [cursor=pointer]:
-          - img [ref=e21]
-          - generic [ref=e24]: Beauty
-        - button "Hair" [ref=e25] [cursor=pointer]:
-          - img [ref=e26]
-          - generic [ref=e32]: Hair
-        - button "Spa/Massage" [ref=e33] [cursor=pointer]:
-          - img [ref=e34]
-          - generic [ref=e36]: Spa/Massage
-        - button "Health Clinic" [ref=e37] [cursor=pointer]:
-          - img [ref=e38]
-          - generic [ref=e42]: Health Clinic
-        - button "Personal Trainer" [ref=e43] [cursor=pointer]:
-          - img [ref=e44]
-          - generic [ref=e50]: Personal Trainer
-        - button "General Services" [ref=e51] [cursor=pointer]:
-          - img [ref=e52]
-          - generic [ref=e54]: General Services
-      - generic [ref=e55]:
-        - button "Next" [disabled] [ref=e56]
-        - paragraph [ref=e57]: Step 1 of 3
-  - contentinfo [ref=e58]:
-    - generic [ref=e59]:
-      - link "Astro" [ref=e60] [cursor=pointer]:
-        - /url: /
-      - generic [ref=e61]:
-        - link "How It Works" [ref=e62] [cursor=pointer]:
-          - /url: "#how-it-works"
-        - link "Features" [ref=e63] [cursor=pointer]:
-          - /url: "#features"
-        - link "Pricing" [ref=e64] [cursor=pointer]:
-          - /url: "#pricing"
-        - link "FAQ" [ref=e65] [cursor=pointer]:
-          - /url: "#faq"
-        - link "Privacy Policy" [ref=e66] [cursor=pointer]:
-          - /url: /privacy
-        - link "Terms of Service" [ref=e67] [cursor=pointer]:
-          - /url: /terms
-        - link "Contact" [ref=e68] [cursor=pointer]:
-          - /url: /contact
-      - paragraph [ref=e69]: © 2025 Astro. All rights reserved.
+  - main [ref=e2]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "What type of business do you run?" [level=1] [ref=e8]
+        - paragraph [ref=e9]: Select your specialty to personalize your hub
+      - generic [ref=e10]:
+        - button "Beauty" [ref=e11] [cursor=pointer]:
+          - img [ref=e13]
+          - generic [ref=e16]: Beauty
+        - button "Hair" [ref=e17] [cursor=pointer]:
+          - img [ref=e19]
+          - generic [ref=e25]: Hair
+        - button "Spa/Massage" [ref=e26] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e30]: Spa/Massage
+        - button "Health Clinic" [ref=e31] [cursor=pointer]:
+          - img [ref=e33]
+          - generic [ref=e37]: Health Clinic
+        - button "Personal Trainer" [ref=e38] [cursor=pointer]:
+          - img [ref=e40]
+          - generic [ref=e46]: Personal Trainer
+        - button "General Services" [ref=e47] [cursor=pointer]:
+          - img [ref=e49]
+          - generic [ref=e51]: General Services
+      - generic [ref=e52]:
+        - button "Continue" [disabled]
+        - paragraph [ref=e53]: Step 1 of 3
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e75] [cursor=pointer]:
-    - img [ref=e76]
-  - alert [ref=e79]
+  - button "Open Next.js Dev Tools" [ref=e59] [cursor=pointer]:
+    - img [ref=e60]
+  - alert [ref=e63]
 ```

@@ -40,6 +40,11 @@ const {
     stripeIsMockedMock: vi.fn(() => true),
     dbMock: {
       select: vi.fn(() => selectBuilder),
+      update: vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(),
+        })),
+      })),
       transaction: vi.fn(),
       __selectLimitMock: selectLimitMock,
     },
