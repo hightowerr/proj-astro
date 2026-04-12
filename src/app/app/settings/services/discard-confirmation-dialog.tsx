@@ -23,14 +23,11 @@ export function DiscardConfirmationDialog({
   onKeepEditing,
   onConfirm,
 }: DiscardConfirmationDialogProps) {
-  const title =
-    variant === "restore-current"
-      ? "Restore service and discard edits?"
-      : "Discard unsaved changes?";
+  const title = "You have unsaved changes";
   const description =
     variant === "restore-current"
-      ? "Your unsaved edits will be replaced with the restored values."
-      : "Your unsaved changes will be lost.";
+      ? "Keep editing to preserve them, or restore this service and replace them with the restored values."
+      : "Keep editing to preserve them, or discard them and continue.";
   const confirmLabel =
     variant === "restore-current" ? "Restore service" : "Discard changes";
 
@@ -53,7 +50,7 @@ export function DiscardConfirmationDialog({
               className="material-symbols-outlined"
               style={{ color: "var(--al-primary)", fontSize: "24px" }}
             >
-              {variant === "restore-current" ? "settings_backup_restore" : "delete_sweep"}
+              {variant === "restore-current" ? "settings_backup_restore" : "edit_note"}
             </span>
           </div>
           <DialogTitle
@@ -74,16 +71,16 @@ export function DiscardConfirmationDialog({
           <Button
             onClick={onKeepEditing}
             type="button"
-            variant="al-ghost"
-            className="w-full sm:w-auto px-6 py-6 rounded-2xl text-[11px] font-extrabold uppercase tracking-widest"
+            variant="al-primary"
+            className="w-full sm:w-auto px-8 py-6 rounded-2xl text-[11px] font-extrabold uppercase tracking-widest shadow-lg shadow-[var(--al-primary)]/20"
           >
             Keep editing
           </Button>
           <Button
             onClick={onConfirm}
             type="button"
-            variant="al-primary"
-            className="w-full sm:w-auto px-8 py-6 rounded-2xl text-[11px] font-extrabold uppercase tracking-widest shadow-lg shadow-[var(--al-primary)]/20"
+            variant="ghost"
+            className="w-full sm:w-auto px-4 py-3 rounded-2xl text-[11px] font-extrabold uppercase tracking-widest text-on-surface-variant opacity-60 hover:opacity-100"
           >
             {confirmLabel}
           </Button>
