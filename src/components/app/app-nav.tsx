@@ -25,7 +25,13 @@ export function AppNav() {
   }
 
   return (
-    <div className="border-b border-[var(--color-border-default)] bg-[var(--color-surface-raised)]/90">
+    <div
+      className="border-b"
+      style={{
+        background: "var(--al-surface-container-lowest)",
+        borderColor: "var(--al-outline-variant)",
+      }}
+    >
       <nav className="container mx-auto flex gap-4 overflow-x-auto px-4 py-3" aria-label="App navigation">
         {appNavLinks.map((link) => {
           const isActive = pathname === link.href;
@@ -36,11 +42,14 @@ export function AppNav() {
               href={link.href}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "rounded-md whitespace-nowrap px-2 py-1 text-sm font-medium underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)] hover:text-[var(--color-text-primary)] hover:underline",
-                isActive
-                  ? "text-[var(--color-text-primary)] underline decoration-[var(--color-brand)]"
-                  : "text-[var(--color-text-secondary)]",
+                "rounded-md whitespace-nowrap px-2 py-1 text-sm font-medium underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 hover:underline",
+                isActive ? "font-bold underline" : "",
               )}
+              style={{
+                color: isActive ? "var(--al-primary)" : "var(--al-on-surface-variant)",
+                textDecorationColor: isActive ? "var(--al-primary)" : undefined,
+                outlineColor: "var(--al-primary)",
+              }}
             >
               {link.label}
             </Link>

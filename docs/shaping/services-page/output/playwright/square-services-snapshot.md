@@ -1,0 +1,25 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e4]
+      - generic [ref=e10]
+  - main [ref=e22]:
+    - generic [ref=e25]:
+      - generic [ref=e26]
+      - article [ref=e31]
+    - generic [ref=e392]:
+      - separator [ref=e393]
+      - generic [ref=e394]
+  - contentinfo [ref=e422]:
+    - generic [ref=e423]:
+      - separator [ref=e424]
+      - generic [ref=e426]
+      - navigation [ref=e461]
+      - generic [ref=e483]
+  - button "Open support chat" [ref=e495] [cursor=pointer]:
+    - img [ref=e496]
+  - status [ref=e500]
+  - generic:
+    - dialog "Manage cookies" [ref=e503]:
+      - generic [ref=e504]
+    - text: •

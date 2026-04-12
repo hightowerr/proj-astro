@@ -40,7 +40,12 @@
       "mcp__plugin_vercel-plugin_vercel__get_runtime_logs",
       "mcp__plugin_vercel-plugin_vercel__get_deployment",
       "WebFetch(domain:unsplash.com)",
-      "WebFetch(domain:images.unsplash.com)"
+      "WebFetch(domain:images.unsplash.com)",
+      "mcp__mental-models__read_file",
+      "mcp__stitch__get_screen",
+      "mcp__mental-models__path_exists",
+      "mcp__mental-models__list_directory",
+      "mcp__mental-models__write_file"
     ]
   },
   "enableAllProjectMcpServers": true,

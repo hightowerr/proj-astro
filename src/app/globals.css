@@ -166,6 +166,36 @@
   --radius-2xl:  1rem;
   --radius-3xl:  1.5rem;
   --radius-full: 9999px;
+
+  /* ── Atelier Light color aliases (enables bg-al-* / text-al-* classes) ── */
+  --color-al-primary:              var(--al-primary);
+  --color-al-primary-container:    var(--al-primary-container);
+  --color-al-primary-fixed:        var(--al-primary-fixed);
+  --color-al-primary-fixed-dim:    var(--al-primary-fixed-dim);
+  --color-al-on-primary:           var(--al-on-primary);
+  --color-al-on-primary-fixed-variant: var(--al-on-primary-fixed-variant);
+
+  --color-al-secondary:            var(--al-secondary);
+  --color-al-secondary-container:  var(--al-secondary-container);
+  --color-al-secondary-fixed:      var(--al-secondary-fixed);
+  --color-al-on-secondary-fixed:   var(--al-on-secondary-fixed);
+
+  --color-al-surface:              var(--al-surface);
+  --color-al-surface-lowest:       var(--al-surface-container-lowest);
+  --color-al-surface-low:          var(--al-surface-container-low);
+  --color-al-surface-container:    var(--al-surface-container);
+  --color-al-surface-high:         var(--al-surface-container-high);
+  --color-al-surface-highest:      var(--al-surface-container-highest);
+  --color-al-surface-dim:          var(--al-surface-dim);
+
+  --color-al-on-surface:           var(--al-on-surface);
+  --color-al-on-surface-variant:   var(--al-on-surface-variant);
+  --color-al-outline:              var(--al-outline);
+  --color-al-outline-variant:      var(--al-outline-variant);
+
+  --color-al-error:                var(--al-error);
+  --color-al-error-container:      var(--al-error-container);
+  --color-al-on-error-container:   var(--al-on-error-container);
 }
 
 /* ================================================================
@@ -555,4 +585,53 @@
   );
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
+}
+
+/* Material Symbols Outlined icon font utility */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+  font-weight: normal;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Atelier Light toggle switch */
+.al-toggle-track {
+  width: 2.75rem;   /* w-11 */
+  height: 1.5rem;   /* h-6 */
+  border-radius: 9999px;
+  background-color: var(--al-outline-variant);
+  position: relative;
+  transition: background-color 150ms ease;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.al-toggle-track[data-checked="true"] {
+  background-color: var(--al-primary);
+}
+.al-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1.25rem;   /* w-5 */
+  height: 1.25rem;  /* h-5 */
+  background: white;
+  border-radius: 9999px;
+  transition: transform 150ms ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.al-toggle-track[data-checked="true"] .al-toggle-thumb {
+  transform: translateX(1.25rem);
 }
