@@ -1,0 +1,1 @@
+export const MAX_SERVICE_DURATION_MINUTES = 240;

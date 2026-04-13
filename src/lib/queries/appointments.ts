@@ -870,6 +870,7 @@ export const createAppointment = async (input: {
       const blockedEndsAt = new Date(
         endsAt.getTime() + effectiveBufferAfterMinutes * 60_000
       );
+      const startsAtIso = input.startsAt.toISOString();
 
       const overlapping = await tx
         .select({ id: appointments.id })
@@ -879,7 +880,7 @@ export const createAppointment = async (input: {
             eq(appointments.shopId, input.shopId),
             inArray(appointments.status, ["booked", "pending"]),
             lt(appointments.startsAt, blockedEndsAt),
-            sql`${appointments.endsAt} + (${appointments.effectiveBufferAfterMinutes} * interval '1 minute') > ${input.startsAt}`
+            sql`${appointments.endsAt} + (${appointments.effectiveBufferAfterMinutes} * interval '1 minute') > ${startsAtIso}`
           )
         )
         .limit(1);

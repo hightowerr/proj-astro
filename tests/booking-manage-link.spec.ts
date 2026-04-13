@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { completeShopOnboarding } from "./helpers/shop-onboarding";
 import { test, expect } from "./setup";
+import { db } from "../src/lib/db";
+import { shopPolicies } from "../src/lib/schema";
 
 const makeEmail = () => `shopper_${randomUUID()}@example.com`;
 const strongPassword = "Password123!";
@@ -24,9 +26,6 @@ test.describe("Booking manage link", () => {
   test.skip(!shouldRun, "POSTGRES_URL not set");
 
   test("booking confirmation shows manage link", async ({ page }) => {
-    const { db } = await import("../src/lib/db");
-    const { shopPolicies } = await import("../src/lib/schema");
-
     const slug = `hello-shop-${randomUUID()}`;
 
     await page.context().clearCookies();
@@ -89,9 +88,9 @@ test.describe("Booking manage link", () => {
     await page.getByRole("textbox", { name: "Email" }).fill("jamie@example.com");
     await page.getByRole("button", { name: "Confirm booking" }).click();
 
-    await expect(
-      page.getByRole("heading", { name: "Booking confirmed" })
-    ).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText("Booking confirmed", { exact: true })).toBeVisible({
+      timeout: 20000,
+    });
 
     const manageHeading = page.getByRole("heading", {
       name: /manage your booking/i,

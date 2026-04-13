@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { createEventType, restoreEventType, updateEventType } from "./actions";
@@ -21,6 +22,24 @@ type ServicesEditorShellProps = {
   services: ServiceRow[];
   shopContext: ShopContext;
 };
+
+function valuesToRow(
+  id: string,
+  values: ServiceEditorValues,
+  previous?: ServiceRow | null,
+): ServiceRow {
+  return {
+    id,
+    name: values.name,
+    description: values.description || null,
+    durationMinutes: values.durationMinutes,
+    bufferMinutes: values.bufferMinutes as 0 | 5 | 10 | null,
+    depositAmountCents: values.depositAmountCents,
+    isHidden: values.isHidden,
+    isActive: values.isActive,
+    isDefault: previous?.isDefault ?? false,
+  };
+}
 
 function rowToValues(row: ServiceRow): ServiceEditorValues {
   return {
@@ -46,17 +65,57 @@ function isDirtyValues(draft: ServiceEditorValues, baseline: ServiceEditorValues
   );
 }
 
+function getDefaultCreateDuration(services: ServiceRow[], fallbackDurationMinutes: number): number {
+  if (services.length === 0) {
+    return fallbackDurationMinutes;
+  }
+
+  const durationCounts = new Map<number, { count: number; firstIndex: number }>();
+
+  services.forEach((service, index) => {
+    const current = durationCounts.get(service.durationMinutes);
+    if (current) {
+      current.count += 1;
+      return;
+    }
+
+    durationCounts.set(service.durationMinutes, { count: 1, firstIndex: index });
+  });
+
+  let selectedDuration = fallbackDurationMinutes;
+  let selectedCount = 0;
+  let selectedFirstIndex = Number.POSITIVE_INFINITY;
+
+  durationCounts.forEach((entry, durationMinutes) => {
+    if (
+      entry.count > selectedCount ||
+      (entry.count === selectedCount && entry.firstIndex < selectedFirstIndex)
+    ) {
+      selectedDuration = durationMinutes;
+      selectedCount = entry.count;
+      selectedFirstIndex = entry.firstIndex;
+    }
+  });
+
+  return selectedDuration;
+}
+
 export function ServicesEditorShell({ services, shopContext }: ServicesEditorShellProps) {
+  const emptyModeHint = "Select a service to edit, or click Add New.";
+  const router = useRouter();
+  const [awaitingServerSync, setAwaitingServerSync] = useState(false);
   const [serviceRows, setServiceRows] = useState(services);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<"empty" | "edit" | "create">("empty");
   const [baseline, setBaseline] = useState<ServiceEditorValues | null>(null);
   const [draft, setDraft] = useState<ServiceEditorValues | null>(null);
   const [savePending, setSavePending] = useState(false);
+  const [saveSuccessLabel, setSaveSuccessLabel] = useState<"Created" | "Refined">("Refined");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<ServiceField, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [postCreateShareId, setPostCreateShareId] = useState<string | null>(null);
   const [pendingTarget, setPendingTarget] = useState<PendingTarget>(null);
   const [restorePendingId, setRestorePendingId] = useState<string | null>(null);
   const [restoreError, setRestoreError] = useState<string | null>(null);
@@ -68,6 +127,18 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
 
   const selectedService =
     selectedId === null ? null : (serviceRows.find((service) => service.id === selectedId) ?? null);
+  const selectedServiceValues = selectedService ? rowToValues(selectedService) : null;
+  const shouldUseServerSelectedValues =
+    mode === "edit" &&
+    !dirty &&
+    !awaitingServerSync &&
+    selectedServiceValues !== null;
+  const editorBaseline = shouldUseServerSelectedValues ? selectedServiceValues : baseline;
+  const editorDraft = shouldUseServerSelectedValues ? selectedServiceValues : draft;
+
+  useEffect(() => {
+    setServiceRows(services);
+  }, [services]);
 
   useEffect(() => {
     if (!dirty) {
@@ -95,11 +166,28 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     return () => window.clearTimeout(timer);
   }, [restoreError]);
 
+  useEffect(() => {
+    if (
+      !awaitingServerSync ||
+      mode !== "edit" ||
+      baseline === null ||
+      !selectedServiceValues
+    ) {
+      return;
+    }
+
+    if (!isDirtyValues(selectedServiceValues, baseline)) {
+      startTransition(() => {
+        setAwaitingServerSync(false);
+      });
+    }
+  }, [awaitingServerSync, baseline, mode, selectedServiceValues]);
+
   function getCreateDefaults(): ServiceEditorValues {
     return {
       name: "",
       description: "",
-      durationMinutes: shopContext.slotMinutes,
+      durationMinutes: getDefaultCreateDuration(serviceRows, shopContext.slotMinutes),
       bufferMinutes: null,
       depositAmountCents: null,
       isHidden: false,
@@ -115,6 +203,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     setFieldErrors({});
     setFormError(null);
     setSaveSuccess(false);
+    setPostCreateShareId(null);
     setPendingTarget(null);
 
     switch (target.kind) {
@@ -125,6 +214,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
         }
 
         const values = rowToValues(service);
+        setAwaitingServerSync(false);
         setSelectedId(target.id);
         setBaseline(values);
         setDraft(values);
@@ -134,6 +224,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
       }
       case "create": {
         const defaults = getCreateDefaults();
+        setAwaitingServerSync(false);
         setSelectedId(null);
         setBaseline(defaults);
         setDraft(defaults);
@@ -142,6 +233,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
         return;
       }
       case "empty": {
+        setAwaitingServerSync(false);
         setSelectedId(null);
         setBaseline(null);
         setDraft(null);
@@ -192,6 +284,10 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
   }
 
   function handleFieldChange<K extends ServiceField>(field: K, value: ServiceEditorValues[K]) {
+    if (!editorDraft) {
+      return;
+    }
+
     setFieldErrors((current) => {
       if (!(field in current)) {
         return current;
@@ -201,29 +297,25 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     });
     setFormError(null);
     setSaveSuccess(false);
-    setDraft((current) => {
-      if (!current) {
-        return current;
-      }
-
-      const next = { ...current, [field]: value };
-      setDirty(baseline ? isDirtyValues(next, baseline) : false);
-      return next;
-    });
+    setPostCreateShareId(null);
+    const next = { ...editorDraft, [field]: value };
+    setDraft(next);
+    setDirty(editorBaseline ? isDirtyValues(next, editorBaseline) : false);
   }
 
   async function handleSave() {
-    if (!draft) {
+    if (!editorDraft) {
       return;
     }
 
+    const draftToSave = editorDraft;
     setSavePending(true);
     setFieldErrors({});
     setFormError(null);
     setSaveSuccess(false);
 
     if (mode === "edit" && selectedId) {
-      const result = await updateEventType(selectedId, draft);
+      const result = await updateEventType(selectedId, draftToSave);
       setSavePending(false);
 
       if (!result.ok) {
@@ -238,29 +330,27 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
       setServiceRows((current) =>
         current.map((service) =>
           service.id === selectedId
-            ? {
-                ...service,
-                name: draft.name,
-                description: draft.description || null,
-                durationMinutes: draft.durationMinutes,
-                bufferMinutes: draft.bufferMinutes as 0 | 5 | 10 | null,
-                depositAmountCents: draft.depositAmountCents,
-                isHidden: draft.isHidden,
-                isActive: draft.isActive,
-              }
-            : service
-        )
+            ? valuesToRow(selectedId, draftToSave, service)
+            : service,
+        ),
       );
-      setBaseline(draft);
+      setAwaitingServerSync(true);
+      setPostCreateShareId(null);
+      setBaseline(draftToSave);
+      setDraft(draftToSave);
       setDirty(false);
+      setSaveSuccessLabel("Refined");
       setSaveSuccess(true);
+      startTransition(() => {
+        router.refresh();
+      });
       window.setTimeout(() => {
         setSaveSuccess(false);
       }, 2000);
       return;
     }
 
-    const createResult = await createEventType(draft);
+    const createResult = await createEventType(draftToSave);
     setSavePending(false);
 
     if (!createResult) {
@@ -278,24 +368,19 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     }
 
     const createdId = createResult.data.id;
-    const newService: ServiceRow = {
-      id: createdId,
-      name: draft.name,
-      description: draft.description || null,
-      durationMinutes: draft.durationMinutes,
-      bufferMinutes: draft.bufferMinutes as 0 | 5 | 10 | null,
-      depositAmountCents: draft.depositAmountCents,
-      isHidden: draft.isHidden,
-      isActive: draft.isActive,
-      isDefault: false,
-    };
-
-    setServiceRows((current) => [...current, newService]);
+    setServiceRows((current) => [...current, valuesToRow(createdId, draftToSave)]);
+    setAwaitingServerSync(true);
     setSelectedId(createdId);
     setMode("edit");
-    setBaseline(draft);
+    setBaseline(draftToSave);
+    setDraft(draftToSave);
     setDirty(false);
+    setSaveSuccessLabel("Created");
     setSaveSuccess(true);
+    setPostCreateShareId(draftToSave.isActive ? createdId : null);
+    startTransition(() => {
+      router.refresh();
+    });
     window.setTimeout(() => {
       setSaveSuccess(false);
     }, 2000);
@@ -317,41 +402,41 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
       return;
     }
 
-    setServiceRows((current) =>
-      current.map((service) =>
-        service.id === id
-          ? {
-              ...service,
-              isHidden: false,
-              isActive: true,
-            }
-          : service
-      )
-    );
-
     const service = serviceRows.find((item) => item.id === id);
     if (!service) {
       return;
     }
 
     // BOUNDARY: R6.3 requires the restored row to become selected and render fresh committed values.
-    const restoredValues = rowToValues({
+    const restoredRow = {
       ...service,
       isHidden: false,
       isActive: true,
-    });
+    };
+    setServiceRows((current) =>
+      current.map((item) => (item.id === id ? restoredRow : item)),
+    );
+    const restoredValues = rowToValues(restoredRow);
+    setAwaitingServerSync(true);
+    setPostCreateShareId(null);
     setSelectedId(id);
     setMode("edit");
     setBaseline(restoredValues);
     setDraft(restoredValues);
     setDirty(false);
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   function handleCancel() {
     if (mode === "edit") {
-      setDraft(baseline);
+      setAwaitingServerSync(false);
+      setBaseline(editorBaseline);
+      setDraft(editorBaseline);
       setFieldErrors({});
       setFormError(null);
+      setPostCreateShareId(null);
       setDirty(false);
       return;
     }
@@ -380,6 +465,26 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
   }
 
   const addNewDisabled = savePending || restorePendingId !== null;
+  const postCreateShareLink =
+    mode === "edit" && selectedId !== null && postCreateShareId === selectedId
+      ? `${shopContext.bookingBaseUrl}?service=${selectedId}`
+      : null;
+  const serviceSummary = serviceRows.reduce(
+    (summary, service) => {
+      summary.total += 1;
+      if (service.isActive) {
+        summary.active += 1;
+      }
+      if (service.isHidden) {
+        summary.hidden += 1;
+      }
+      if (!service.isActive) {
+        summary.inactive += 1;
+      }
+      return summary;
+    },
+    { total: 0, active: 0, hidden: 0, inactive: 0 }
+  );
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -432,6 +537,11 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
             Add New Service
           </button>
         </div>
+        {mode === "empty" && serviceRows.length > 0 ? (
+          <p className="xl:hidden text-sm text-on-surface-variant">
+            {emptyModeHint}
+          </p>
+        ) : null}
 
         <div className="flex flex-col gap-4">
           {restoreError ? (
@@ -507,9 +617,15 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <EmptyPane hasServices={serviceRows.length > 0} />
+                <EmptyPane
+                  addNewDisabled={addNewDisabled}
+                  hasServices={serviceRows.length > 0}
+                  onAddNew={handleAddNew}
+                  orientationHint={emptyModeHint}
+                  summary={serviceSummary}
+                />
               </motion.div>
-            ) : draft ? (
+            ) : editorDraft ? (
               <motion.div
                 key="form"
                 initial={{ opacity: 0, y: 12 }}
@@ -554,21 +670,24 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
                     >
                       {mode === "create"
                         ? "Set up the draft values for a new service before saving it."
-                        : `Updating: ${selectedService?.name ?? "this service"}`}
+                        : `Updating: ${editorDraft.name}`}
                     </p>
                   </div>
 
                   <ServiceEditorForm
+                    advancedOptionsKey={`${mode}:${selectedId ?? "new"}`}
                     mode={mode}
-                    draft={draft}
+                    draft={editorDraft}
                     shopContext={shopContext}
                     fieldErrors={fieldErrors}
                     formError={formError}
                     onFieldChange={handleFieldChange}
                     onSave={handleSave}
                     onCancel={handleCancel}
+                    postCreateShareLink={postCreateShareLink}
                     savePending={savePending}
                     saveSuccess={saveSuccess}
+                    saveSuccessLabel={saveSuccessLabel}
                   />
                 </div>
               </motion.div>

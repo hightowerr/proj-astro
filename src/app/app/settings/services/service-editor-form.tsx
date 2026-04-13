@@ -1,13 +1,16 @@
 "use client";
 
+import { useId, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { MAX_SERVICE_DURATION_MINUTES } from "./constants";
 import type { ShopContext, ServiceEditorValues, ServiceField } from "./types";
 
 type ServiceEditorFormProps = {
+  advancedOptionsKey: string;
   mode: "edit" | "create";
   draft: ServiceEditorValues;
   shopContext: ShopContext;
@@ -16,8 +19,10 @@ type ServiceEditorFormProps = {
   onFieldChange: <K extends ServiceField>(field: K, value: ServiceEditorValues[K]) => void;
   onSave: () => void;
   onCancel: () => void;
+  postCreateShareLink?: string | null;
   savePending?: boolean;
   saveSuccess?: boolean;
+  saveSuccessLabel?: string;
 };
 
 type ToggleFieldProps = {
@@ -27,6 +32,13 @@ type ToggleFieldProps = {
   name: "isActive" | "isHidden";
   onChange: (checked: boolean) => void;
 };
+
+const BUFFER_OPTIONS = [
+  { value: 0, label: "None" },
+  { value: 5, label: "5m" },
+  { value: 10, label: "10m" },
+  { value: null, label: "Default" },
+] as const;
 
 // Shared label style — tiny uppercase caps with generous tracking per Stitch reference.
 const labelClassName =
@@ -43,10 +55,10 @@ function getFieldClassName(hasError: boolean) {
   return cn(surfaceFieldClassName, hasError && "ring-1 ring-error/30 bg-error-container/20");
 }
 
-function ToggleField({ checked, label, name, onChange }: Omit<ToggleFieldProps, "description">) {
+function ToggleField({ checked, description, label, name, onChange }: ToggleFieldProps) {
   return (
-    <label className="flex items-center justify-between md:justify-start gap-4 cursor-pointer group">
-      <div className="relative inline-flex items-center cursor-pointer">
+    <label className="flex items-start gap-4 cursor-pointer group">
+      <div className="relative inline-flex items-center cursor-pointer pt-0.5">
         <input
           className="sr-only peer"
           type="checkbox"
@@ -56,17 +68,214 @@ function ToggleField({ checked, label, name, onChange }: Omit<ToggleFieldProps, 
         />
         <div className="w-12 h-6.5 bg-muted dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-5.5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:bg-primary transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2"></div>
       </div>
-      <span className={cn(
-        "text-[11px] font-extrabold uppercase tracking-widest transition-colors",
-        checked ? "text-primary opacity-100" : "text-on-surface-variant opacity-50"
-      )}>
-        {label}
+      <span className="flex flex-col gap-1">
+        <span
+          className={cn(
+            "text-[11px] font-extrabold uppercase tracking-widest transition-colors",
+            checked ? "text-primary opacity-100" : "text-on-surface-variant opacity-50"
+          )}
+        >
+          {label}
+        </span>
+        <span className="max-w-sm text-sm leading-5 text-on-surface-variant/70">
+          {description}
+        </span>
       </span>
     </label>
   );
 }
 
+function hasAdvancedFieldErrors(fieldErrors: Partial<Record<ServiceField, string>>) {
+  return Boolean(fieldErrors.bufferMinutes || fieldErrors.isActive || fieldErrors.isHidden);
+}
+
+type AdvancedOptionsSectionProps = {
+  draft: ServiceEditorValues;
+  fieldErrors: Partial<Record<ServiceField, string>>;
+  onFieldChange: <K extends ServiceField>(field: K, value: ServiceEditorValues[K]) => void;
+  prefersReducedMotion: boolean;
+};
+
+function AdvancedOptionsSection({
+  draft,
+  fieldErrors,
+  onFieldChange,
+  prefersReducedMotion,
+}: AdvancedOptionsSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const panelId = useId();
+  const showAdvanced = isExpanded || hasAdvancedFieldErrors(fieldErrors);
+
+  return (
+    <div className="space-y-5">
+      <button
+        type="button"
+        aria-controls={panelId}
+        aria-expanded={showAdvanced}
+        onClick={() => setIsExpanded((current) => !current)}
+        className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-al-primary transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+      >
+        <span>More options</span>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "material-symbols-outlined text-base transition-transform duration-200",
+            showAdvanced && "rotate-90",
+          )}
+        >
+          chevron_right
+        </span>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {showAdvanced ? (
+          <motion.div
+            id={panelId}
+            initial={{ opacity: 0, height: 0, y: -8 }}
+            animate={{ opacity: 1, height: "auto", y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-8 rounded-[2rem] border border-on-surface-variant/10 bg-white/50 p-6 md:p-8">
+              <div className="space-y-4">
+                <span id="buffer-group-label" className={labelClassName}>
+                  Operational Buffer
+                </span>
+                <div
+                  className="flex flex-wrap gap-3"
+                  role="group"
+                  aria-labelledby="buffer-group-label"
+                >
+                  {BUFFER_OPTIONS.map((option) => {
+                    const key = option.value === null ? "default" : String(option.value);
+                    const isSelected =
+                      (draft.bufferMinutes === null && option.value === null) ||
+                      draft.bufferMinutes === option.value;
+                    return (
+                      <motion.button
+                        key={key}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => onFieldChange("bufferMinutes", option.value)}
+                        className={cn(
+                          "px-6 py-2.5 text-[11px] font-extrabold uppercase tracking-widest rounded-full transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                          isSelected
+                            ? "bg-primary text-on-primary border-primary shadow-lg shadow-primary/20"
+                            : "bg-transparent border-on-surface-variant/10 text-on-surface-variant hover:border-on-surface-variant/30 hover:bg-al-surface-low",
+                        )}
+                        {...(!prefersReducedMotion && { whileTap: { scale: 0.94 } })}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      >
+                        {option.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+                {fieldErrors.bufferMinutes ? (
+                  <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-error">
+                    {fieldErrors.bufferMinutes}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col gap-6">
+                <div className="space-y-2">
+                  <ToggleField
+                    checked={!draft.isHidden}
+                    description="Hidden services won't appear on your booking page, but customers with a direct link can still book."
+                    label="Visible on booking page"
+                    name="isHidden"
+                    onChange={(value) => onFieldChange("isHidden", !value)}
+                  />
+                  {fieldErrors.isHidden ? (
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest pl-16 text-error">
+                      {fieldErrors.isHidden}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="space-y-2">
+                  <ToggleField
+                    checked={draft.isActive}
+                    description="Turn this off to pause bookings everywhere, including direct links."
+                    label="Available for booking"
+                    name="isActive"
+                    onChange={(value) => onFieldChange("isActive", value)}
+                  />
+                  {fieldErrors.isActive ? (
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest pl-16 text-error">
+                      {fieldErrors.isActive}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+type PostCreateSharePromptProps = {
+  link: string;
+};
+
+function PostCreateSharePrompt({ link }: PostCreateSharePromptProps) {
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopyState("copied");
+      window.setTimeout(() => {
+        setCopyState((current) => (current === "copied" ? "idle" : current));
+      }, 1600);
+    } catch {
+      setCopyState("error");
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="rounded-[1.75rem] border border-primary/10 bg-white/80 px-5 py-5 shadow-[0px_16px_32px_rgba(26,28,27,0.04)]"
+    >
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-success">
+            Service created
+          </p>
+          <p className="text-sm text-on-surface-variant">
+            Service created — share your booking link to start taking bookings.
+          </p>
+        </div>
+
+        <div className="flex flex-col items-start gap-2 md:items-end">
+          <button
+            type="button"
+            onClick={() => void handleCopyLink()}
+            className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-primary underline underline-offset-4 transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+          >
+            {copyState === "copied" ? "Copied to clipboard" : "Copy booking link"}
+          </button>
+          {copyState === "error" ? (
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-error">
+              Copy failed
+            </span>
+          ) : null}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export function ServiceEditorForm({
+  advancedOptionsKey,
   mode,
   draft,
   shopContext,
@@ -75,29 +284,22 @@ export function ServiceEditorForm({
   onFieldChange,
   onSave,
   onCancel,
+  postCreateShareLink = null,
   savePending = false,
   saveSuccess = false,
+  saveSuccessLabel = "Refined",
 }: ServiceEditorFormProps) {
   const prefersReducedMotion = useReducedMotion();
 
   const durationOptions = Array.from(
-    { length: Math.max(1, Math.floor(480 / shopContext.slotMinutes)) },
+    { length: Math.max(1, Math.floor(MAX_SERVICE_DURATION_MINUTES / shopContext.slotMinutes)) },
     (_, index) => (index + 1) * shopContext.slotMinutes,
   );
 
-  // Buffer still emits the exact same typed values to onFieldChange — just rendered as chips.
-  const bufferOptions: Array<{
-    label: string;
-    value: 0 | 5 | 10 | null;
-  }> = [
-    { value: 0, label: "None" },
-    { value: 5, label: "5m" },
-    { value: 10, label: "10m" },
-    { value: null, label: "Default" },
-  ];
-
-  const depositValue =
+  const normalizedDepositValue =
     draft.depositAmountCents === null ? "" : (draft.depositAmountCents / 100).toFixed(2);
+  const [isDepositFocused, setIsDepositFocused] = useState(false);
+  const [depositInputValue, setDepositInputValue] = useState(normalizedDepositValue);
 
   return (
     <form
@@ -190,26 +392,41 @@ export function ServiceEditorForm({
             className={getFieldClassName(Boolean(fieldErrors.depositAmountCents))}
             id="service-deposit"
             inputMode="decimal"
+            onFocus={() => {
+              setIsDepositFocused(true);
+              setDepositInputValue(normalizedDepositValue);
+            }}
             onChange={(event) => {
-              const value = event.target.value.trim();
+              const rawValue = event.target.value;
+              const value = rawValue.trim();
+
+              setDepositInputValue(rawValue);
+
               if (value === "") {
                 onFieldChange("depositAmountCents", null);
                 return;
               }
 
               const dollars = Number(value);
-              onFieldChange(
-                "depositAmountCents",
-                Number.isFinite(dollars) ? Math.round(dollars * 100) : null,
-              );
+              if (!Number.isFinite(dollars)) {
+                return;
+              }
+
+              onFieldChange("depositAmountCents", Math.round(dollars * 100));
+            }}
+            onBlur={() => {
+              setIsDepositFocused(false);
+              setDepositInputValue(normalizedDepositValue);
             }}
             placeholder={
               shopContext.defaultDepositCents === null
                 ? "0.00"
                 : `${(shopContext.defaultDepositCents / 100).toFixed(2)}`
             }
+            min="0.01"
+            step="0.01"
             type="number"
-            value={depositValue}
+            value={isDepositFocused ? depositInputValue : normalizedDepositValue}
           />
           {fieldErrors.depositAmountCents ? (
             <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-error">
@@ -240,36 +457,6 @@ export function ServiceEditorForm({
         ) : null}
       </div>
 
-      <div className="space-y-4">
-        <span id="buffer-group-label" className={labelClassName}>Operational Buffer</span>
-        <div className="flex flex-wrap gap-3" role="group" aria-labelledby="buffer-group-label">
-          {bufferOptions.map((option) => {
-            const key = option.value === null ? "default" : String(option.value);
-            const isSelected =
-              (draft.bufferMinutes === null && option.value === null) ||
-              draft.bufferMinutes === option.value;
-            return (
-              <motion.button
-                key={key}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => onFieldChange("bufferMinutes", option.value)}
-                className={cn(
-                  "px-6 py-2.5 text-[11px] font-extrabold uppercase tracking-widest rounded-full transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                  isSelected
-                    ? "bg-primary text-on-primary border-primary shadow-lg shadow-primary/20"
-                    : "bg-transparent border-on-surface-variant/10 text-on-surface-variant hover:border-on-surface-variant/30 hover:bg-al-surface-low",
-                )}
-                {...(!prefersReducedMotion && { whileTap: { scale: 0.94 } })}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              >
-                {option.label}
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
-
       {/*
         Footer region — uses negative margins to bleed to the card edge and is painted with a tonal
         surface + top border to match the Stitch reference footer bar.
@@ -277,23 +464,25 @@ export function ServiceEditorForm({
       <div
         className="-mx-10 md:-mx-12 -mb-10 md:-mb-12 mt-12 p-10 md:p-12 border-t border-on-surface-variant/5 bg-al-surface-low"
       >
-        <div className="flex flex-col md:flex-row items-center justify-between gap-10">
-          <div className="flex flex-col gap-6 w-full md:w-auto">
-            <ToggleField
-              checked={draft.isActive}
-              label="Availability Status"
-              name="isActive"
-              onChange={(value) => onFieldChange("isActive", value)}
-            />
-            <ToggleField
-              checked={draft.isHidden}
-              label="Private Listing Only"
-              name="isHidden"
-              onChange={(value) => onFieldChange("isHidden", value)}
-            />
-          </div>
+        <div className="flex flex-col gap-10">
+          <AnimatePresence initial={false}>
+            {postCreateShareLink ? (
+              <PostCreateSharePrompt
+                key={postCreateShareLink}
+                link={postCreateShareLink}
+              />
+            ) : null}
+          </AnimatePresence>
 
-          <div className="flex items-center gap-8 w-full md:w-auto justify-end">
+          <AdvancedOptionsSection
+            key={advancedOptionsKey}
+            draft={draft}
+            fieldErrors={fieldErrors}
+            onFieldChange={onFieldChange}
+            prefersReducedMotion={prefersReducedMotion ?? false}
+          />
+
+          <div className="flex flex-col md:flex-row items-center justify-end gap-8">
             <AnimatePresence>
               {saveSuccess ? (
                 <motion.span
@@ -309,7 +498,7 @@ export function ServiceEditorForm({
                   >
                     done_all
                   </span>
-                  Refined
+                  {saveSuccessLabel}
                 </motion.span>
               ) : null}
             </AnimatePresence>

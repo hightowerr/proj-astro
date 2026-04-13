@@ -10,6 +10,7 @@ import {
   it,
   vi,
 } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
 const sendEmailMock = vi.fn();
 const getSessionMock = vi.fn();
@@ -26,11 +27,9 @@ vi.mock("@/lib/email", () => ({
   sendEmail: sendEmailMock,
 }));
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
-if (!hasPostgresUrl) {
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/lib/__tests__/email-reminder-integration.test.ts"),
+);
 
 const [{ db }, { createAppointment }, { createShop }, routeModule, schema] =
   await Promise.all([
@@ -46,6 +45,13 @@ const { appointments, shops, user } = schema;
 
 let userId: string;
 
+const tomorrowAtUtcHour = (hourUtc: number) => {
+  const value = new Date();
+  value.setUTCDate(value.getUTCDate() + 1);
+  value.setUTCHours(hourUtc, 0, 0, 0);
+  return value;
+};
+
 const makeFixture = async (input?: {
   status?: "booked" | "cancelled";
   emailOptIn?: boolean;
@@ -55,12 +61,12 @@ const makeFixture = async (input?: {
     name: "Email Reminder Integration Shop",
     slug: `email-reminder-integration-${randomUUID().slice(0, 8)}`,
     status: "active",
-    timezone: "America/Los_Angeles",
+    timezone: "UTC",
   });
 
   const result = await createAppointment({
     shopId: shop.id,
-    startsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    startsAt: tomorrowAtUtcHour(10),
     customer: {
       fullName: "Route Customer",
       phone: "+12025550177",
@@ -68,7 +74,7 @@ const makeFixture = async (input?: {
       smsOptIn: false,
       emailOptIn: input?.emailOptIn ?? true,
     },
-    paymentsEnabled: true,
+    paymentsEnabled: false,
   });
 
   if ((input?.status ?? "booked") !== "booked") {

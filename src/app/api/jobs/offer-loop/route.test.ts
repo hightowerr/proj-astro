@@ -10,12 +10,11 @@ import {
   it,
   vi,
 } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
-if (!hasPostgresUrl) {
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/app/api/jobs/offer-loop/route.test.ts"),
+);
 
 const { sendTwilioSmsMock } = vi.hoisted(() => ({
   sendTwilioSmsMock: vi.fn(async () => ({ sid: "mock_sid" })),
@@ -49,6 +48,7 @@ vi.mock("@/lib/twilio", () => ({
 vi.mock("@/lib/redis", () => ({
   isInCooldown: isInCooldownMock,
   acquireLock: vi.fn(),
+  getRedisClient: vi.fn(() => null),
   releaseLock: vi.fn(),
   setCooldown: vi.fn(),
 }));

@@ -8,6 +8,7 @@ import { getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { eventTypes } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
+import { MAX_SERVICE_DURATION_MINUTES } from "./constants";
 import type { ServiceEditorValues, ServiceField } from "./types";
 
 type ActionOk<T = void> = { ok: true; data: T };
@@ -35,7 +36,10 @@ const serviceEditorSchema = z.object({
     .number()
     .int()
     .positive()
-    .max(240, "Duration must be 240 minutes or less"),
+    .max(
+      MAX_SERVICE_DURATION_MINUTES,
+      `Duration must be ${MAX_SERVICE_DURATION_MINUTES} minutes or less`
+    ),
   bufferMinutes: z.union([z.null(), z.literal(0), z.literal(5), z.literal(10)]),
   depositAmountCents: z
     .number()

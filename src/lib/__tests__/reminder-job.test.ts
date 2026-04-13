@@ -10,12 +10,11 @@ import {
   it,
   vi,
 } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
-if (!hasPostgresUrl) {
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/lib/__tests__/reminder-job.test.ts"),
+);
 
 const [
   { db },
@@ -158,7 +157,7 @@ const describeIf = hasPostgresUrl ? describe : describe.skip;
 describeIf("reminder query and dedup", () => {
   it("returns high-risk booked appointments in 24h reminder window", async () => {
     const { appointment } = await makeAppointmentFixture({
-      hoursFromNow: 24,
+      hoursFromNow: 24.5,
       noShowRisk: "high",
       status: "booked",
       smsOptIn: true,
@@ -171,11 +170,11 @@ describeIf("reminder query and dedup", () => {
 
   it("returns only appointments for intervals in their snapshot", async () => {
     const twoHourOnly = await makeAppointmentFixture({
-      hoursFromNow: 24,
+      hoursFromNow: 24.5,
       reminderTimingsSnapshot: ["2h"],
     });
     const twentyFourHour = await makeAppointmentFixture({
-      hoursFromNow: 24,
+      hoursFromNow: 24.5,
       reminderTimingsSnapshot: ["24h"],
     });
 
@@ -196,7 +195,7 @@ describeIf("reminder query and dedup", () => {
 
   it("returns reminderInterval on each result", async () => {
     const { appointment } = await makeAppointmentFixture({
-      hoursFromNow: 24,
+      hoursFromNow: 24.5,
       reminderTimingsSnapshot: ["24h"],
     });
 

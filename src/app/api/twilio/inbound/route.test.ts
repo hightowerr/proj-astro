@@ -10,12 +10,11 @@ import {
   it,
   vi,
 } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
-if (!hasPostgresUrl) {
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/app/api/twilio/inbound/route.test.ts"),
+);
 
 if (!process.env.NEXT_PUBLIC_APP_URL) {
   process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3000";
@@ -95,6 +94,7 @@ vi.mock("@/lib/twilio", () => ({
 
 vi.mock("@/lib/redis", () => ({
   acquireLock: acquireLockMock,
+  getRedisClient: vi.fn(() => null),
   releaseLock: releaseLockMock,
   setCooldown: setCooldownMock,
   isInCooldown: isInCooldownMock,

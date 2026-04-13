@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const appNavLinks = [
-  { href: "/app/dashboard", label: "Home Hub", icon: "dashboard" },
+  { href: "/app", label: "Home Hub", icon: "home" },
+  { href: "/app/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/app/appointments", label: "Appointments", icon: "calendar_month" },
   { href: "/app/settings/services", label: "Shop Catalog", icon: "inventory_2", fill: true },
   { href: "/app/conflicts", label: "Conflicts", icon: "warning" },
@@ -146,8 +147,8 @@ export function AppNav({ user, shopName }: AppNavProps) {
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden bg-background/90 backdrop-blur-2xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-[0px_-10px_40px_rgba(0,0,0,0.05)] border-t border-stone-100 dark:border-slate-800">
-        <Link className="flex flex-col items-center justify-center text-on-surface-variant/60 px-4 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg" href="/app/dashboard">
-          <span aria-hidden="true" className={cn("material-symbols-outlined", pathname === "/app/dashboard" && "text-primary")}>dashboard</span>
+        <Link className="flex flex-col items-center justify-center text-on-surface-variant/60 px-4 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg" href="/app">
+          <span aria-hidden="true" className={cn("material-symbols-outlined", pathname === "/app" && "text-primary")}>home</span>
           <span className="text-[10px] font-bold uppercase tracking-wider mt-1">Hub</span>
         </Link>
         <Link className="flex flex-col items-center justify-center text-on-surface-variant/60 px-4 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg" href="/app/appointments">

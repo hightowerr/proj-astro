@@ -1,12 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
-if (!hasPostgresUrl) {
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/lib/__tests__/slot-recovery-tier-sorting.test.ts"),
+);
 
 const { isInCooldownMock } = vi.hoisted(() => ({
   isInCooldownMock: vi.fn(async () => false),
@@ -14,6 +13,7 @@ const { isInCooldownMock } = vi.hoisted(() => ({
 
 vi.mock("@/lib/redis", () => ({
   acquireLock: vi.fn(async () => ({ acquired: true, lockId: "lock-id" })),
+  getRedisClient: vi.fn(() => null),
   releaseLock: vi.fn(async () => true),
   setCooldown: vi.fn(async () => undefined),
   isInCooldown: isInCooldownMock,

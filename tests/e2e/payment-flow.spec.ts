@@ -68,9 +68,9 @@ test.describe("Payment Flow", () => {
     await fillStripeCard(page, "4242424242424242");
     await page.getByRole("button", { name: "Pay now" }).click();
 
-    await expect(
-      page.getByRole("heading", { name: "Booking confirmed" })
-    ).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText("Booking confirmed", { exact: true })).toBeVisible({
+      timeout: 20000,
+    });
 
     await page.goto("/app/appointments");
     await expect(page.getByText("Test Customer")).toBeVisible();

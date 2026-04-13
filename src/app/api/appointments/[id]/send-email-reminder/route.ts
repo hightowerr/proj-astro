@@ -130,8 +130,11 @@ export async function POST(request: Request, { params }: RouteContext) {
       );
     }
 
-    const message =
+    const details =
       error instanceof Error ? error.message : "Failed to send email reminder";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to send email", details },
+      { status: 500 }
+    );
   }
 }

@@ -46,12 +46,12 @@ export function OnboardingFlow() {
   };
 
   const handleServiceDone = () => {
-    router.push("/app/dashboard");
+    router.push("/app");
   };
 
   const handleServiceSkip = async () => {
     await createDefaultEventType();
-    router.push("/app/dashboard");
+    router.push("/app");
   };
 
   return (
