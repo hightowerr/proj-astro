@@ -21,6 +21,7 @@
     "test:unit": "vitest",
     "test:unit:ui": "vitest --ui",
     "test:unit:coverage": "vitest --coverage",
+    "test:db": "vitest --run src/lib/__tests__/availability-calendar.test.ts src/lib/__tests__/booking-contact-prefs.test.ts src/lib/__tests__/booking-settings-repair.test.ts src/lib/__tests__/booking-tier-pricing.test.ts src/lib/__tests__/buffer-time.test.ts src/lib/__tests__/confirmation.test.ts src/lib/__tests__/email-reminder-integration.test.ts src/lib/__tests__/email-reminder-query.test.ts src/lib/__tests__/email-template-rendering.test.ts src/lib/__tests__/manage-tokens.test.ts src/lib/__tests__/messages.test.ts src/lib/__tests__/reminder-job.test.ts src/lib/__tests__/slot-recovery-tier-sorting.test.ts src/app/api/jobs/expire-offers/route.test.ts src/app/api/jobs/expire-pending-recoveries/route.test.ts src/app/api/jobs/offer-loop/route.test.ts src/app/api/jobs/resolve-outcomes/route.test.ts src/app/api/twilio/inbound/route.test.ts",
     "test:resolve-outcomes": "bash scripts/test-resolve-outcomes-route.sh",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

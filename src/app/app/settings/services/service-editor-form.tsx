@@ -296,8 +296,10 @@ export function ServiceEditorForm({
     (_, index) => (index + 1) * shopContext.slotMinutes,
   );
 
-  const depositValue =
+  const normalizedDepositValue =
     draft.depositAmountCents === null ? "" : (draft.depositAmountCents / 100).toFixed(2);
+  const [isDepositFocused, setIsDepositFocused] = useState(false);
+  const [depositInputValue, setDepositInputValue] = useState(normalizedDepositValue);
 
   return (
     <form
@@ -390,26 +392,41 @@ export function ServiceEditorForm({
             className={getFieldClassName(Boolean(fieldErrors.depositAmountCents))}
             id="service-deposit"
             inputMode="decimal"
+            onFocus={() => {
+              setIsDepositFocused(true);
+              setDepositInputValue(normalizedDepositValue);
+            }}
             onChange={(event) => {
-              const value = event.target.value.trim();
+              const rawValue = event.target.value;
+              const value = rawValue.trim();
+
+              setDepositInputValue(rawValue);
+
               if (value === "") {
                 onFieldChange("depositAmountCents", null);
                 return;
               }
 
               const dollars = Number(value);
-              onFieldChange(
-                "depositAmountCents",
-                Number.isFinite(dollars) ? Math.round(dollars * 100) : null,
-              );
+              if (!Number.isFinite(dollars)) {
+                return;
+              }
+
+              onFieldChange("depositAmountCents", Math.round(dollars * 100));
+            }}
+            onBlur={() => {
+              setIsDepositFocused(false);
+              setDepositInputValue(normalizedDepositValue);
             }}
             placeholder={
               shopContext.defaultDepositCents === null
                 ? "0.00"
                 : `${(shopContext.defaultDepositCents / 100).toFixed(2)}`
             }
+            min="0.01"
+            step="0.01"
             type="number"
-            value={depositValue}
+            value={isDepositFocused ? depositInputValue : normalizedDepositValue}
           />
           {fieldErrors.depositAmountCents ? (
             <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-error">

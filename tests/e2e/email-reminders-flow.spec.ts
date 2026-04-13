@@ -141,14 +141,23 @@ test.describe("Email reminders manage flow", () => {
 
     await checkbox.uncheck();
 
-    await expect(
-      page.getByRole("status").getByText("Email reminders have been turned off.")
-    ).toBeVisible();
+    await expect(checkbox).not.toBeDisabled({ timeout: 15000 });
+    await expect(page.getByRole("status")).toHaveText(
+      "Email reminders have been turned off.",
+      { timeout: 15000 }
+    );
 
-    const prefs = await db.query.customerContactPrefs.findFirst({
-      where: (table, { eq }) => eq(table.customerId, fixture.customerId),
-    });
+    await expect
+      .poll(
+        async () => {
+          const prefs = await db.query.customerContactPrefs.findFirst({
+            where: (table, { eq }) => eq(table.customerId, fixture.customerId),
+          });
 
-    expect(prefs?.emailOptIn).toBe(false);
+          return prefs?.emailOptIn ?? null;
+        },
+        { timeout: 15000 }
+      )
+      .toBe(false);
   });
 });

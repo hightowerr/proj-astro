@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { BusinessTypeValue } from "./business-type-step";
 import { FormInput } from "./form-input";
+import type { BusinessTypeValue } from "./business-type-step";
 
 type ShopDetailsStepProps = {
   businessType: BusinessTypeValue;

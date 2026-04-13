@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { createEventType, restoreEventType, updateEventType } from "./actions";
@@ -21,6 +22,24 @@ type ServicesEditorShellProps = {
   services: ServiceRow[];
   shopContext: ShopContext;
 };
+
+function valuesToRow(
+  id: string,
+  values: ServiceEditorValues,
+  previous?: ServiceRow | null,
+): ServiceRow {
+  return {
+    id,
+    name: values.name,
+    description: values.description || null,
+    durationMinutes: values.durationMinutes,
+    bufferMinutes: values.bufferMinutes as 0 | 5 | 10 | null,
+    depositAmountCents: values.depositAmountCents,
+    isHidden: values.isHidden,
+    isActive: values.isActive,
+    isDefault: previous?.isDefault ?? false,
+  };
+}
 
 function rowToValues(row: ServiceRow): ServiceEditorValues {
   return {
@@ -83,7 +102,9 @@ function getDefaultCreateDuration(services: ServiceRow[], fallbackDurationMinute
 
 export function ServicesEditorShell({ services, shopContext }: ServicesEditorShellProps) {
   const emptyModeHint = "Select a service to edit, or click Add New.";
+  const router = useRouter();
   const [awaitingServerSync, setAwaitingServerSync] = useState(false);
+  const [serviceRows, setServiceRows] = useState(services);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<"empty" | "edit" | "create">("empty");
   const [baseline, setBaseline] = useState<ServiceEditorValues | null>(null);
@@ -105,7 +126,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
   });
 
   const selectedService =
-    selectedId === null ? null : (services.find((service) => service.id === selectedId) ?? null);
+    selectedId === null ? null : (serviceRows.find((service) => service.id === selectedId) ?? null);
   const selectedServiceValues = selectedService ? rowToValues(selectedService) : null;
   const shouldUseServerSelectedValues =
     mode === "edit" &&
@@ -114,6 +135,10 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     selectedServiceValues !== null;
   const editorBaseline = shouldUseServerSelectedValues ? selectedServiceValues : baseline;
   const editorDraft = shouldUseServerSelectedValues ? selectedServiceValues : draft;
+
+  useEffect(() => {
+    setServiceRows(services);
+  }, [services]);
 
   useEffect(() => {
     if (!dirty) {
@@ -162,7 +187,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     return {
       name: "",
       description: "",
-      durationMinutes: getDefaultCreateDuration(services, shopContext.slotMinutes),
+      durationMinutes: getDefaultCreateDuration(serviceRows, shopContext.slotMinutes),
       bufferMinutes: null,
       depositAmountCents: null,
       isHidden: false,
@@ -183,7 +208,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
 
     switch (target.kind) {
       case "select": {
-        const service = services.find((item) => item.id === target.id);
+        const service = serviceRows.find((item) => item.id === target.id);
         if (!service) {
           return;
         }
@@ -302,6 +327,13 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
         return;
       }
 
+      setServiceRows((current) =>
+        current.map((service) =>
+          service.id === selectedId
+            ? valuesToRow(selectedId, draftToSave, service)
+            : service,
+        ),
+      );
       setAwaitingServerSync(true);
       setPostCreateShareId(null);
       setBaseline(draftToSave);
@@ -309,6 +341,9 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
       setDirty(false);
       setSaveSuccessLabel("Refined");
       setSaveSuccess(true);
+      startTransition(() => {
+        router.refresh();
+      });
       window.setTimeout(() => {
         setSaveSuccess(false);
       }, 2000);
@@ -333,6 +368,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     }
 
     const createdId = createResult.data.id;
+    setServiceRows((current) => [...current, valuesToRow(createdId, draftToSave)]);
     setAwaitingServerSync(true);
     setSelectedId(createdId);
     setMode("edit");
@@ -342,6 +378,9 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     setSaveSuccessLabel("Created");
     setSaveSuccess(true);
     setPostCreateShareId(draftToSave.isActive ? createdId : null);
+    startTransition(() => {
+      router.refresh();
+    });
     window.setTimeout(() => {
       setSaveSuccess(false);
     }, 2000);
@@ -363,17 +402,21 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
       return;
     }
 
-    const service = services.find((item) => item.id === id);
+    const service = serviceRows.find((item) => item.id === id);
     if (!service) {
       return;
     }
 
     // BOUNDARY: R6.3 requires the restored row to become selected and render fresh committed values.
-    const restoredValues = rowToValues({
+    const restoredRow = {
       ...service,
       isHidden: false,
       isActive: true,
-    });
+    };
+    setServiceRows((current) =>
+      current.map((item) => (item.id === id ? restoredRow : item)),
+    );
+    const restoredValues = rowToValues(restoredRow);
     setAwaitingServerSync(true);
     setPostCreateShareId(null);
     setSelectedId(id);
@@ -381,6 +424,9 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     setBaseline(restoredValues);
     setDraft(restoredValues);
     setDirty(false);
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   function handleCancel() {
@@ -423,7 +469,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
     mode === "edit" && selectedId !== null && postCreateShareId === selectedId
       ? `${shopContext.bookingBaseUrl}?service=${selectedId}`
       : null;
-  const serviceSummary = services.reduce(
+  const serviceSummary = serviceRows.reduce(
     (summary, service) => {
       summary.total += 1;
       if (service.isActive) {
@@ -491,7 +537,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
             Add New Service
           </button>
         </div>
-        {mode === "empty" && services.length > 0 ? (
+        {mode === "empty" && serviceRows.length > 0 ? (
           <p className="xl:hidden text-sm text-on-surface-variant">
             {emptyModeHint}
           </p>
@@ -512,7 +558,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
             variants={containerVariants}
           >
             <AnimatePresence initial={false}>
-              {services.map((service) => (
+              {serviceRows.map((service) => (
                 <motion.div
                   key={service.id}
                   layout
@@ -533,7 +579,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
               ))}
             </AnimatePresence>
           </motion.div>
-          {services.length === 0 && (
+          {serviceRows.length === 0 && (
             <div
               className="xl:hidden rounded-[2rem] p-12 text-center bg-al-surface-low"
             >
@@ -573,7 +619,7 @@ export function ServicesEditorShell({ services, shopContext }: ServicesEditorShe
               >
                 <EmptyPane
                   addNewDisabled={addNewDisabled}
-                  hasServices={services.length > 0}
+                  hasServices={serviceRows.length > 0}
                   onAddNew={handleAddNew}
                   orientationHint={emptyModeHint}
                   summary={serviceSummary}

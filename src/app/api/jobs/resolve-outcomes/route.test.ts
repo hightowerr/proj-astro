@@ -10,14 +10,12 @@ import {
   it,
   vi,
 } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/app/api/jobs/resolve-outcomes/route.test.ts"),
+);
 const testLockId = String(800001 + Math.floor(Math.random() * 100000));
-if (!hasPostgresUrl) {
-  // Prevent module-import crash in db.ts; suite remains skipped below.
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
 
 const [{ db }, { createShop }, schema, route] = await Promise.all([
   import("@/lib/db"),

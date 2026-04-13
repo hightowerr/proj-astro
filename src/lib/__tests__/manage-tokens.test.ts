@@ -10,12 +10,11 @@ import {
   it,
   vi,
 } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
-if (!hasPostgresUrl) {
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/lib/__tests__/manage-tokens.test.ts"),
+);
 
 const [{ db }, manageTokens, { createAppointment }, { createShop }, schema] =
   await Promise.all([

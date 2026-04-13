@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
 const createCalendarEventMock = vi.fn(async () => `evt-${randomUUID()}`);
 const invalidateCalendarCacheMock = vi.fn(async () => {});
@@ -14,11 +15,9 @@ vi.mock("@/lib/google-calendar", async (importOriginal) => {
   };
 });
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
-if (!hasPostgresUrl) {
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/lib/__tests__/booking-tier-pricing.test.ts"),
+);
 
 const [{ db }, { createAppointment }, { createShop }, schema] = await Promise.all([
   import("@/lib/db"),

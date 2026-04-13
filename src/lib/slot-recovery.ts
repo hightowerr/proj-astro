@@ -294,6 +294,7 @@ export async function getEligibleCustomers(
     .limit(50);
 
   const eligible: EligibleCustomer[] = [];
+  const slotStartsAtIso = slotOpening.startsAt.toISOString();
 
   for (const candidate of candidates) {
     const overlapping = await db
@@ -305,7 +306,7 @@ export async function getEligibleCustomers(
           eq(appointments.customerId, candidate.id),
           inArray(appointments.status, ["booked", "pending"]),
           lt(appointments.startsAt, slotBufferedEndsAt),
-          sql`${appointments.endsAt} + (${appointments.effectiveBufferAfterMinutes} * interval '1 minute') > ${slotOpening.startsAt}`
+          sql`${appointments.endsAt} + (${appointments.effectiveBufferAfterMinutes} * interval '1 minute') > ${slotStartsAtIso}`
         )
       )
       .limit(1);

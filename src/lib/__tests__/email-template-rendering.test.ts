@@ -10,12 +10,11 @@ import {
   it,
   vi,
 } from "vitest";
+import { requirePostgresUrl } from "@/test/db-test-guard";
 
-const hasPostgresUrl = Boolean(process.env.POSTGRES_URL);
-if (!hasPostgresUrl) {
-  process.env.POSTGRES_URL =
-    "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
-}
+const hasPostgresUrl = Boolean(
+  requirePostgresUrl("src/lib/__tests__/email-template-rendering.test.ts"),
+);
 
 const [
   { db },
@@ -50,6 +49,13 @@ const EMAIL_BODY_TEMPLATE = `
 `.trim();
 
 let userId: string;
+
+const tomorrowAtUtcHour = (hourUtc: number) => {
+  const value = new Date();
+  value.setUTCDate(value.getUTCDate() + 1);
+  value.setUTCHours(hourUtc, 0, 0, 0);
+  return value;
+};
 
 beforeAll(() => {
   vi.stubEnv("NODE_ENV", "test");
@@ -105,7 +111,7 @@ describeIf("email template rendering", () => {
       status: "active",
     });
 
-    const startsAt = new Date("2026-03-18T14:00:00.000Z");
+    const startsAt = tomorrowAtUtcHour(14);
 
     const booking = await createAppointment({
       shopId: shop.id,
