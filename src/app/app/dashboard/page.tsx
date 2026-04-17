@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AllAppointmentsTable } from "@/components/dashboard/all-appointments-table";
 import { AttentionRequiredTable } from "@/components/dashboard/attention-required-table";
+import { DashboardSearch } from "@/components/dashboard/dashboard-search";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { TierDistributionChart } from "@/components/dashboard/tier-distribution-chart";
 import { getDashboardData } from "@/lib/queries/dashboard";
@@ -45,6 +46,7 @@ export default async function DashboardPage({
     highRiskAppointments,
     totalUpcoming,
     depositsAtRisk,
+    highRiskCustomerCount,
     monthlyStats,
     tierDistribution,
     allAppointments,
@@ -57,11 +59,14 @@ export default async function DashboardPage({
   return (
     <div className="min-h-screen bg-bg-dark">
       <div className="container mx-auto space-y-6 px-4 py-10">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-semibold text-white">Dashboard</h1>
-          <p className="text-sm text-text-light-muted">
-            Monitor high-risk appointments and upcoming reliability trends for {shop.name}.
-          </p>
+        <header className="space-y-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold text-white">Dashboard</h1>
+            <p className="text-sm text-text-light-muted">
+              Monitor high-risk appointments and upcoming reliability trends for {shop.name}.
+            </p>
+          </div>
+          <DashboardSearch />
         </header>
 
         {hasOnlyDefaultServices ? (
@@ -82,7 +87,7 @@ export default async function DashboardPage({
 
         <SummaryCards
           totalUpcoming={totalUpcoming}
-          highRiskCount={highRiskAppointments.length}
+          highRiskCustomerCount={highRiskCustomerCount}
           depositsAtRisk={depositsAtRisk}
           monthlyStats={monthlyStats}
         />

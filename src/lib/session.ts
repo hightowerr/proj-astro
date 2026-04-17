@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 /**
  * Protected routes that require authentication.
@@ -20,6 +21,20 @@ export async function requireAuth() {
 
   if (!session) {
     redirect("/");
+  }
+
+  // Guard against stale Redis-cached sessions whose user row no longer exists
+  // in the database (e.g. after a DB wipe while the Redis session cache was
+  // retained). Better Auth returns the session from Redis without verifying
+  // the user table, so we must check explicitly before using session.user.id
+  // as a FK in any write.
+  const userExists = await db.query.user.findFirst({
+    where: (table, { eq }) => eq(table.id, session.user.id),
+    columns: { id: true },
+  });
+
+  if (!userExists) {
+    redirect("/api/auth/sign-out-orphan");
   }
 
   return session;

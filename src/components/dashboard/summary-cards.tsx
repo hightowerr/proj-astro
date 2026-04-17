@@ -1,23 +1,36 @@
 import type { DashboardMonthlyStats } from "@/types/dashboard";
 
-function formatCurrency(amountCents: number): string {
+function formatCurrency(amountCents: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency,
     maximumFractionDigits: 0,
   }).format(amountCents / 100);
 }
 
+function renderDepositsAtRisk(depositsAtRisk: Record<string, number>): string {
+  const entries = Object.entries(depositsAtRisk);
+
+  if (entries.length === 0) return formatCurrency(0, "USD");
+
+  if (entries.length === 1) {
+    const [currency, amountCents] = entries[0]!;
+    return formatCurrency(amountCents, currency);
+  }
+
+  return "Multiple currencies";
+}
+
 interface SummaryCardsProps {
   totalUpcoming: number;
-  highRiskCount: number;
-  depositsAtRisk: number;
+  highRiskCustomerCount: number;
+  depositsAtRisk: Record<string, number>;
   monthlyStats: DashboardMonthlyStats;
 }
 
 export function SummaryCards({
   totalUpcoming,
-  highRiskCount,
+  highRiskCustomerCount,
   depositsAtRisk,
   monthlyStats,
 }: SummaryCardsProps) {
@@ -29,14 +42,17 @@ export function SummaryCards({
       </article>
 
       <article className="rounded-lg border border-red-500/30 bg-bg-dark-secondary p-5">
-        <h3 className="text-xs font-medium uppercase text-red-300">High-Risk Appointments</h3>
-        <p className="mt-2 text-3xl font-semibold tabular-nums text-red-200">{highRiskCount}</p>
+        <h3 className="text-xs font-medium uppercase text-red-300">High-Risk Customers</h3>
+        <p className="mt-2 text-3xl font-semibold tabular-nums text-red-200">
+          {highRiskCustomerCount}
+        </p>
+        <p className="mt-1 text-xs text-red-300/70">In selected window</p>
       </article>
 
       <article className="rounded-lg border border-amber-500/30 bg-bg-dark-secondary p-5">
         <h3 className="text-xs font-medium uppercase text-amber-300">Deposits at Risk</h3>
         <p className="mt-2 text-3xl font-semibold tabular-nums text-amber-200">
-          {formatCurrency(depositsAtRisk)}
+          {renderDepositsAtRisk(depositsAtRisk)}
         </p>
       </article>
 
@@ -46,13 +62,13 @@ export function SummaryCards({
           <div className="flex items-center justify-between">
             <span className="text-text-light-muted">Retained</span>
             <span className="font-semibold text-green-300">
-              {formatCurrency(monthlyStats.depositsRetained)}
+              {formatCurrency(monthlyStats.depositsRetained, "USD")}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-text-light-muted">Refunded</span>
             <span className="font-semibold text-red-300">
-              {formatCurrency(monthlyStats.refundsIssued)}
+              {formatCurrency(monthlyStats.refundsIssued, "USD")}
             </span>
           </div>
         </div>
