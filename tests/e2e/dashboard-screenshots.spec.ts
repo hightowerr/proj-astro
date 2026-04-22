@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import { db } from "../../src/lib/db";
 import { account, bookingSettings, shops, user } from "../../src/lib/schema";
-import { eq } from "drizzle-orm";
 import { test, expect } from "../setup";
 
 const shouldRun = Boolean(process.env.POSTGRES_URL);
