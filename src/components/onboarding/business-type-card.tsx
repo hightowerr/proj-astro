@@ -20,10 +20,7 @@ export function BusinessTypeCard({
   onClick,
 }: BusinessTypeCardProps) {
   return (
-    <motion.button
-      whileHover={{ scale: 1.05, y: -4 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+    <button
       onClick={() => onClick(value)}
       className={`
         relative flex min-h-40 cursor-pointer flex-col items-center justify-center gap-4 rounded-[var(--al-radius-2xl)] border p-8
@@ -38,6 +35,12 @@ export function BusinessTypeCard({
       aria-pressed={selected}
       type="button"
     >
+      <motion.div
+        whileHover={{ scale: 1.05, y: -4 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className="flex h-full w-full flex-col items-center justify-center gap-4"
+      >
       {selected ? (
         <span className="absolute top-4 right-4 rounded-full border border-primary/40 bg-background p-1.5 text-primary shadow-[var(--al-shadow-float)]">
           <Check className="h-4 w-4" aria-hidden />
@@ -56,6 +59,7 @@ export function BusinessTypeCard({
       <span className={`font-manrope text-base font-bold transition-colors duration-300 ${
         selected ? "text-primary" : "text-primary/70"
       }`}>{label}</span>
-    </motion.button>
+      </motion.div>
+    </button>
   );
 }

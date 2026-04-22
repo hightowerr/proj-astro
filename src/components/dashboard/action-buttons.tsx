@@ -83,7 +83,7 @@ export function ActionButtons({
           asChild
           variant="outline"
           size="sm"
-          className="border-white/15 bg-white/5 text-white"
+          className="border-al-outline-variant/40 bg-al-surface-lowest text-al-primary hover:bg-al-surface-low hover:text-al-primary"
         >
           <Link href={`/app/appointments/${appointmentId}`}>
             <Eye className="h-4 w-4" />
@@ -95,7 +95,7 @@ export function ActionButtons({
           type="button"
           variant="outline"
           size="sm"
-          className="border-white/15 bg-white/5 text-white"
+          className="border-al-outline-variant/40 bg-al-surface-lowest text-al-primary hover:bg-al-surface-low hover:text-al-primary"
           onClick={() => setShowContact(true)}
           aria-expanded={showContact}
           aria-haspopup="dialog"
@@ -108,7 +108,7 @@ export function ActionButtons({
           type="button"
           variant="outline"
           size="sm"
-          className="border-sky-500/30 bg-sky-500/10 text-sky-100 hover:border-sky-400/40 hover:bg-sky-500/15 hover:text-white"
+          className="border-sky-200 bg-sky-50 text-sky-700 hover:border-sky-300 hover:bg-sky-100 hover:text-sky-800"
           disabled={loadingAction !== null}
           onClick={() => void postAction("remind", "Reminder sent")}
         >
@@ -120,7 +120,7 @@ export function ActionButtons({
           type="button"
           variant="outline"
           size="sm"
-          className="border-emerald-500/30 bg-emerald-500/10 text-emerald-100 hover:border-emerald-400/40 hover:bg-emerald-500/15 hover:text-white"
+          className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-800"
           disabled={loadingAction !== null || confirmationStatus === "confirmed"}
           onClick={() => void postAction("confirm", "Confirmation request sent")}
         >
@@ -132,7 +132,7 @@ export function ActionButtons({
           type="button"
           variant="outline"
           size="sm"
-          className="border-rose-500/30 bg-rose-500/10 text-rose-100 hover:border-rose-400/40 hover:bg-rose-500/15 hover:text-white"
+          className="border-rose-200 bg-rose-50 text-rose-700 hover:border-rose-300 hover:bg-rose-100 hover:text-rose-800"
           onClick={handleCancel}
         >
           <XCircle className="h-4 w-4" />

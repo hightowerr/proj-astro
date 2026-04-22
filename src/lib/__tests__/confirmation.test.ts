@@ -90,8 +90,8 @@ const seedBookedAppointment = async () => {
     smsOptIn: true,
   });
 
-  const startsAt = new Date("2026-04-20T14:00:00.000Z");
-  const endsAt = new Date("2026-04-20T15:00:00.000Z");
+  const startsAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
 
   const [appointment] = await db
     .insert(appointments)

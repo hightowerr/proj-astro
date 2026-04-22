@@ -40,11 +40,22 @@ export async function completeShopOnboarding(
   }).toPass({ timeout: 15000 });
 
   if (await businessTypeHeading.isVisible().catch(() => false)) {
+    await businessTypeButton.scrollIntoViewIfNeeded();
+
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      await businessTypeButton.click();
+      await businessTypeButton.click({ force: true });
 
       const pressed = await businessTypeButton.getAttribute("aria-pressed");
       if (pressed === "true") {
+        break;
+      }
+
+      await businessTypeButton.evaluate((button) => {
+        (button as HTMLButtonElement).click();
+      });
+
+      const pressedAfterFallback = await businessTypeButton.getAttribute("aria-pressed");
+      if (pressedAfterFallback === "true") {
         break;
       }
 

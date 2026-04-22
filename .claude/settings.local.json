@@ -45,7 +45,14 @@
       "mcp__stitch__get_screen",
       "mcp__mental-models__path_exists",
       "mcp__mental-models__list_directory",
-      "mcp__mental-models__write_file"
+      "mcp__mental-models__write_file",
+      "mcp__mental-models__get_repo_structure",
+      "mcp__mental-models__get_timestamp_slug",
+      "mcp__mental-models__create_directory",
+      "mcp__mental-models__glob_files",
+      "WebFetch(domain:dap.berkeley.edu)",
+      "WebFetch(domain:orm.drizzle.team)",
+      "Bash(PLAYWRIGHT_REUSE_EXISTING_SERVER=true PLAYWRIGHT_SKIP_MIGRATIONS=true pnpm test:e2e:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

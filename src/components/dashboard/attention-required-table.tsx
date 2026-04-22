@@ -7,14 +7,36 @@ import { TierBadge } from "@/components/customers/tier-badge";
 import { ActionButtons } from "@/components/dashboard/action-buttons";
 import { ConfirmationStatusBadge } from "@/components/dashboard/confirmation-status-badge";
 import { SmsStatusBadge } from "@/components/dashboard/sms-status-badge";
+import { cn } from "@/lib/utils";
 import type { DashboardAppointment } from "@/types/dashboard";
 
 const PERIOD_OPTIONS = [
-  { value: 24, label: "Next 24 hours" },
-  { value: 72, label: "Next 3 days" },
-  { value: 168, label: "Next 7 days" },
-  { value: 336, label: "Next 14 days" },
+  { value: 24, chipLabel: "24h" },
+  { value: 72, chipLabel: "3 days" },
+  { value: 168, chipLabel: "7 days" },
+  { value: 336, chipLabel: "14 days" },
 ] as const;
+
+const HIGH_RISK_SCORE_THRESHOLD = 40;
+const HIGH_RISK_VOIDS_THRESHOLD = 2;
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function isHighRiskAppointment(appointment: DashboardAppointment): boolean {
+  return (
+    appointment.customerTier === "risk" ||
+    (appointment.customerScore !== null &&
+      appointment.customerScore < HIGH_RISK_SCORE_THRESHOLD) ||
+    appointment.voidedLast90Days >= HIGH_RISK_VOIDS_THRESHOLD
+  );
+}
 
 interface AttentionRequiredTableProps {
   appointments: DashboardAppointment[];
@@ -32,100 +54,100 @@ export function AttentionRequiredTable({ appointments, currentPeriod }: Attentio
   };
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-semibold text-white">Attention Required</h2>
-        <label className="flex items-center gap-3 text-sm text-text-light-muted" htmlFor="attention-period">
-          Window
-          <select
-            id="attention-period"
-            name="period"
-            value={String(currentPeriod)}
-            disabled={isPending}
-            onChange={(event) => handlePeriodChange(Number(event.target.value))}
-            className="rounded-md border border-white/20 bg-bg-dark px-3 py-2 text-sm text-white outline-none ring-primary focus:ring-2 disabled:opacity-60"
-          >
-            {PERIOD_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+    <section className="space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between border-b border-al-surface-container-high pb-4">
+        <div>
+          <h2 className="text-[1.75rem] font-bold text-al-primary font-manrope leading-snug">Attention Required</h2>
+          <p className="text-al-on-surface-variant text-sm mt-1">Clients flagged for potential no-shows or unconfirmed deposits.</p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {PERIOD_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              disabled={isPending}
+              onClick={() => handlePeriodChange(option.value)}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide transition-colors disabled:opacity-60",
+                currentPeriod === option.value
+                  ? "bg-[#ffdbcf] text-[#2a170f]"
+                  : "bg-al-surface-container text-al-on-surface-variant hover:bg-al-surface-container-high"
+              )}
+            >
+              {option.chipLabel}
+            </button>
+          ))}
+        </div>
       </div>
 
       {appointments.length === 0 ? (
-        <div className="rounded-lg border border-white/10 bg-bg-dark-secondary p-8 text-center">
-          <p className="text-sm text-text-light-muted">
+        <div className="rounded-xl bg-al-surface-lowest p-8 text-center border border-al-surface-container-low">
+          <p className="text-sm text-al-on-surface-variant">
             No high-risk appointments in this period.
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-white/10 bg-bg-dark-secondary">
-          <table className="w-full min-w-[900px] text-sm">
-            <thead className="bg-white/5 text-left">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
-                  Customer
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
-                  Time
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
-                  Score
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
-                  Voids (90d)
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
-                  Confirmation
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((appointment) => (
-                <tr key={appointment.id} className="border-t border-white/10">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-white">{appointment.customerName}</span>
+        <div className="space-y-4">
+          {appointments.map((appointment) => {
+            const isHighRisk = isHighRiskAppointment(appointment);
+            const initials = getInitials(appointment.customerName);
+
+            return (
+              <div
+                key={appointment.id}
+                className="bg-al-surface-lowest rounded-xl p-5 flex items-center justify-between border border-al-surface-container-low shadow-[0px_4px_20px_rgba(26,28,27,0.02)] hover:shadow-[0px_8px_30px_rgba(26,28,27,0.04)] transition-shadow"
+              >
+                <div className="flex items-center gap-5 w-1/3 min-w-0">
+                  <div
+                    className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0",
+                      isHighRisk
+                        ? "bg-red-100 text-red-700"
+                        : "bg-al-surface-container-highest text-al-primary"
+                    )}
+                  >
+                    {initials}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-al-primary truncate">{appointment.customerName}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
                       <TierBadge tier={appointment.customerTier} />
                       <SmsStatusBadge smsOptIn={appointment.smsOptIn} />
                     </div>
-                    <div className="mt-1 text-xs text-text-light-muted">
-                      {appointment.customerEmail || appointment.customerPhone}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-text-light-muted">
-                    <div>{format(new Date(appointment.startsAt), "MMM d, h:mm a")}</div>
-                    <div className="text-xs">
-                      Ends {format(new Date(appointment.endsAt), "h:mm a")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-medium tabular-nums text-white">
-                    {appointment.customerScore ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 tabular-nums text-text-light-muted">
-                    {appointment.voidedLast90Days}
-                  </td>
-                  <td className="px-4 py-3">
-                    <ConfirmationStatusBadge status={appointment.confirmationStatus} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <ActionButtons
-                      appointmentId={appointment.id}
-                      customerPhone={appointment.customerPhone}
-                      customerEmail={appointment.customerEmail}
-                      bookingUrl={appointment.bookingUrl}
-                      confirmationStatus={appointment.confirmationStatus}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between w-2/3 pl-8 gap-4">
+                  <div className="flex flex-col gap-0.5 shrink-0">
+                    <span className="text-xs text-al-on-surface-variant uppercase tracking-wider">Time</span>
+                    <span className="font-medium text-foreground text-sm">
+                      {format(new Date(appointment.startsAt), "MMM d, h:mm a")}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 shrink-0">
+                    <span className="text-xs text-al-on-surface-variant uppercase tracking-wider">Score</span>
+                    <span className="font-semibold tabular-nums text-foreground">
+                      {appointment.customerScore ?? "—"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 shrink-0">
+                    <span className="text-xs text-al-on-surface-variant uppercase tracking-wider">Voids (90d)</span>
+                    <span className="font-medium tabular-nums text-foreground">
+                      {appointment.voidedLast90Days}
+                    </span>
+                  </div>
+                  <ConfirmationStatusBadge status={appointment.confirmationStatus} />
+                  <ActionButtons
+                    appointmentId={appointment.id}
+                    customerPhone={appointment.customerPhone}
+                    customerEmail={appointment.customerEmail}
+                    bookingUrl={appointment.bookingUrl}
+                    confirmationStatus={appointment.confirmationStatus}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </section>

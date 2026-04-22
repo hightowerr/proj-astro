@@ -2,6 +2,7 @@ import type { Tier } from "@/lib/scoring";
 
 export interface DashboardAppointment {
   id: string;
+  customerId: string;
   startsAt: Date;
   endsAt: Date;
   customerName: string;
@@ -13,6 +14,7 @@ export interface DashboardAppointment {
   confirmationStatus: "none" | "pending" | "confirmed" | "expired";
   bookingUrl: string | null;
   smsOptIn: boolean;
+  serviceName: string | null;
 }
 
 export interface DashboardMonthlyStats {
@@ -39,8 +41,25 @@ export interface DashboardSort {
 export interface DashboardData {
   highRiskAppointments: DashboardAppointment[];
   totalUpcoming: number;
-  depositsAtRisk: number;
+  depositsAtRisk: Record<string, number>;
+  highRiskCustomerCount: number;
   monthlyStats: DashboardMonthlyStats;
   tierDistribution: DashboardTierDistribution;
   allAppointments: DashboardAppointment[];
+}
+
+export interface DashboardLogItem {
+  id: string;
+  kind:
+    | "appointment_created"
+    | "appointment_cancelled"
+    | "outcome_resolved"
+    | "message_sent"
+    | "message_failed";
+  occurredAt: Date;
+  appointmentId: string | null;
+  customerName: string | null;
+  eventLabel: string;
+  channel: "sms" | "email" | null;
+  href: string | null;
 }

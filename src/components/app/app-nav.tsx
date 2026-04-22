@@ -32,22 +32,21 @@ type AppNavProps = {
 export function AppNav({ user, shopName }: AppNavProps) {
   const pathname = usePathname();
 
-  if (pathname === "/app") {
-    return null;
-  }
-
   const userImage = user.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuCa_trS9Ine5HoCiQQCIww3vhRLofOztZcc96P7wLZgtKZoK2AR59ciNVf-WfI8QiSqdwvhuw2UVcBkuVvWxaRsYcGyoyN0Bezb3OLgIZwdgHDzyynNLqZl387E5y6FUT3BNYYYMQvbDcFXu0UFNSdvvUnPxCtsR0IWHU8i3ziKO3fumlJpvhYp0ZCHT8Gjp90MbRpwP8KlzVVhkFTqVfdasEuFH6PqX_LSTTrjHV2PiSGekDJ2MMW5ULlBSd1FwhMz8k0pS09KmibE";
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-72 bg-background dark:bg-slate-900 border-r border-stone-100 dark:border-slate-800 hidden lg:flex flex-col z-40">
+      <aside className="fixed left-0 top-0 h-full w-72 bg-background hidden lg:flex flex-col z-40">
         <div className="p-8">
-          <div className="flex items-center gap-3 text-primary dark:text-blue-400">
-            <span className="material-symbols-outlined text-3xl" aria-hidden="true">dashboard_customize</span>
-            <span className="text-xl font-extrabold tracking-widest uppercase font-manrope">
-              {shopName}
-            </span>
+          <div>
+            <div className="flex items-center gap-3 text-primary">
+              <span className="material-symbols-outlined text-3xl" aria-hidden="true">dashboard_customize</span>
+              <span className="text-2xl font-extrabold tracking-widest uppercase font-manrope">
+                {shopName}
+              </span>
+            </div>
+            <p className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest opacity-70 mt-1">Studio Management</p>
           </div>
         </div>
         <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
@@ -58,10 +57,10 @@ export function AppNav({ user, shopName }: AppNavProps) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center gap-4 px-4 py-4 rounded-2xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                  "flex items-center gap-4 px-4 py-3 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   isActive
-                    ? "bg-primary text-on-primary shadow-lg shadow-primary/10"
-                    : "text-on-surface-variant hover:bg-stone-100 dark:hover:bg-slate-800"
+                    ? "bg-[#003366] text-on-primary shadow-lg shadow-primary/10"
+                    : "text-on-surface-variant hover:bg-al-surface-low"
                 )}
               >
                 <span
@@ -89,10 +88,10 @@ export function AppNav({ user, shopName }: AppNavProps) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center gap-4 px-4 py-4 rounded-2xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                  "flex items-center gap-4 px-4 py-3 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   isActive
-                    ? "bg-primary text-on-primary shadow-lg shadow-primary/10"
-                    : "text-on-surface-variant hover:bg-stone-100 dark:hover:bg-slate-800"
+                    ? "bg-[#003366] text-on-primary shadow-lg shadow-primary/10"
+                    : "text-on-surface-variant hover:bg-al-surface-low"
                 )}
               >
                 <span
@@ -107,11 +106,11 @@ export function AppNav({ user, shopName }: AppNavProps) {
             );
           })}
         </nav>
-        <div className="p-6 border-t border-stone-100 dark:border-slate-800">
+        <div className="p-6 border-t border-al-outline-variant/10">
           <div className="flex items-center gap-4">
             <Image
               alt="Profile"
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-stone-100 dark:ring-slate-800"
+              className="w-10 h-10 rounded-full object-cover ring-2 ring-al-surface-container"
               src={userImage}
               width={40}
               height={40}
@@ -126,9 +125,9 @@ export function AppNav({ user, shopName }: AppNavProps) {
       </aside>
 
       {/* Mobile Header */}
-      <header className="lg:hidden bg-background/80 backdrop-blur-xl sticky top-0 z-50 flex justify-between items-center w-full px-6 py-4 border-b border-stone-100 dark:border-slate-800">
+      <header className="lg:hidden bg-background/80 backdrop-blur-xl sticky top-0 z-50 flex justify-between items-center w-full px-6 py-4">
         <div className="flex items-center gap-4">
-          <span className="material-symbols-outlined text-primary" aria-hidden="true">menu</span>
+          <span className="material-symbols-outlined text-al-primary" aria-hidden="true">menu</span>
           <h1 className="text-xl font-extrabold tracking-widest text-primary uppercase font-manrope">
             {shopName}
           </h1>
@@ -146,7 +145,7 @@ export function AppNav({ user, shopName }: AppNavProps) {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden bg-background/90 backdrop-blur-2xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-[0px_-10px_40px_rgba(0,0,0,0.05)] border-t border-stone-100 dark:border-slate-800">
+      <nav className="lg:hidden bg-background/90 backdrop-blur-2xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-[0px_-10px_40px_rgba(0,0,0,0.05)]">
         <Link className="flex flex-col items-center justify-center text-on-surface-variant/60 px-4 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg" href="/app">
           <span aria-hidden="true" className={cn("material-symbols-outlined", pathname === "/app" && "text-primary")}>home</span>
           <span className="text-[10px] font-bold uppercase tracking-wider mt-1">Hub</span>

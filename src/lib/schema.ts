@@ -713,6 +713,10 @@ export const appointmentEvents = pgTable(
       table.type,
       table.occurredAt
     ),
+    index("appointment_events_shop_occurred_idx").on(
+      table.shopId,
+      table.occurredAt
+    ),
   ]
 );
 

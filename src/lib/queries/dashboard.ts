@@ -1,11 +1,21 @@
-import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { getCached } from "@/lib/cache";
 import { db } from "@/lib/db";
-import { appointments, customerContactPrefs, customers, customerScores, payments } from "@/lib/schema";
+import {
+  appointmentEvents,
+  appointments,
+  customerContactPrefs,
+  customers,
+  customerScores,
+  eventTypes,
+  messageLog,
+  payments,
+} from "@/lib/schema";
 import type {
   DashboardData,
   DashboardAppointment,
   DashboardFilters,
+  DashboardLogItem,
   DashboardMonthlyStats,
   DashboardSort,
   DashboardTierDistribution,
@@ -24,6 +34,7 @@ const highRiskCondition = sql<boolean>`(
 
 const baseAppointmentSelect = {
   id: appointments.id,
+  customerId: appointments.customerId,
   startsAt: appointments.startsAt,
   endsAt: appointments.endsAt,
   customerName: customers.fullName,
@@ -35,11 +46,13 @@ const baseAppointmentSelect = {
   confirmationStatus: appointments.confirmationStatus,
   bookingUrl: appointments.bookingUrl,
   smsOptIn: sql<boolean>`COALESCE(${customerContactPrefs.smsOptIn}, false)`,
+  serviceName: eventTypes.name,
 };
 
 const dashboardAppointmentSelect = {
   ...baseAppointmentSelect,
   depositAmount: sql<number>`COALESCE(${payments.amountCents}, 0)`,
+  depositCurrency: payments.currency,
 };
 
 export const getTierDistributionCacheKey = (shopId: string) =>
@@ -60,6 +73,7 @@ export async function getHighRiskAppointments(
       customerScores,
       and(eq(customerScores.customerId, customers.id), eq(customerScores.shopId, appointments.shopId))
     )
+    .leftJoin(eventTypes, eq(eventTypes.id, appointments.eventTypeId))
     .leftJoin(customerContactPrefs, eq(customerContactPrefs.customerId, customers.id))
     .where(
       and(
@@ -117,12 +131,16 @@ export async function getHighRiskCount(shopId: string, periodHours: number): Pro
   return result?.count ?? 0;
 }
 
-export async function getDepositsAtRisk(shopId: string, periodHours: number): Promise<number> {
+export async function getDepositsAtRisk(
+  shopId: string,
+  periodHours: number
+): Promise<Record<string, number>> {
   const now = new Date();
   const endDate = new Date(now.getTime() + periodHours * 60 * 60 * 1000);
 
-  const [result] = await db
+  const rows = await db
     .select({
+      currency: payments.currency,
       total: sql<number>`COALESCE(SUM(${payments.amountCents}), 0)::int`,
     })
     .from(appointments)
@@ -140,9 +158,12 @@ export async function getDepositsAtRisk(shopId: string, periodHours: number): Pr
         lte(appointments.startsAt, endDate),
         highRiskCondition
       )
-    );
+    )
+    .groupBy(payments.currency);
 
-  return result?.total ?? 0;
+  return Object.fromEntries(
+    rows.filter((row) => row.currency !== null).map((row) => [row.currency, row.total])
+  );
 }
 
 export async function getMonthlyFinancialStats(shopId: string): Promise<DashboardMonthlyStats> {
@@ -221,6 +242,7 @@ export async function getDashboardData(
         customerScores,
         and(eq(customerScores.customerId, customers.id), eq(customerScores.shopId, appointments.shopId))
       )
+      .leftJoin(eventTypes, eq(eventTypes.id, appointments.eventTypeId))
       .leftJoin(payments, eq(payments.appointmentId, appointments.id))
       .leftJoin(customerContactPrefs, eq(customerContactPrefs.customerId, customers.id))
       .where(
@@ -237,7 +259,7 @@ export async function getDashboardData(
   ]);
 
   const highRiskAppointments: DashboardAppointment[] = [];
-  let depositsAtRisk = 0;
+  const depositsAtRisk: Record<string, number> = {};
 
   for (const appointment of allAppointmentsRaw) {
     const isHighRisk =
@@ -248,18 +270,148 @@ export async function getDashboardData(
 
     if (isHighRisk) {
       highRiskAppointments.push(appointment);
-      depositsAtRisk += appointment.depositAmount;
+      if (appointment.depositAmount > 0 && appointment.depositCurrency) {
+        const currency = appointment.depositCurrency;
+        depositsAtRisk[currency] = (depositsAtRisk[currency] ?? 0) + appointment.depositAmount;
+      }
     }
   }
+
+  const highRiskCustomerCount = new Set(highRiskAppointments.map((appointment) => appointment.customerId)).size;
 
   return {
     highRiskAppointments,
     totalUpcoming: allAppointmentsRaw.length,
     depositsAtRisk,
+    highRiskCustomerCount,
     monthlyStats,
     tierDistribution,
     allAppointments: allAppointmentsRaw,
   };
+}
+
+export async function getDashboardDailyLog(
+  shopId: string,
+  opts: { days?: number; limit?: number } = {}
+): Promise<DashboardLogItem[]> {
+  const { days = 7, limit = 50 } = opts;
+  const windowStart = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+  const [createdRows, eventRows, messageRows] = await Promise.all([
+    db
+      .select({
+        id: appointments.id,
+        occurredAt: appointments.createdAt,
+        appointmentId: appointments.id,
+        customerName: customers.fullName,
+      })
+      .from(appointments)
+      .innerJoin(customers, eq(customers.id, appointments.customerId))
+      .where(
+        and(
+          eq(appointments.shopId, shopId),
+          gte(appointments.createdAt, windowStart)
+        )
+      ),
+    db
+      .select({
+        id: appointmentEvents.id,
+        occurredAt: appointmentEvents.occurredAt,
+        type: appointmentEvents.type,
+        appointmentId: appointmentEvents.appointmentId,
+        financialOutcome: appointments.financialOutcome,
+        customerName: customers.fullName,
+      })
+      .from(appointmentEvents)
+      .innerJoin(appointments, eq(appointments.id, appointmentEvents.appointmentId))
+      .innerJoin(customers, eq(customers.id, appointments.customerId))
+      .where(
+        and(
+          eq(appointmentEvents.shopId, shopId),
+          inArray(appointmentEvents.type, ["cancelled", "outcome_resolved"]),
+          gte(appointmentEvents.occurredAt, windowStart)
+        )
+      ),
+    db
+      .select({
+        id: messageLog.id,
+        createdAt: messageLog.createdAt,
+        appointmentId: messageLog.appointmentId,
+        customerName: customers.fullName,
+        channel: messageLog.channel,
+        purpose: messageLog.purpose,
+        status: messageLog.status,
+      })
+      .from(messageLog)
+      .innerJoin(customers, eq(customers.id, messageLog.customerId))
+      .where(
+        and(
+          eq(messageLog.shopId, shopId),
+          ne(messageLog.purpose, "slot_recovery_offer"),
+          gte(messageLog.createdAt, windowStart)
+        )
+      ),
+  ]);
+
+  const created: DashboardLogItem[] = createdRows.map((row) => ({
+    id: `created-${row.id}`,
+    kind: "appointment_created",
+    occurredAt: row.occurredAt,
+    appointmentId: row.appointmentId,
+    customerName: row.customerName,
+    eventLabel: "New booking",
+    channel: null,
+    href: `/app/appointments/${row.appointmentId}`,
+  }));
+
+  const events: DashboardLogItem[] = eventRows.map((row) => {
+    const eventLabel =
+      row.type === "outcome_resolved"
+        ? `Outcome: ${row.financialOutcome ?? "resolved"}`
+        : "Cancelled";
+
+    return {
+      id: `event-${row.id}`,
+      kind:
+        row.type === "outcome_resolved"
+          ? "outcome_resolved"
+          : "appointment_cancelled",
+      occurredAt: row.occurredAt,
+      appointmentId: row.appointmentId,
+      customerName: row.customerName,
+      eventLabel,
+      channel: null,
+      href: `/app/appointments/${row.appointmentId}`,
+    };
+  });
+
+  const purposeLabel: Record<string, string> = {
+    booking_confirmation: "Booking confirmation",
+    cancellation_confirmation: "Cancellation notice",
+    appointment_confirmation_request: "Confirmation request",
+  };
+
+  const messages: DashboardLogItem[] = messageRows.map((row) => {
+    const isFailed = row.status === "failed";
+    const base = row.purpose.startsWith("appointment_reminder_")
+      ? "Reminder"
+      : (purposeLabel[row.purpose] ?? row.purpose);
+
+    return {
+      id: `msg-${row.id}`,
+      kind: isFailed ? "message_failed" : "message_sent",
+      occurredAt: row.createdAt,
+      appointmentId: row.appointmentId,
+      customerName: row.customerName,
+      eventLabel: `${base} ${isFailed ? "failed" : "sent"}`,
+      channel: row.channel,
+      href: row.appointmentId ? `/app/appointments/${row.appointmentId}` : null,
+    };
+  });
+
+  return [...created, ...events, ...messages]
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+    .slice(0, limit);
 }
 
 export async function getAllUpcomingAppointments(
@@ -295,6 +447,7 @@ export async function getAllUpcomingAppointments(
       customerScores,
       and(eq(customerScores.customerId, customers.id), eq(customerScores.shopId, appointments.shopId))
     )
+    .leftJoin(eventTypes, eq(eventTypes.id, appointments.eventTypeId))
     .leftJoin(customerContactPrefs, eq(customerContactPrefs.customerId, customers.id))
     .where(and(...whereClauses));
 
