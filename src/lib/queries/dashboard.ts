@@ -1,18 +1,21 @@
-import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { getCached } from "@/lib/cache";
 import { db } from "@/lib/db";
 import {
+  appointmentEvents,
   appointments,
   customerContactPrefs,
   customers,
   customerScores,
   eventTypes,
+  messageLog,
   payments,
 } from "@/lib/schema";
 import type {
   DashboardData,
   DashboardAppointment,
   DashboardFilters,
+  DashboardLogItem,
   DashboardMonthlyStats,
   DashboardSort,
   DashboardTierDistribution,
@@ -285,6 +288,130 @@ export async function getDashboardData(
     tierDistribution,
     allAppointments: allAppointmentsRaw,
   };
+}
+
+export async function getDashboardDailyLog(
+  shopId: string,
+  opts: { days?: number; limit?: number } = {}
+): Promise<DashboardLogItem[]> {
+  const { days = 7, limit = 50 } = opts;
+  const windowStart = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+  const [createdRows, eventRows, messageRows] = await Promise.all([
+    db
+      .select({
+        id: appointments.id,
+        occurredAt: appointments.createdAt,
+        appointmentId: appointments.id,
+        customerName: customers.fullName,
+      })
+      .from(appointments)
+      .innerJoin(customers, eq(customers.id, appointments.customerId))
+      .where(
+        and(
+          eq(appointments.shopId, shopId),
+          gte(appointments.createdAt, windowStart)
+        )
+      ),
+    db
+      .select({
+        id: appointmentEvents.id,
+        occurredAt: appointmentEvents.occurredAt,
+        type: appointmentEvents.type,
+        appointmentId: appointmentEvents.appointmentId,
+        financialOutcome: appointments.financialOutcome,
+        customerName: customers.fullName,
+      })
+      .from(appointmentEvents)
+      .innerJoin(appointments, eq(appointments.id, appointmentEvents.appointmentId))
+      .innerJoin(customers, eq(customers.id, appointments.customerId))
+      .where(
+        and(
+          eq(appointmentEvents.shopId, shopId),
+          inArray(appointmentEvents.type, ["cancelled", "outcome_resolved"]),
+          gte(appointmentEvents.occurredAt, windowStart)
+        )
+      ),
+    db
+      .select({
+        id: messageLog.id,
+        createdAt: messageLog.createdAt,
+        appointmentId: messageLog.appointmentId,
+        customerName: customers.fullName,
+        channel: messageLog.channel,
+        purpose: messageLog.purpose,
+        status: messageLog.status,
+      })
+      .from(messageLog)
+      .innerJoin(customers, eq(customers.id, messageLog.customerId))
+      .where(
+        and(
+          eq(messageLog.shopId, shopId),
+          ne(messageLog.purpose, "slot_recovery_offer"),
+          gte(messageLog.createdAt, windowStart)
+        )
+      ),
+  ]);
+
+  const created: DashboardLogItem[] = createdRows.map((row) => ({
+    id: `created-${row.id}`,
+    kind: "appointment_created",
+    occurredAt: row.occurredAt,
+    appointmentId: row.appointmentId,
+    customerName: row.customerName,
+    eventLabel: "New booking",
+    channel: null,
+    href: `/app/appointments/${row.appointmentId}`,
+  }));
+
+  const events: DashboardLogItem[] = eventRows.map((row) => {
+    const eventLabel =
+      row.type === "outcome_resolved"
+        ? `Outcome: ${row.financialOutcome ?? "resolved"}`
+        : "Cancelled";
+
+    return {
+      id: `event-${row.id}`,
+      kind:
+        row.type === "outcome_resolved"
+          ? "outcome_resolved"
+          : "appointment_cancelled",
+      occurredAt: row.occurredAt,
+      appointmentId: row.appointmentId,
+      customerName: row.customerName,
+      eventLabel,
+      channel: null,
+      href: `/app/appointments/${row.appointmentId}`,
+    };
+  });
+
+  const purposeLabel: Record<string, string> = {
+    booking_confirmation: "Booking confirmation",
+    cancellation_confirmation: "Cancellation notice",
+    appointment_confirmation_request: "Confirmation request",
+  };
+
+  const messages: DashboardLogItem[] = messageRows.map((row) => {
+    const isFailed = row.status === "failed";
+    const base = row.purpose.startsWith("appointment_reminder_")
+      ? "Reminder"
+      : (purposeLabel[row.purpose] ?? row.purpose);
+
+    return {
+      id: `msg-${row.id}`,
+      kind: isFailed ? "message_failed" : "message_sent",
+      occurredAt: row.createdAt,
+      appointmentId: row.appointmentId,
+      customerName: row.customerName,
+      eventLabel: `${base} ${isFailed ? "failed" : "sent"}`,
+      channel: row.channel,
+      href: row.appointmentId ? `/app/appointments/${row.appointmentId}` : null,
+    };
+  });
+
+  return [...created, ...events, ...messages]
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+    .slice(0, limit);
 }
 
 export async function getAllUpcomingAppointments(

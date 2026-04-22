@@ -47,3 +47,19 @@ export interface DashboardData {
   tierDistribution: DashboardTierDistribution;
   allAppointments: DashboardAppointment[];
 }
+
+export interface DashboardLogItem {
+  id: string;
+  kind:
+    | "appointment_created"
+    | "appointment_cancelled"
+    | "outcome_resolved"
+    | "message_sent"
+    | "message_failed";
+  occurredAt: Date;
+  appointmentId: string | null;
+  customerName: string | null;
+  eventLabel: string;
+  channel: "sms" | "email" | null;
+  href: string | null;
+}

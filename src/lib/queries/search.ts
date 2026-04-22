@@ -1,7 +1,7 @@
-import { and, eq, ilike, like, or } from "drizzle-orm";
+import { and, asc, eq, gte, ilike, inArray, like, or } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { customerScores, customers } from "@/lib/schema";
-import type { CustomerSearchResult } from "@/types/search";
+import { appointments, customerScores, customers, eventTypes } from "@/lib/schema";
+import type { AppointmentSearchResult, CustomerSearchResult } from "@/types/search";
 
 export async function searchCustomers(
   shopId: string,
@@ -42,5 +42,52 @@ export async function searchCustomers(
     phone: row.phone,
     tier: row.tier ?? null,
     href: `/app/customers/${row.id}`,
+  }));
+}
+
+export async function searchAppointments(
+  shopId: string,
+  q: string
+): Promise<AppointmentSearchResult[]> {
+  const windowStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const pattern = `%${q}%`;
+  const digits = q.replace(/\D/g, "");
+
+  const textConditions = or(
+    ilike(customers.fullName, pattern),
+    ilike(customers.email, pattern),
+    ilike(eventTypes.name, pattern),
+    digits.length >= 4 ? like(customers.phone, `%${digits}`) : undefined
+  )!;
+
+  const rows = await db
+    .select({
+      id: appointments.id,
+      startsAt: appointments.startsAt,
+      status: appointments.status,
+      customerName: customers.fullName,
+      eventTypeName: eventTypes.name,
+    })
+    .from(appointments)
+    .innerJoin(customers, eq(appointments.customerId, customers.id))
+    .leftJoin(eventTypes, eq(eventTypes.id, appointments.eventTypeId))
+    .where(
+      and(
+        eq(appointments.shopId, shopId),
+        inArray(appointments.status, ["pending", "booked", "ended"]),
+        gte(appointments.endsAt, windowStart),
+        textConditions
+      )
+    )
+    .orderBy(asc(appointments.startsAt))
+    .limit(5);
+
+  return rows.map((row) => ({
+    id: row.id,
+    startsAt: row.startsAt,
+    status: row.status as "pending" | "booked" | "ended",
+    customerName: row.customerName,
+    eventTypeName: row.eventTypeName,
+    href: `/app/appointments/${row.id}`,
   }));
 }

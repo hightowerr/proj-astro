@@ -1,0 +1,1 @@
+CREATE INDEX "appointment_events_shop_occurred_idx" ON "appointment_events" USING btree ("shop_id","occurred_at");

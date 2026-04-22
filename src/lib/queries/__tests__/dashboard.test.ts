@@ -9,34 +9,71 @@ const {
   orderByMock,
   groupByMock,
   setRows,
+  setRowSequence,
 } = vi.hoisted(() => {
   let rows: unknown[] = [];
+  let rowSequence: unknown[][] = [];
 
-  const chain = {
-    innerJoin: vi.fn(() => chain),
-    leftJoin: vi.fn(() => chain),
-    where: vi.fn(() => chain),
-    orderBy: vi.fn(() => chain),
-    groupBy: vi.fn(() => chain),
-    then: (resolve: (value: unknown[]) => unknown) => Promise.resolve(resolve(rows)),
+  const innerJoinMock = vi.fn();
+  const leftJoinMock = vi.fn();
+  const whereMock = vi.fn();
+  const orderByMock = vi.fn();
+  const groupByMock = vi.fn();
+
+  const makeChain = (nextRows: unknown[]) => {
+    const chain = {
+      innerJoin: (...args: unknown[]) => {
+        innerJoinMock(...args);
+        return chain;
+      },
+      leftJoin: (...args: unknown[]) => {
+        leftJoinMock(...args);
+        return chain;
+      },
+      where: (...args: unknown[]) => {
+        whereMock(...args);
+        return chain;
+      },
+      orderBy: (...args: unknown[]) => {
+        orderByMock(...args);
+        return chain;
+      },
+      groupBy: (...args: unknown[]) => {
+        groupByMock(...args);
+        return chain;
+      },
+      then: (resolve: (value: unknown[]) => unknown) =>
+        Promise.resolve(resolve(nextRows)),
+    };
+
+    return chain;
   };
 
-  const fromMock = vi.fn(() => chain);
+  const fromMock = vi.fn(() => {
+    const nextRows = rowSequence.length > 0 ? (rowSequence.shift() ?? []) : rows;
+    return makeChain(nextRows);
+  });
   const selectMock = vi.fn(() => ({ from: fromMock }));
 
   const setRows = (nextRows: unknown[]) => {
     rows = nextRows;
+    rowSequence = [];
+  };
+
+  const setRowSequence = (nextRowSequence: unknown[][]) => {
+    rowSequence = [...nextRowSequence];
   };
 
   return {
     selectMock,
     fromMock,
-    innerJoinMock: chain.innerJoin,
-    leftJoinMock: chain.leftJoin,
-    whereMock: chain.where,
-    orderByMock: chain.orderBy,
-    groupByMock: chain.groupBy,
+    innerJoinMock,
+    leftJoinMock,
+    whereMock,
+    orderByMock,
+    groupByMock,
     setRows,
+    setRowSequence,
   };
 });
 
@@ -46,9 +83,15 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
+vi.mock("@/lib/cache", () => ({
+  getCached: (_key: string, _ttlSeconds: number, fetchFn: () => Promise<unknown>) =>
+    fetchFn(),
+}));
+
 const {
   getAllUpcomingAppointments,
   getDashboardData,
+  getDashboardDailyLog,
   getDepositsAtRisk,
   getHighRiskAppointments,
   getMonthlyFinancialStats,
@@ -163,6 +206,287 @@ describe("dashboard queries", () => {
     expect(result).toEqual(mockRows);
     expect(orderByMock).toHaveBeenCalledOnce();
     expect(leftJoinMock).toHaveBeenCalledTimes(3);
+  });
+
+  describe("getDashboardDailyLog", () => {
+    it("returns empty array when no bookings exist in the window", async () => {
+      setRowSequence([[], [], []]);
+
+      const result = await getDashboardDailyLog("shop-1");
+
+      expect(result).toEqual([]);
+    });
+
+    it("maps a booking row to a DashboardLogItem with correct shape", async () => {
+      const now = new Date();
+      setRowSequence([
+        [
+          {
+            id: "appt-abc",
+            occurredAt: now,
+            appointmentId: "appt-abc",
+            customerName: "Jordan Lee",
+          },
+        ],
+        [],
+        [],
+      ]);
+
+      const result = await getDashboardDailyLog("shop-1");
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: "created-appt-abc",
+        kind: "appointment_created",
+        occurredAt: now,
+        appointmentId: "appt-abc",
+        customerName: "Jordan Lee",
+        eventLabel: "New booking",
+        channel: null,
+        href: "/app/appointments/appt-abc",
+      });
+    });
+
+    it("never exposes a phone number - customerName is the customer's full name", async () => {
+      setRowSequence([
+        [
+          {
+            id: "appt-1",
+            occurredAt: new Date(),
+            appointmentId: "appt-1",
+            customerName: "Alex Smith",
+          },
+        ],
+        [],
+        [],
+      ]);
+
+      const [item] = await getDashboardDailyLog("shop-1");
+
+      expect(item?.customerName).toBe("Alex Smith");
+      expect(item?.customerName).not.toMatch(/^\+\d+$/);
+    });
+
+    it("sorts items newest-first", async () => {
+      const older = new Date("2026-04-14T10:00:00Z");
+      const newer = new Date("2026-04-15T10:00:00Z");
+      setRowSequence([
+        [
+          {
+            id: "appt-old",
+            occurredAt: older,
+            appointmentId: "appt-old",
+            customerName: "A",
+          },
+          {
+            id: "appt-new",
+            occurredAt: newer,
+            appointmentId: "appt-new",
+            customerName: "B",
+          },
+        ],
+        [],
+        [],
+      ]);
+
+      const result = await getDashboardDailyLog("shop-1");
+
+      expect(result[0]?.id).toBe("created-appt-new");
+      expect(result[1]?.id).toBe("created-appt-old");
+    });
+
+    it("caps results at the limit", async () => {
+      const rows = Array.from({ length: 10 }, (_, i) => ({
+        id: `appt-${i}`,
+        occurredAt: new Date(Date.now() - i * 1000),
+        appointmentId: `appt-${i}`,
+        customerName: `Customer ${i}`,
+      }));
+      setRowSequence([rows, [], []]);
+
+      const result = await getDashboardDailyLog("shop-1", { limit: 5 });
+
+      expect(result).toHaveLength(5);
+    });
+
+    it("prefixes item id with 'created-' to prevent collisions with other sources", async () => {
+      setRowSequence([
+        [
+          {
+            id: "uuid-123",
+            occurredAt: new Date(),
+            appointmentId: "uuid-123",
+            customerName: "Someone",
+          },
+        ],
+        [],
+        [],
+      ]);
+
+      const [item] = await getDashboardDailyLog("shop-1");
+
+      expect(item?.id).toBe("created-uuid-123");
+    });
+
+    it("merges all three sources newest-first", async () => {
+      setRowSequence([
+        [
+          {
+            id: "appt-1",
+            occurredAt: new Date("2026-04-15T09:00:00Z"),
+            appointmentId: "appt-1",
+            customerName: "Created User",
+          },
+        ],
+        [
+          {
+            id: "evt-1",
+            occurredAt: new Date("2026-04-15T11:00:00Z"),
+            type: "cancelled",
+            appointmentId: "appt-2",
+            financialOutcome: "settled",
+            customerName: "Cancelled User",
+          },
+        ],
+        [
+          {
+            id: "msg-1",
+            createdAt: new Date("2026-04-15T10:00:00Z"),
+            appointmentId: "appt-3",
+            customerName: "Messaged User",
+            channel: "sms",
+            purpose: "appointment_reminder_24h",
+            status: "sent",
+          },
+        ],
+      ]);
+
+      const result = await getDashboardDailyLog("shop-1");
+
+      expect(result.map((item) => item.id)).toEqual([
+        "event-evt-1",
+        "msg-msg-1",
+        "created-appt-1",
+      ]);
+    });
+
+    it("maps outcome and message labels with the expected channel badges", async () => {
+      setRowSequence([
+        [],
+        [
+          {
+            id: "evt-2",
+            occurredAt: new Date("2026-04-15T12:00:00Z"),
+            type: "outcome_resolved",
+            appointmentId: "appt-4",
+            financialOutcome: "refunded",
+            customerName: "Outcome User",
+          },
+        ],
+        [
+          {
+            id: "msg-2",
+            createdAt: new Date("2026-04-15T13:00:00Z"),
+            appointmentId: "appt-5",
+            customerName: "Message User",
+            channel: "email",
+            purpose: "booking_confirmation",
+            status: "failed",
+          },
+        ],
+      ]);
+
+      const result = await getDashboardDailyLog("shop-1");
+
+      expect(result).toContainEqual(
+        expect.objectContaining({
+          id: "event-evt-2",
+          kind: "outcome_resolved",
+          eventLabel: "Outcome: refunded",
+          channel: null,
+          href: "/app/appointments/appt-4",
+        })
+      );
+      expect(result).toContainEqual(
+        expect.objectContaining({
+          id: "msg-msg-2",
+          kind: "message_failed",
+          eventLabel: "Booking confirmation failed",
+          channel: "email",
+          href: "/app/appointments/appt-5",
+        })
+      );
+    });
+
+    it("maps reminder messages as sent items", async () => {
+      setRowSequence([
+        [],
+        [],
+        [
+          {
+            id: "msg-3",
+            createdAt: new Date("2026-04-15T14:00:00Z"),
+            appointmentId: "appt-6",
+            customerName: "Reminder User",
+            channel: "sms",
+            purpose: "appointment_reminder_1h",
+            status: "sent",
+          },
+        ],
+      ]);
+
+      const [item] = await getDashboardDailyLog("shop-1");
+
+      expect(item).toMatchObject({
+        id: "msg-msg-3",
+        kind: "message_sent",
+        eventLabel: "Reminder sent",
+        channel: "sms",
+        href: "/app/appointments/appt-6",
+      });
+    });
+
+    it("caps results across the merged feed", async () => {
+      setRowSequence([
+        [
+          {
+            id: "appt-1",
+            occurredAt: new Date("2026-04-15T09:00:00Z"),
+            appointmentId: "appt-1",
+            customerName: "Created User",
+          },
+        ],
+        [
+          {
+            id: "evt-3",
+            occurredAt: new Date("2026-04-15T11:00:00Z"),
+            type: "cancelled",
+            appointmentId: "appt-2",
+            financialOutcome: "settled",
+            customerName: "Cancelled User",
+          },
+        ],
+        [
+          {
+            id: "msg-4",
+            createdAt: new Date("2026-04-15T10:00:00Z"),
+            appointmentId: "appt-3",
+            customerName: "Messaged User",
+            channel: "sms",
+            purpose: "appointment_reminder_24h",
+            status: "sent",
+          },
+        ],
+      ]);
+
+      const result = await getDashboardDailyLog("shop-1", { limit: 2 });
+
+      expect(result).toHaveLength(2);
+      expect(result.map((item) => item.id)).toEqual([
+        "event-evt-3",
+        "msg-msg-4",
+      ]);
+    });
   });
 
   describe("getDepositsAtRisk", () => {

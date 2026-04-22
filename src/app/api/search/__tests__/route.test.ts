@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getSessionMock, getShopByOwnerIdMock, searchCustomersMock } =
+const {
+  getSessionMock,
+  getShopByOwnerIdMock,
+  searchCustomersMock,
+  searchAppointmentsMock,
+} =
   vi.hoisted(() => ({
     getSessionMock: vi.fn(),
     getShopByOwnerIdMock: vi.fn(),
     searchCustomersMock: vi.fn(),
+    searchAppointmentsMock: vi.fn(),
   }));
 
 vi.mock("@/lib/auth", () => ({
@@ -17,6 +23,7 @@ vi.mock("@/lib/queries/shops", () => ({
 
 vi.mock("@/lib/queries/search", () => ({
   searchCustomers: searchCustomersMock,
+  searchAppointments: searchAppointmentsMock,
 }));
 
 const { GET } = await import("../route");
@@ -30,6 +37,7 @@ describe("GET /api/search", () => {
     getSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     getShopByOwnerIdMock.mockResolvedValue({ id: "shop-1", name: "Test Shop" });
     searchCustomersMock.mockResolvedValue([]);
+    searchAppointmentsMock.mockResolvedValue([]);
   });
 
   describe("auth guard", () => {
@@ -70,6 +78,7 @@ describe("GET /api/search", () => {
       expect(body.customers).toHaveLength(0);
       expect(body.appointments).toHaveLength(0);
       expect(searchCustomersMock).not.toHaveBeenCalled();
+      expect(searchAppointmentsMock).not.toHaveBeenCalled();
     });
 
     it("returns 200 empty results for blank query", async () => {
@@ -85,6 +94,7 @@ describe("GET /api/search", () => {
       expect(body.customers).toHaveLength(0);
       expect(body.appointments).toHaveLength(0);
       expect(searchCustomersMock).not.toHaveBeenCalled();
+      expect(searchAppointmentsMock).not.toHaveBeenCalled();
     });
 
     it("returns 200 empty results for spaces-only query", async () => {
@@ -100,6 +110,7 @@ describe("GET /api/search", () => {
       expect(body.customers).toHaveLength(0);
       expect(body.appointments).toHaveLength(0);
       expect(searchCustomersMock).not.toHaveBeenCalled();
+      expect(searchAppointmentsMock).not.toHaveBeenCalled();
     });
 
     it("returns 400 for query exceeding 80 chars", async () => {
@@ -113,6 +124,7 @@ describe("GET /api/search", () => {
 
       expect(response.status).toBe(200);
       expect(searchCustomersMock).toHaveBeenCalledWith("shop-1", "jo");
+      expect(searchAppointmentsMock).toHaveBeenCalledWith("shop-1", "jo");
     });
   });
 
@@ -147,6 +159,55 @@ describe("GET /api/search", () => {
       await GET(makeRequest("  john  "));
 
       expect(searchCustomersMock).toHaveBeenCalledWith("shop-1", "john");
+      expect(searchAppointmentsMock).toHaveBeenCalledWith("shop-1", "john");
+    });
+  });
+
+  describe("appointment search (V2)", () => {
+    it("calls searchAppointments with the same shopId and query", async () => {
+      await GET(makeRequest("haircut"));
+
+      expect(searchAppointmentsMock).toHaveBeenCalledWith("shop-1", "haircut");
+    });
+
+    it("runs searchCustomers and searchAppointments in parallel", async () => {
+      await GET(makeRequest("john"));
+
+      expect(searchCustomersMock).toHaveBeenCalledOnce();
+      expect(searchAppointmentsMock).toHaveBeenCalledOnce();
+    });
+
+    it("returns appointments from searchAppointments in response", async () => {
+      const mockAppointment = {
+        id: "appt-1",
+        startsAt: new Date("2026-05-01T10:00:00.000Z"),
+        status: "booked" as const,
+        customerName: "Alex Kim",
+        eventTypeName: "Haircut",
+        href: "/app/appointments/appt-1",
+      };
+      searchAppointmentsMock.mockResolvedValue([mockAppointment]);
+
+      const response = await GET(makeRequest("haircut"));
+      const body = (await response.json()) as {
+        appointments: Array<{
+          customerName: string;
+          href: string;
+        }>;
+      };
+
+      expect(response.status).toBe(200);
+      expect(body.appointments).toHaveLength(1);
+      expect(body.appointments[0]?.customerName).toBe("Alex Kim");
+      expect(body.appointments[0]?.href).toBe("/app/appointments/appt-1");
+    });
+
+    it("short query still returns empty appointments without DB call", async () => {
+      const response = await GET(makeRequest("a"));
+      const body = (await response.json()) as { appointments: unknown[] };
+
+      expect(searchAppointmentsMock).not.toHaveBeenCalled();
+      expect(body.appointments).toHaveLength(0);
     });
   });
 });

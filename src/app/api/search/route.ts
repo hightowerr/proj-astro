@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { searchCustomers } from "@/lib/queries/search";
+import { searchAppointments, searchCustomers } from "@/lib/queries/search";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import type { SearchResponse } from "@/types/search";
 
@@ -33,11 +33,14 @@ export async function GET(request: Request) {
     } satisfies SearchResponse);
   }
 
-  const customerResults = await searchCustomers(shop.id, q);
+  const [customerResults, appointmentResults] = await Promise.all([
+    searchCustomers(shop.id, q),
+    searchAppointments(shop.id, q),
+  ]);
 
   return NextResponse.json({
     query: q,
     customers: customerResults,
-    appointments: [],
+    appointments: appointmentResults,
   } satisfies SearchResponse);
 }

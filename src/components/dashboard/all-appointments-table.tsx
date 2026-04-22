@@ -63,15 +63,15 @@ export function AllAppointmentsTable({ appointments }: AllAppointmentsTableProps
   return (
     <section className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-semibold text-white">All Upcoming Appointments</h2>
-        <label className="flex items-center gap-3 text-sm text-text-light-muted" htmlFor="tier-filter">
+        <h2 className="text-2xl font-semibold text-al-primary font-manrope">All Upcoming Appointments</h2>
+        <label className="flex items-center gap-3 text-sm text-al-on-surface-variant" htmlFor="tier-filter">
           Tier
           <select
             id="tier-filter"
             name="tier"
             value={tierFilter}
             onChange={(event) => setTierFilter(event.target.value as typeof tierFilter)}
-            className="rounded-md border border-white/20 bg-bg-dark px-3 py-2 text-sm text-white outline-none ring-primary focus:ring-2"
+            className="rounded-md border border-al-outline-variant bg-al-surface-low px-3 py-2 text-sm text-foreground outline-none ring-primary focus:ring-2"
           >
             <option value="all">All tiers</option>
             <option value="top">Top only</option>
@@ -82,80 +82,80 @@ export function AllAppointmentsTable({ appointments }: AllAppointmentsTableProps
       </div>
 
       {filteredAppointments.length === 0 ? (
-        <div className="rounded-lg border border-white/10 bg-bg-dark-secondary p-8 text-center">
-          <p className="text-sm text-text-light-muted">No appointments found.</p>
+        <div className="rounded-lg bg-al-surface-lowest p-8 text-center al-shadow-float">
+          <p className="text-sm text-al-on-surface-variant">No appointments found.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-white/10 bg-bg-dark-secondary">
+        <div className="overflow-x-auto rounded-lg bg-al-surface-lowest al-shadow-float">
           <table className="w-full min-w-[980px] text-sm">
-            <thead className="bg-white/5 text-left">
+            <thead className="bg-al-surface-low text-left">
               <tr>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
+                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
                   Customer
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
+                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
                   <button
                     type="button"
                     onClick={() => handleSort("time")}
-                    className="inline-flex items-center gap-1 text-left hover:text-white"
+                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
                   >
                     Time <span className="text-xs">{sortArrow("time")}</span>
                   </button>
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
+                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
                   <button
                     type="button"
                     onClick={() => handleSort("score")}
-                    className="inline-flex items-center gap-1 text-left hover:text-white"
+                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
                   >
                     Score <span className="text-xs">{sortArrow("score")}</span>
                   </button>
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
+                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
                   <button
                     type="button"
                     onClick={() => handleSort("tier")}
-                    className="inline-flex items-center gap-1 text-left hover:text-white"
+                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
                   >
                     Tier <span className="text-xs">{sortArrow("tier")}</span>
                   </button>
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
+                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
                   Voids (90d)
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
+                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
                   Confirmation
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-text-light-muted">
+                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody>
               {filteredAppointments.map((appointment) => (
-                <tr key={appointment.id} className="border-t border-white/10">
+                <tr key={appointment.id} className="border-t border-al-outline-variant/30">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-white">{appointment.customerName}</span>
+                      <span className="font-medium text-foreground">{appointment.customerName}</span>
                       <SmsStatusBadge smsOptIn={appointment.smsOptIn} />
                     </div>
-                    <div className="mt-1 text-xs text-text-light-muted">
+                    <div className="mt-1 text-xs text-al-on-surface-variant">
                       {appointment.customerEmail || appointment.customerPhone}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-text-light-muted">
+                  <td className="px-4 py-3 text-al-on-surface-variant">
                     <div>{format(new Date(appointment.startsAt), "MMM d, h:mm a")}</div>
                     <div className="text-xs">
                       Ends {format(new Date(appointment.endsAt), "h:mm a")}
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-medium tabular-nums text-white">
+                  <td className="px-4 py-3 font-medium tabular-nums text-foreground">
                     {appointment.customerScore ?? "—"}
                   </td>
                   <td className="px-4 py-3">
                     <TierBadge tier={appointment.customerTier} />
                   </td>
-                  <td className="px-4 py-3 tabular-nums text-text-light-muted">
+                  <td className="px-4 py-3 tabular-nums text-al-on-surface-variant">
                     {appointment.voidedLast90Days}
                   </td>
                   <td className="px-4 py-3">
