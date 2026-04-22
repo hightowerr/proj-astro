@@ -41,13 +41,13 @@ export default async function DashboardPage({
   const isLogView = view === "log";
 
   const tabSwitcher = (
-    <nav className="flex w-fit gap-1 rounded-lg bg-al-surface-container p-1">
+    <nav className="flex w-fit gap-1 rounded-lg bg-al-surface-container p-1 border border-al-outline-variant/20">
       <Link
         href="/app/dashboard?view=quick"
         className={cn(
-          "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+          "rounded-md px-4 py-1.5 text-sm font-semibold transition-colors",
           !isLogView
-            ? "bg-al-surface-lowest text-al-primary al-shadow-float"
+            ? "bg-white text-al-primary shadow-sm"
             : "text-al-on-surface-variant hover:text-foreground"
         )}
       >
@@ -56,9 +56,9 @@ export default async function DashboardPage({
       <Link
         href="/app/dashboard?view=log"
         className={cn(
-          "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+          "rounded-md px-4 py-1.5 text-sm font-semibold transition-colors",
           isLogView
-            ? "bg-al-surface-lowest text-al-primary al-shadow-float"
+            ? "bg-white text-al-primary shadow-sm"
             : "text-al-on-surface-variant hover:text-foreground"
         )}
       >
@@ -67,16 +67,24 @@ export default async function DashboardPage({
     </nav>
   );
 
-  const header = (
-    <header className="space-y-4">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold text-al-primary font-manrope">Dashboard</h1>
-        <p className="text-sm text-al-on-surface-variant">
-          Monitor high-risk appointments and upcoming reliability trends for {shop.name}.
-        </p>
+  const stickyHeader = (
+    <header className="sticky top-0 z-30 bg-al-surface-low/80 backdrop-blur-xl px-12 py-6 flex items-center gap-6 w-full border-b border-al-outline-variant/10 transition-all duration-300">
+      <div className="flex-1 max-w-md">
+        <DashboardSearch />
       </div>
-      <DashboardSearch />
+      {tabSwitcher}
     </header>
+  );
+
+  const heroSection = (
+    <section className="space-y-4">
+      <h2 className="text-[3.5rem] font-bold text-al-primary tracking-tighter leading-tight font-manrope">
+        Welcome back, {shop.name}
+      </h2>
+      <p className="text-al-on-surface-variant text-lg max-w-2xl leading-relaxed">
+        Here is a curated overview of your studio&apos;s upcoming engagements and critical client touchpoints.
+      </p>
+    </section>
   );
 
   if (isLogView) {
@@ -84,9 +92,9 @@ export default async function DashboardPage({
 
     return (
       <div className="min-h-screen bg-al-surface-low">
-        <div className="container mx-auto space-y-6 px-4 py-10">
-          {header}
-          {tabSwitcher}
+        {stickyHeader}
+        <div className="px-12 pb-24 max-w-7xl mx-auto space-y-16 py-10">
+          {heroSection}
           <DailyLogFeed items={logItems} />
         </div>
       </div>
@@ -116,9 +124,9 @@ export default async function DashboardPage({
 
   return (
     <div className="min-h-screen bg-al-surface-low">
-      <div className="container mx-auto space-y-6 px-4 py-10">
-        {header}
-        {tabSwitcher}
+      {stickyHeader}
+      <div className="px-12 pb-24 max-w-7xl mx-auto space-y-16 py-10">
+        {heroSection}
 
         {hasOnlyDefaultServices ? (
           <div className="flex items-center justify-between gap-4 rounded-lg bg-amber-50 px-4 py-3 al-shadow-float">
@@ -134,8 +142,6 @@ export default async function DashboardPage({
           </div>
         ) : null}
 
-        <AttentionRequiredTable appointments={highRiskAppointments} currentPeriod={periodHours} />
-
         <SummaryCards
           totalUpcoming={totalUpcoming}
           highRiskCustomerCount={highRiskCustomerCount}
@@ -143,7 +149,14 @@ export default async function DashboardPage({
           monthlyStats={monthlyStats}
         />
 
-        <TierDistributionChart distribution={tierDistribution} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2">
+            <AttentionRequiredTable appointments={highRiskAppointments} currentPeriod={periodHours} />
+          </div>
+          <div>
+            <TierDistributionChart distribution={tierDistribution} />
+          </div>
+        </div>
 
         <AllAppointmentsTable appointments={allAppointments} />
       </div>

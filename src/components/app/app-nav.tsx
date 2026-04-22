@@ -32,10 +32,6 @@ type AppNavProps = {
 export function AppNav({ user, shopName }: AppNavProps) {
   const pathname = usePathname();
 
-  if (pathname === "/app") {
-    return null;
-  }
-
   const userImage = user.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuCa_trS9Ine5HoCiQQCIww3vhRLofOztZcc96P7wLZgtKZoK2AR59ciNVf-WfI8QiSqdwvhuw2UVcBkuVvWxaRsYcGyoyN0Bezb3OLgIZwdgHDzyynNLqZl387E5y6FUT3BNYYYMQvbDcFXu0UFNSdvvUnPxCtsR0IWHU8i3ziKO3fumlJpvhYp0ZCHT8Gjp90MbRpwP8KlzVVhkFTqVfdasEuFH6PqX_LSTTrjHV2PiSGekDJ2MMW5ULlBSd1FwhMz8k0pS09KmibE";
 
   return (
@@ -43,11 +39,14 @@ export function AppNav({ user, shopName }: AppNavProps) {
       {/* Desktop Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-72 bg-background hidden lg:flex flex-col z-40">
         <div className="p-8">
-          <div className="flex items-center gap-3 text-primary">
-            <span className="material-symbols-outlined text-3xl" aria-hidden="true">dashboard_customize</span>
-            <span className="text-xl font-extrabold tracking-widest uppercase font-manrope">
-              {shopName}
-            </span>
+          <div>
+            <div className="flex items-center gap-3 text-primary">
+              <span className="material-symbols-outlined text-3xl" aria-hidden="true">dashboard_customize</span>
+              <span className="text-2xl font-extrabold tracking-widest uppercase font-manrope">
+                {shopName}
+              </span>
+            </div>
+            <p className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest opacity-70 mt-1">Studio Management</p>
           </div>
         </div>
         <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
@@ -58,9 +57,9 @@ export function AppNav({ user, shopName }: AppNavProps) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center gap-4 px-4 py-4 rounded-2xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                  "flex items-center gap-4 px-4 py-3 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   isActive
-                    ? "bg-primary text-on-primary shadow-lg shadow-primary/10"
+                    ? "bg-[#003366] text-on-primary shadow-lg shadow-primary/10"
                     : "text-on-surface-variant hover:bg-al-surface-low"
                 )}
               >
@@ -89,9 +88,9 @@ export function AppNav({ user, shopName }: AppNavProps) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center gap-4 px-4 py-4 rounded-2xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                  "flex items-center gap-4 px-4 py-3 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   isActive
-                    ? "bg-primary text-on-primary shadow-lg shadow-primary/10"
+                    ? "bg-[#003366] text-on-primary shadow-lg shadow-primary/10"
                     : "text-on-surface-variant hover:bg-al-surface-low"
                 )}
               >
@@ -107,7 +106,7 @@ export function AppNav({ user, shopName }: AppNavProps) {
             );
           })}
         </nav>
-        <div className="p-6">
+        <div className="p-6 border-t border-al-outline-variant/10">
           <div className="flex items-center gap-4">
             <Image
               alt="Profile"

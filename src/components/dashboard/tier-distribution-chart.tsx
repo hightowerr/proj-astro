@@ -9,9 +9,14 @@ export function TierDistributionChart({ distribution }: TierDistributionChartPro
 
   if (total === 0) {
     return (
-      <section className="rounded-lg bg-al-surface-lowest p-6 al-shadow-float">
-        <h2 className="text-xl font-semibold text-al-primary font-manrope">Customer Tier Distribution</h2>
-        <p className="mt-2 text-sm text-al-on-surface-variant">No customer data available yet.</p>
+      <section>
+        <div className="border-b border-al-surface-container-high pb-4">
+          <h3 className="text-[1.75rem] font-bold text-al-primary font-manrope">Tier Distribution</h3>
+          <p className="text-al-on-surface-variant text-sm mt-1">Client segments for upcoming 30 days.</p>
+        </div>
+        <div className="bg-al-surface-container-low rounded-2xl p-8 mt-8">
+          <p className="text-sm text-al-on-surface-variant">No customer data available yet.</p>
+        </div>
       </section>
     );
   }
@@ -20,54 +25,30 @@ export function TierDistributionChart({ distribution }: TierDistributionChartPro
   const neutralPercent = Math.round((distribution.neutral / total) * 100);
   const riskPercent = Math.round((distribution.risk / total) * 100);
 
+  const tiers = [
+    { label: "Top Tier", count: distribution.top, percent: topPercent, color: "bg-al-primary" },
+    { label: "Neutral", count: distribution.neutral, percent: neutralPercent, color: "bg-[#3a5f94]" },
+    { label: "Risk", count: distribution.risk, percent: riskPercent, color: "bg-red-500" },
+  ];
+
   return (
-    <section className="rounded-lg bg-al-surface-lowest p-6 al-shadow-float">
-      <h2 className="text-xl font-semibold text-al-primary font-manrope">Customer Tier Distribution</h2>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="h-8 overflow-hidden rounded-full bg-al-surface-container">
-          <div className="flex h-full">
-            {distribution.top > 0 ? (
-              <div className="h-full bg-green-500" style={{ width: `${topPercent}%` }} />
-            ) : null}
-            {distribution.neutral > 0 ? (
-              <div className="h-full bg-amber-500" style={{ width: `${neutralPercent}%` }} />
-            ) : null}
-            {distribution.risk > 0 ? (
-              <div className="h-full bg-red-500" style={{ width: `${riskPercent}%` }} />
-            ) : null}
-          </div>
-        </div>
-
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded bg-green-500" />
-              <span className="text-al-on-surface-variant">Top</span>
+    <section>
+      <div className="border-b border-al-surface-container-high pb-4">
+        <h3 className="text-[1.75rem] font-bold text-al-primary font-manrope">Tier Distribution</h3>
+        <p className="text-al-on-surface-variant text-sm mt-1">Client segments for upcoming 30 days.</p>
+      </div>
+      <div className="bg-al-surface-container-low rounded-2xl p-8 space-y-6 mt-8">
+        {tiers.map((tier) => (
+          <div key={tier.label}>
+            <div className="flex justify-between text-sm mb-2 font-medium">
+              <span className="text-al-primary">{tier.label}</span>
+              <span className="text-al-on-surface-variant">{tier.count} clients ({tier.percent}%)</span>
             </div>
-            <span className="tabular-nums text-foreground">
-              {distribution.top} ({topPercent}%)
-            </span>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded bg-amber-500" />
-              <span className="text-al-on-surface-variant">Neutral</span>
+            <div className="w-full bg-al-surface-container-high rounded-full h-3 overflow-hidden">
+              <div className={`${tier.color} h-3 rounded-full`} style={{ width: `${tier.percent}%` }} />
             </div>
-            <span className="tabular-nums text-foreground">
-              {distribution.neutral} ({neutralPercent}%)
-            </span>
           </div>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded bg-red-500" />
-              <span className="text-al-on-surface-variant">Risk</span>
-            </div>
-            <span className="tabular-nums text-foreground">
-              {distribution.risk} ({riskPercent}%)
-            </span>
-          </div>
-        </div>
+        ))}
       </div>
     </section>
   );

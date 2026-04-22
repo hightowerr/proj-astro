@@ -9,15 +9,13 @@ import {
   ChevronRight,
   Copy,
   ExternalLink,
-  LayoutDashboard,
-  Menu,
   Package,
-  Settings,
   UserPlus,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/copy-to-clipboard";
+import { cn } from "@/lib/utils";
 
 type AtelierDashboardProps = {
   userName: string;
@@ -25,18 +23,6 @@ type AtelierDashboardProps = {
   shopSlug: string;
   bookingUrl: string;
 };
-
-const primaryLinks = [
-  { href: "/app", label: "Home Hub", icon: LayoutDashboard, active: true },
-  { href: "/app/appointments", label: "Appointments", icon: CalendarDays },
-  { href: "/app/settings/services", label: "Shop Catalog", icon: Package },
-  { href: "/app/dashboard", label: "Business Reports", icon: BarChart3 },
-];
-
-const settingsLinks = [
-  { href: "/app/settings/availability", label: "Shop Profile", icon: Settings },
-  { href: "/app/settings/reminders", label: "Help Center", icon: ChevronRight },
-];
 
 type KickerStyle = "error" | "emerald" | null;
 
@@ -52,8 +38,7 @@ const essentials: {
   {
     href: "/app/settings/services",
     label: "Shop Stock",
-    description:
-      "Track professional products, retail stock, and set low-stock alerts.",
+    description: "Track professional products, retail stock, and set low-stock alerts.",
     kicker: "12 Items Low",
     kickerStyle: "error",
     icon: Package,
@@ -62,8 +47,7 @@ const essentials: {
   {
     href: "/app/dashboard",
     label: "Sales & Growth",
-    description:
-      "Deep dive into daily earnings, popular services, and client retention.",
+    description: "Deep dive into daily earnings, popular services, and client retention.",
     kicker: "+14% This Month",
     kickerStyle: "emerald",
     icon: BarChart3,
@@ -72,8 +56,7 @@ const essentials: {
   {
     href: "/app/customers",
     label: "Team",
-    description:
-      "Manage barber chairs, staff rotations, and stylist permissions.",
+    description: "Manage barber chairs, staff rotations, and stylist permissions.",
     kicker: null,
     kickerStyle: null,
     icon: Users,
@@ -87,13 +70,6 @@ export function AtelierDashboard({
   shopSlug,
   bookingUrl,
 }: AtelierDashboardProps) {
-  const initials = shopName
-    .split(" ")
-    .map((word) => word[0] ?? "")
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
   const handleCopyLink = async () => {
     try {
       await copyToClipboard(bookingUrl);
@@ -104,242 +80,175 @@ export function AtelierDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-background pb-28 text-foreground lg:pb-0">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-black/5 bg-white lg:flex">
-        <div className="px-8 py-8">
-          <div className="flex items-center gap-3 text-primary">
-            <LayoutDashboard className="h-8 w-8" strokeWidth={2.2} />
-            <span className="text-xl font-extrabold uppercase tracking-[0.28em]">
-              Atelier
-            </span>
-          </div>
-        </div>
+    <div className="min-h-screen bg-al-surface-low pb-24 text-foreground lg:pb-0">
+      <main className="mx-auto max-w-5xl px-6 py-10 md:px-10 md:py-14 lg:px-12 lg:py-16">
 
-        <nav className="mt-4 flex-1 space-y-2 px-4" aria-label="Primary">
-          {primaryLinks.map(({ href, label, icon: Icon, active }) => (
-            <Link
-              key={href}
-              href={href}
-              className={
-                active
-                  ? "flex items-center gap-4 rounded-[1.25rem] bg-primary px-4 py-4 font-bold text-primary-foreground shadow-[0_18px_40px_-20px_rgba(0,30,64,0.55)]"
-                  : "flex items-center gap-4 rounded-[1.25rem] px-4 py-4 font-medium text-muted-foreground transition-colors hover:bg-black/[0.035] hover:text-primary"
-              }
-            >
-              <Icon className="h-5 w-5" />
-              <span>{label}</span>
-            </Link>
-          ))}
-
-          <div className="px-4 pb-4 pt-8">
-            <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-muted-foreground/60">
-              Settings
-            </span>
-          </div>
-
-          {settingsLinks.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-4 rounded-[1.25rem] px-4 py-4 font-medium text-muted-foreground transition-colors hover:bg-black/[0.035] hover:text-primary"
-            >
-              <Icon className="h-5 w-5" />
-              <span>{label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div className="border-t border-black/5 p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--al-primary-fixed)] text-sm font-extrabold text-primary ring-2 ring-black/5">
-              {initials}
-            </div>
-            <div>
-              <p className="text-sm font-bold text-primary">{shopName}</p>
-              <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-                Studio Plan
-              </p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <header className="sticky top-0 z-40 flex items-center justify-between bg-background/85 px-6 py-4 backdrop-blur-xl lg:hidden">
-        <div className="flex items-center gap-4">
-          <div className="rounded-2xl bg-primary/5 p-2 text-primary">
-            <Menu className="h-5 w-5" />
-          </div>
-          <h1 className="text-xl font-extrabold uppercase tracking-[0.28em] text-primary">
-            Atelier
-          </h1>
-        </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 bg-[var(--al-primary-fixed)] text-xs font-extrabold text-primary">
-          {initials}
-        </div>
-      </header>
-
-      <main className="min-h-screen px-6 py-6 md:px-10 md:py-10 lg:ml-72 lg:px-16 lg:py-16">
-        <section className="mx-auto mb-12 max-w-5xl md:mb-16">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-[0.28em] text-muted-foreground/70">
-              Home Hub
-            </span>
-          </div>
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-primary md:text-6xl">
+        {/* Hero */}
+        <section className="mb-16">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.28em] text-al-on-surface-variant/60">
+            Home Hub
+          </p>
+          <h1 className="mb-5 font-manrope text-5xl font-extrabold tracking-tight text-al-primary md:text-7xl">
             Welcome back,
-            <br className="md:hidden" /> {userName}.
+            <br className="hidden md:block" /> {userName}.
           </h1>
-          <p className="max-w-2xl text-lg font-medium text-muted-foreground md:text-xl">
-            Your central hub for operations, scheduling, and shop growth. Manage
-            your entire studio from one place.
+          <p className="max-w-xl text-lg leading-relaxed text-al-on-surface-variant">
+            Your central hub for operations, scheduling, and shop growth. Manage your entire studio from one place.
           </p>
         </section>
 
-        <section className="mx-auto mb-16 max-w-5xl">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <h2 className="text-sm font-extrabold uppercase tracking-[0.28em] text-primary">
-              Onboarding & Setup
+        {/* Onboarding & Setup */}
+        <section className="mb-16">
+          <div className="mb-8 flex items-center justify-between border-b border-al-surface-container-high pb-4">
+            <h2 className="text-xs font-extrabold uppercase tracking-[0.28em] text-al-primary">
+              Onboarding &amp; Setup
             </h2>
-            <span className="rounded-full bg-secondary px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--al-on-secondary-container)]">
+            <span className="rounded-full bg-[#ffdbcf] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-[#2a170f]">
               Step 1 of 2
             </span>
           </div>
 
-          <div className="space-y-6">
-            <section className="group relative overflow-hidden rounded-[2rem] border border-black/5 bg-white p-8 shadow-[0_30px_60px_-20px_rgba(0,30,64,0.08)] md:p-12">
-              <div className="absolute -right-10 -top-10 hidden text-primary/[0.04] transition-opacity group-hover:text-primary/[0.06] md:block">
-                <CalendarDays className="h-60 w-60" strokeWidth={1.2} />
+          <div className="space-y-4">
+            {/* Calendar sync — primary card */}
+            <div className="group relative overflow-hidden rounded-2xl border border-al-surface-container-low bg-al-surface-lowest p-8 shadow-[0px_10px_30px_rgba(26,28,27,0.04)] md:p-10">
+              <div className="pointer-events-none absolute -right-8 -top-8 text-al-primary opacity-[0.035] transition-opacity group-hover:opacity-[0.065]">
+                <CalendarDays className="h-52 w-52" strokeWidth={1} />
               </div>
 
-              <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:gap-12">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] bg-[var(--al-primary-fixed)]/40 md:h-24 md:w-24">
-                  <CalendarDays className="h-10 w-10 text-primary md:h-12 md:w-12" />
+              <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:gap-10">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-al-surface-container text-al-primary md:h-20 md:w-20">
+                  <CalendarDays className="h-8 w-8 md:h-10 md:w-10" />
                 </div>
 
-                <div className="flex-1 space-y-4">
-                  <h3 className="text-3xl font-extrabold tracking-tight text-primary md:text-4xl">
+                <div className="flex-1">
+                  <h3 className="mb-3 font-manrope text-2xl font-extrabold tracking-tight text-al-primary md:text-3xl">
                     Sync Google Calendar
                   </h3>
-                  <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                    Most important: centralize studio bookings and personal time
-                    to avoid double bookings and manage your day on the go.
+                  <p className="max-w-lg leading-relaxed text-al-on-surface-variant">
+                    Centralize studio bookings and personal time to avoid double bookings and manage your day on the go.
                   </p>
                 </div>
 
                 <Link
                   href="/app/settings/calendar"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-[1.1rem] bg-primary px-8 py-4 text-lg font-bold text-primary-foreground shadow-[0_20px_40px_-18px_rgba(0,30,64,0.45)] transition-transform hover:-translate-y-0.5 md:w-auto md:px-10 md:py-5"
+                  className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-al-primary px-7 py-4 text-base font-bold text-white shadow-[0px_8px_24px_rgba(0,30,64,0.28)] transition-transform hover:-translate-y-0.5 md:w-auto"
                 >
                   <span>Connect Now</span>
-                  <ArrowRight className="h-5 w-5" />
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
-            </section>
+            </div>
 
+            {/* Book first client — secondary card */}
             <Link
               href="/app/appointments"
-              className="group flex flex-col gap-6 rounded-[2rem] border border-black/5 bg-[var(--al-surface-container-low)]/70 p-6 transition-colors hover:bg-white md:flex-row md:items-center md:justify-between md:p-10"
+              className="group flex flex-col gap-5 rounded-2xl border border-al-surface-container-low bg-al-surface-container-low/60 p-6 transition-colors hover:bg-al-surface-lowest md:flex-row md:items-center md:justify-between md:p-8"
             >
-              <div className="flex flex-col gap-6 md:flex-row md:items-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[1rem] bg-secondary text-[var(--al-on-secondary-container)] md:h-16 md:w-16">
-                  <UserPlus className="h-7 w-7" />
+              <div className="flex flex-col gap-5 md:flex-row md:items-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#fdd8cb] text-[#785c53] md:h-14 md:w-14">
+                  <UserPlus className="h-6 w-6" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-primary md:text-2xl">
+                  <h4 className="font-manrope text-lg font-bold text-al-primary md:text-xl">
                     Book Your First Client
                   </h4>
-                  <p className="mt-1 text-xs font-bold uppercase tracking-[0.24em] text-muted-foreground/65">
+                  <p className="mt-0.5 text-xs font-bold uppercase tracking-[0.22em] text-al-on-surface-variant/60">
                     Coming up next
                   </p>
                 </div>
               </div>
-
-              <div className="inline-flex items-center gap-2 font-bold text-primary transition-transform group-hover:translate-x-1">
+              <div className="inline-flex items-center gap-2 font-semibold text-al-primary transition-transform group-hover:translate-x-1">
                 <span>View Appointments</span>
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4 w-4" />
               </div>
             </Link>
           </div>
         </section>
 
-        <section className="mx-auto mb-16 max-w-5xl">
-          <h2 className="mb-8 text-sm font-extrabold uppercase tracking-[0.28em] text-primary">
-            Studio Essentials
-          </h2>
+        {/* Studio Essentials */}
+        <section className="mb-16">
+          <div className="mb-8 border-b border-al-surface-container-high pb-4">
+            <h2 className="text-xs font-extrabold uppercase tracking-[0.28em] text-al-primary">
+              Studio Essentials
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {essentials.map(({ href, label, description, kicker, kickerStyle, icon: Icon, tone }) => (
               <Link
                 key={label}
                 href={href}
-                className={
+                className={cn(
+                  "group flex min-h-[17rem] flex-col justify-between rounded-2xl p-6 transition-shadow",
                   tone === "tertiary"
-                    ? "group flex min-h-[18rem] flex-col justify-between rounded-[2rem] border border-[var(--al-tertiary)]/8 bg-[var(--al-tertiary-fixed)] p-8 transition-shadow hover:shadow-[0_20px_44px_-28px_rgba(59,16,2,0.32)]"
-                    : "group flex min-h-[18rem] flex-col justify-between rounded-[2rem] border border-black/5 bg-[var(--al-surface-container-low)] p-8 transition-shadow hover:shadow-[0_20px_44px_-28px_rgba(0,30,64,0.22)]"
-                }
+                    ? "border border-[#ffdbcf]/50 bg-[#fff8f5] hover:shadow-[0px_12px_32px_rgba(74,40,20,0.1)]"
+                    : "border border-al-surface-container-low bg-al-surface-lowest hover:shadow-[0px_12px_32px_rgba(0,30,64,0.1)]"
+                )}
               >
-                {/* Top section — icon + avatar stack for Team card */}
                 {tone === "tertiary" ? (
-                  <div className="mb-8 flex items-start justify-between">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-[1rem] bg-white/40 shadow-sm transition-transform duration-200 group-hover:scale-110">
-                      <Icon className="h-7 w-7 text-[var(--al-tertiary)]" />
+                  <div className="mb-4 flex items-start justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/60 shadow-sm transition-transform duration-200 group-hover:scale-110">
+                      <Icon className="h-6 w-6 text-[#74584f]" />
                     </div>
-                    <div className="flex -space-x-3">
+                    <div className="flex -space-x-2">
                       {["A", "B"].map((init) => (
                         <div
                           key={init}
-                          className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--al-tertiary-fixed)] bg-white/40 text-[10px] font-extrabold text-[var(--al-tertiary)]"
+                          className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#fff8f5] bg-[#fdd8cb] text-[10px] font-extrabold text-[#74584f]"
                         >
                           {init}
                         </div>
                       ))}
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--al-tertiary-fixed)] bg-white/40 text-[10px] font-extrabold text-[var(--al-tertiary)]">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#fff8f5] bg-[#fdd8cb] text-[10px] font-extrabold text-[#74584f]">
                         +2
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="mb-12 flex h-14 w-14 items-center justify-center rounded-[1rem] bg-white shadow-sm transition-transform duration-200 group-hover:scale-110">
-                    <Icon className="h-7 w-7 text-primary" />
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-al-surface-container text-al-primary shadow-sm transition-transform duration-200 group-hover:scale-110">
+                    <Icon className="h-6 w-6" />
                   </div>
                 )}
 
                 <div>
                   <h4
-                    className={
-                      tone === "tertiary"
-                        ? "mb-2 text-2xl font-bold text-[var(--al-tertiary)]"
-                        : "mb-2 text-2xl font-bold text-primary"
-                    }
+                    className={cn(
+                      "mb-2 font-manrope text-xl font-bold",
+                      tone === "tertiary" ? "text-[#74584f]" : "text-al-primary"
+                    )}
                   >
                     {label}
                   </h4>
                   <p
-                    className={
-                      tone === "tertiary"
-                        ? "mb-6 text-sm leading-relaxed text-[var(--al-on-tertiary-fixed-variant)]"
-                        : "mb-6 text-sm leading-relaxed text-muted-foreground"
-                    }
+                    className={cn(
+                      "mb-5 text-sm leading-relaxed",
+                      tone === "tertiary" ? "text-[#9a6f64]" : "text-al-on-surface-variant"
+                    )}
                   >
                     {description}
                   </p>
                   <div className="flex items-center justify-between">
-                    {tone === "tertiary" ? (
-                      <span />
-                    ) : kickerStyle === "error" ? (
-                      <span className="rounded-full bg-[#ffdad6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-[#93000a]">
-                        {kicker}
-                      </span>
-                    ) : kickerStyle === "emerald" ? (
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-800">
-                        {kicker}
-                      </span>
-                    ) : null}
-                    {tone === "tertiary" ? (
-                      <ChevronRight className="h-5 w-5 text-[var(--al-tertiary)] opacity-30 transition-opacity group-hover:opacity-100" />
+                    {tone !== "tertiary" ? (
+                      kickerStyle === "error" ? (
+                        <span className="rounded-full bg-[#ffdad6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#93000a]">
+                          {kicker}
+                        </span>
+                      ) : kickerStyle === "emerald" ? (
+                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-800">
+                          {kicker}
+                        </span>
+                      ) : (
+                        <span />
+                      )
                     ) : (
-                      <ExternalLink className="h-5 w-5 text-primary opacity-30 transition-opacity group-hover:opacity-100" />
+                      <span />
                     )}
+                    <ExternalLink
+                      className={cn(
+                        "h-4 w-4 opacity-25 transition-opacity group-hover:opacity-80",
+                        tone === "tertiary" ? "text-[#74584f]" : "text-al-primary"
+                      )}
+                    />
                   </div>
                 </div>
               </Link>
@@ -347,27 +256,35 @@ export function AtelierDashboard({
           </div>
         </section>
 
-        <section className="mx-auto mb-12 max-w-5xl">
-          <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-[0_24px_50px_-28px_rgba(0,30,64,0.16)] md:p-10">
+        {/* Public Booking Link */}
+        <section>
+          <div className="mb-8 border-b border-al-surface-container-high pb-4">
+            <h2 className="text-xs font-extrabold uppercase tracking-[0.28em] text-al-primary">
+              Public Booking Link
+            </h2>
+          </div>
+
+          <div className="rounded-2xl border border-al-surface-container-low bg-al-surface-lowest p-8 shadow-[0px_10px_30px_rgba(26,28,27,0.03)] md:p-10">
             <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-              <div className="space-y-3">
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-muted-foreground/70">
-                  Public Booking Link
-                </p>
-                <h3 className="text-3xl font-extrabold tracking-tight text-primary">
+              <div className="space-y-2">
+                <h3 className="font-manrope text-2xl font-extrabold tracking-tight text-al-primary">
                   {shopName}
                 </h3>
-                <p className="break-all text-sm text-muted-foreground">{bookingUrl}</p>
-                <p className="text-sm text-muted-foreground">
-                  Share `/book/{shopSlug}` with clients for direct booking.
+                <p className="break-all text-sm text-al-on-surface-variant">{bookingUrl}</p>
+                <p className="text-sm text-al-on-surface-variant/60">
+                  Share{" "}
+                  <code className="rounded bg-al-surface-container px-1.5 py-0.5 font-mono text-xs">
+                    /book/{shopSlug}
+                  </code>{" "}
+                  with clients for direct booking.
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 md:min-w-72">
+              <div className="flex shrink-0 flex-col gap-3 md:min-w-56">
                 <Link
                   href={`/book/${shopSlug}`}
                   target="_blank"
-                  className="inline-flex items-center justify-center gap-2 rounded-[1rem] bg-primary px-5 py-3.5 font-bold text-primary-foreground transition-transform hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-al-primary px-5 py-3.5 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
                 >
                   <ExternalLink className="h-4 w-4" />
                   <span>Open Booking Page</span>
@@ -375,7 +292,7 @@ export function AtelierDashboard({
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="inline-flex items-center justify-center gap-2 rounded-[1rem] border border-black/8 bg-[var(--al-surface-container-low)] px-5 py-3.5 font-bold text-primary transition-colors hover:bg-[var(--al-surface-container)]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-al-outline-variant/30 bg-al-surface-container-low px-5 py-3.5 text-sm font-bold text-al-primary transition-colors hover:bg-al-surface-container"
                 >
                   <Copy className="h-4 w-4" />
                   <span>Copy Booking Link</span>
@@ -385,42 +302,7 @@ export function AtelierDashboard({
           </div>
         </section>
 
-        <section className="mx-auto max-w-xl border-t border-black/5 py-12">
-          <blockquote className="text-center text-lg font-medium italic text-muted-foreground/60">
-            "Quality is not an act, it is a habit."
-          </blockquote>
-        </section>
       </main>
-
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-black/5 bg-background/92 px-4 pb-8 pt-3 backdrop-blur-2xl lg:hidden">
-        <Link
-          href="/app"
-          className="flex flex-col items-center justify-center rounded-full bg-[var(--al-tertiary-fixed)] px-6 py-2.5 text-[var(--al-on-tertiary-fixed)] transition-transform active:scale-95"
-        >
-          <LayoutDashboard className="h-5 w-5" />
-          <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em]">
-            Hub
-          </span>
-        </Link>
-        <Link
-          href="/app/appointments"
-          className="flex flex-col items-center justify-center px-6 py-2.5 text-muted-foreground/70"
-        >
-          <CalendarDays className="h-5 w-5" />
-          <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em]">
-            Book
-          </span>
-        </Link>
-        <Link
-          href="/app/settings/availability"
-          className="flex flex-col items-center justify-center px-6 py-2.5 text-muted-foreground/70"
-        >
-          <Settings className="h-5 w-5" />
-          <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em]">
-            Shop
-          </span>
-        </Link>
-      </nav>
     </div>
   );
 }

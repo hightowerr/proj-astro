@@ -10,6 +10,15 @@ import type { DashboardAppointment } from "@/types/dashboard";
 
 const TIER_ORDER = { top: 1, neutral: 2, risk: 3 } as const;
 
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 interface AllAppointmentsTableProps {
   appointments: DashboardAppointment[];
 }
@@ -61,9 +70,12 @@ export function AllAppointmentsTable({ appointments }: AllAppointmentsTableProps
   };
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-semibold text-al-primary font-manrope">All Upcoming Appointments</h2>
+    <section className="space-y-8">
+      <div className="border-b border-al-surface-container-high pb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-[1.75rem] font-bold text-al-primary font-manrope">All Upcoming Appointments</h2>
+          <p className="text-al-on-surface-variant text-sm mt-1">Comprehensive view of all confirmed engagements.</p>
+        </div>
         <label className="flex items-center gap-3 text-sm text-al-on-surface-variant" htmlFor="tier-filter">
           Tier
           <select
@@ -82,96 +94,99 @@ export function AllAppointmentsTable({ appointments }: AllAppointmentsTableProps
       </div>
 
       {filteredAppointments.length === 0 ? (
-        <div className="rounded-lg bg-al-surface-lowest p-8 text-center al-shadow-float">
+        <div className="rounded-2xl bg-al-surface-lowest p-8 text-center shadow-[0px_10px_30px_rgba(26,28,27,0.03)]">
           <p className="text-sm text-al-on-surface-variant">No appointments found.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg bg-al-surface-lowest al-shadow-float">
+        <div className="overflow-x-auto rounded-2xl bg-al-surface-lowest shadow-[0px_10px_30px_rgba(26,28,27,0.03)]">
           <table className="w-full min-w-[980px] text-sm">
-            <thead className="bg-al-surface-low text-left">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
-                  Customer
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
+            <thead>
+              <tr className="bg-al-surface-container-low text-al-on-surface-variant text-xs uppercase tracking-widest border-b border-al-outline-variant/20 text-left">
+                <th scope="col" className="p-6 font-semibold">Client</th>
+                <th scope="col" className="p-6 font-semibold">
                   <button
                     type="button"
                     onClick={() => handleSort("time")}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
+                    className="inline-flex items-center gap-1 text-left hover:text-foreground uppercase tracking-widest"
                   >
-                    Time <span className="text-xs">{sortArrow("time")}</span>
+                    Time <span className="text-xs normal-case">{sortArrow("time")}</span>
                   </button>
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
+                <th scope="col" className="p-6 font-semibold">
                   <button
                     type="button"
                     onClick={() => handleSort("score")}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
+                    className="inline-flex items-center gap-1 text-left hover:text-foreground uppercase tracking-widest"
                   >
-                    Score <span className="text-xs">{sortArrow("score")}</span>
+                    Score <span className="text-xs normal-case">{sortArrow("score")}</span>
                   </button>
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
+                <th scope="col" className="p-6 font-semibold">
                   <button
                     type="button"
                     onClick={() => handleSort("tier")}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
+                    className="inline-flex items-center gap-1 text-left hover:text-foreground uppercase tracking-widest"
                   >
-                    Tier <span className="text-xs">{sortArrow("tier")}</span>
+                    Tier <span className="text-xs normal-case">{sortArrow("tier")}</span>
                   </button>
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
-                  Voids (90d)
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
-                  Confirmation
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium text-al-on-surface-variant">
-                  Actions
-                </th>
+                <th scope="col" className="p-6 font-semibold">Voids (90d)</th>
+                <th scope="col" className="p-6 font-semibold">Confirmation</th>
+                <th scope="col" className="p-6 font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredAppointments.map((appointment) => (
-                <tr key={appointment.id} className="border-t border-al-outline-variant/30">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-foreground">{appointment.customerName}</span>
-                      <SmsStatusBadge smsOptIn={appointment.smsOptIn} />
-                    </div>
-                    <div className="mt-1 text-xs text-al-on-surface-variant">
-                      {appointment.customerEmail || appointment.customerPhone}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-al-on-surface-variant">
-                    <div>{format(new Date(appointment.startsAt), "MMM d, h:mm a")}</div>
-                    <div className="text-xs">
-                      Ends {format(new Date(appointment.endsAt), "h:mm a")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-medium tabular-nums text-foreground">
-                    {appointment.customerScore ?? "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <TierBadge tier={appointment.customerTier} />
-                  </td>
-                  <td className="px-4 py-3 tabular-nums text-al-on-surface-variant">
-                    {appointment.voidedLast90Days}
-                  </td>
-                  <td className="px-4 py-3">
-                    <ConfirmationStatusBadge status={appointment.confirmationStatus} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <ActionButtons
-                      appointmentId={appointment.id}
-                      customerPhone={appointment.customerPhone}
-                      customerEmail={appointment.customerEmail}
-                      bookingUrl={appointment.bookingUrl}
-                      confirmationStatus={appointment.confirmationStatus}
-                    />
-                  </td>
-                </tr>
-              ))}
+            <tbody className="divide-y divide-al-surface-container-low">
+              {filteredAppointments.map((appointment) => {
+                const initials = getInitials(appointment.customerName);
+
+                return (
+                  <tr key={appointment.id} className="hover:bg-al-surface-container/30 transition-colors">
+                    <td className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-al-surface-container-highest text-al-primary flex items-center justify-center font-bold text-sm shrink-0">
+                          {initials}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-al-primary">{appointment.customerName}</span>
+                            <SmsStatusBadge smsOptIn={appointment.smsOptIn} />
+                          </div>
+                          <div className="mt-0.5 text-xs text-al-on-surface-variant">
+                            {appointment.customerEmail || appointment.customerPhone}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-6 text-al-on-surface-variant">
+                      <div className="font-medium">{format(new Date(appointment.startsAt), "MMM d, h:mm a")}</div>
+                      <div className="text-xs mt-0.5">
+                        Ends {format(new Date(appointment.endsAt), "h:mm a")}
+                      </div>
+                    </td>
+                    <td className="p-6 font-medium tabular-nums text-foreground">
+                      {appointment.customerScore ?? "—"}
+                    </td>
+                    <td className="p-6">
+                      <TierBadge tier={appointment.customerTier} />
+                    </td>
+                    <td className="p-6 tabular-nums text-al-on-surface-variant">
+                      {appointment.voidedLast90Days}
+                    </td>
+                    <td className="p-6">
+                      <ConfirmationStatusBadge status={appointment.confirmationStatus} />
+                    </td>
+                    <td className="p-6">
+                      <ActionButtons
+                        appointmentId={appointment.id}
+                        customerPhone={appointment.customerPhone}
+                        customerEmail={appointment.customerEmail}
+                        bookingUrl={appointment.bookingUrl}
+                        confirmationStatus={appointment.confirmationStatus}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
