@@ -7,7 +7,6 @@ import { DashboardSearch } from "@/components/dashboard/dashboard-search";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { TierDistributionChart } from "@/components/dashboard/tier-distribution-chart";
 import { getDashboardDailyLog, getDashboardData } from "@/lib/queries/dashboard";
-import { getEventTypesForShop } from "@/lib/queries/event-types";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { requireAuth } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -67,23 +66,16 @@ export default async function DashboardPage({
     </nav>
   );
 
-  const stickyHeader = (
-    <header className="sticky top-0 z-30 bg-al-surface-low/80 backdrop-blur-xl px-12 py-6 flex items-center gap-6 w-full border-b border-al-outline-variant/10 transition-all duration-300">
-      <div className="flex-1 max-w-md">
-        <DashboardSearch />
-      </div>
-      {tabSwitcher}
-    </header>
-  );
-
-  const heroSection = (
+  const pageHeader = (
     <section className="space-y-4">
-      <h2 className="text-[3.5rem] font-bold text-al-primary tracking-tighter leading-tight font-manrope">
-        Welcome back, {shop.name}
-      </h2>
-      <p className="text-al-on-surface-variant text-lg max-w-2xl leading-relaxed">
-        Here is a curated overview of your studio&apos;s upcoming engagements and critical client touchpoints.
-      </p>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold text-al-primary">Dashboard</h1>
+        <p className="text-sm text-al-on-surface-variant">
+          Monitor high-risk appointments and upcoming reliability trends for {shop.name}.
+        </p>
+      </div>
+      <DashboardSearch />
+      {tabSwitcher}
     </section>
   );
 
@@ -92,9 +84,8 @@ export default async function DashboardPage({
 
     return (
       <div className="min-h-screen bg-al-surface-low">
-        {stickyHeader}
-        <div className="px-12 pb-24 max-w-7xl mx-auto space-y-16 py-10">
-          {heroSection}
+        <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-10">
+          {pageHeader}
           <DailyLogFeed items={logItems} />
         </div>
       </div>
@@ -103,10 +94,7 @@ export default async function DashboardPage({
 
   const periodHours = parsePeriod(period);
 
-  const [dashboardData, activeEventTypes] = await Promise.all([
-    getDashboardData(shop.id, periodHours),
-    getEventTypesForShop(shop.id, { isActive: true }),
-  ]);
+  const dashboardData = await getDashboardData(shop.id, periodHours);
 
   const {
     highRiskAppointments,
@@ -118,29 +106,10 @@ export default async function DashboardPage({
     allAppointments,
   } = dashboardData;
 
-  const hasOnlyDefaultServices =
-    activeEventTypes.length > 0 &&
-    activeEventTypes.every((eventType) => eventType.isDefault);
-
   return (
     <div className="min-h-screen bg-al-surface-low">
-      {stickyHeader}
-      <div className="px-12 pb-24 max-w-7xl mx-auto space-y-16 py-10">
-        {heroSection}
-
-        {hasOnlyDefaultServices ? (
-          <div className="flex items-center justify-between gap-4 rounded-lg bg-amber-50 px-4 py-3 al-shadow-float">
-            <p className="text-sm text-amber-800">
-              Your booking page is using a default service. Set up your real services to show customers accurate durations and names.
-            </p>
-            <a
-              href="/app/settings/services"
-              className="shrink-0 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
-            >
-              Set up services
-            </a>
-          </div>
-        ) : null}
+      <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-10">
+        {pageHeader}
 
         <SummaryCards
           totalUpcoming={totalUpcoming}

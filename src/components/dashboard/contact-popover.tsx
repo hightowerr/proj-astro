@@ -60,7 +60,7 @@ export function ContactPopover({ phone, email, onClose }: ContactPopoverProps) {
 
   return (
     <div
-      className="absolute right-0 top-full z-20 mt-2 hidden w-[22rem] max-w-[calc(100vw-2rem)] rounded-xl border border-white/10 bg-bg-dark p-4 shadow-2xl shadow-black/30 md:block"
+      className="absolute right-0 top-full z-20 mt-2 hidden w-[22rem] max-w-[calc(100vw-2rem)] rounded-xl border border-al-outline-variant/30 bg-al-surface-lowest p-4 shadow-xl md:block"
       role="dialog"
       aria-label="Customer contact details"
     >
@@ -113,13 +113,13 @@ export function ContactDialog({ phone, email, onClose }: ContactDialogProps) {
 
   return (
     <DialogContent
-      className="w-[calc(100%-2rem)] max-w-md border-white/10 bg-bg-dark p-5 text-white"
+      className="w-[calc(100%-2rem)] max-w-md p-5 text-foreground"
       onPointerDownOutside={onClose}
       onEscapeKeyDown={onClose}
     >
       <DialogHeader>
         <DialogTitle>Customer contact</DialogTitle>
-        <DialogDescription className="text-text-light-muted">
+        <DialogDescription className="text-al-on-surface-variant">
           Use the details below to call, text, or email the customer.
         </DialogDescription>
       </DialogHeader>
@@ -147,14 +147,14 @@ function ContactDetailsPanel({
   return (
     <div className="space-y-3">
       <ContactRow
-        icon={<Phone className="h-4 w-4 text-text-light-muted" />}
+        icon={<Phone className="h-4 w-4 text-al-on-surface-variant" />}
         label="Phone"
         value={phone}
         copied={copiedField === "phone"}
         onCopy={() => void onCopy(phone, "phone")}
       />
       <ContactRow
-        icon={<Mail className="h-4 w-4 text-text-light-muted" />}
+        icon={<Mail className="h-4 w-4 text-al-on-surface-variant" />}
         label="Email"
         value={email}
         copied={copiedField === "email"}
@@ -178,25 +178,25 @@ function ContactRow({
   onCopy: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+    <div className="rounded-lg border border-al-outline-variant/30 bg-al-surface-low p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           {icon}
-          <span className="text-xs font-medium uppercase tracking-[0.2em] text-text-light-muted">
+          <span className="text-xs font-medium uppercase tracking-[0.2em] text-al-on-surface-variant">
             {label}
           </span>
         </div>
         <button
           type="button"
           onClick={onCopy}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-text-light-muted transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-al-outline-variant/30 bg-al-surface-lowest text-al-on-surface-variant transition hover:border-al-outline-variant/50 hover:bg-al-surface-container hover:text-foreground"
           aria-label={`Copy ${label.toLowerCase()}`}
           title={`Copy ${label.toLowerCase()}`}
         >
-          {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+          {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
         </button>
       </div>
-      <p className="mt-2 break-all pr-10 text-sm text-white" title={value}>
+      <p className="mt-2 break-all pr-10 text-sm text-foreground" title={value}>
         {value}
       </p>
     </div>

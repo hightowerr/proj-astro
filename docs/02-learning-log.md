@@ -154,3 +154,70 @@ That is exactly what `route-chrome.tsx` became: a route-aware wrapper selector.
 ### Anti-Pattern: The "God Function" (Functions That Do Too Much)
 **Where I saw it:** `src/lib/queries/appointments.ts` - `createAppointment()` (220 lines).
 **Why it's bad:** Impossible to test, hard to debug, and violates the **Single Responsibility Principle**. Break big meetings into focused 30-minute sessions; break big functions into focused helpers.
+
+---
+
+## 7. Dashboard UI Bet (2026-04-22)
+
+### What 3 patterns should I memorize for next time?
+
+#### Pattern 1: Parallel Data Fetching (`Promise.all`)
+- **What it is:** Running multiple independent database queries at the same time instead of waiting for each one to finish before starting the next.
+- **Where we used it:** `getDashboardData` (fetching appointments, stats, and distribution) and `getDashboardDailyLog` (fetching from 3 different sources).
+- **Why it matters:** It makes the page load significantly faster. If you have 3 queries that take 200ms each, sequential execution takes 600ms. Parallel execution takes only 200ms.
+- **Python Analogy:** This is exactly like using `asyncio.gather(*tasks)` in Python. Don't make the user wait for "Book A" to finish before you even open "Book B."
+
+#### Pattern 2: The "Breadcrumb" UI State (Query Parameters)
+- **What it is:** Storing the current view or tab in the URL (e.g., `?view=log`) rather than just in the computer's temporary memory.
+- **Where we used it:** `src/app/app/dashboard/page.tsx` to toggle between the "Quick View" and "Daily Log."
+- **Why it matters:** It respects the user's "Back" button and allows them to refresh the page without losing their place. It also lets them bookmark a specific dashboard tab.
+- **How to recognize it next time:** If you find yourself saying "I need a button to switch this section of the page," ask if that switch should be part of the URL.
+
+#### Pattern 3: Discriminated Unions for Unified Navigation
+- **What it is:** Creating a single list that can hold different "kinds" of things (like Customers and Appointments), where each item has a tag telling you what it is.
+- **Where we used it:** `src/components/dashboard/dashboard-search.tsx`. We combined search results into one `allItems` list.
+- **Why it matters:** It makes things like keyboard navigation (up/down arrows) much simpler. Instead of jumping between two different lists, you just move up and down one single list that "knows" how to handle each item type.
+
+### What 1 anti-pattern did we use that I should avoid?
+
+#### Anti-Pattern: "Shadow Types" (The Integrity Gap)
+- **What happened:** In Bet 1, we found that the code *claimed* an appointment had a `customerId` (in the TypeScript interface), but the database query didn't actually select it. 
+- **Why it's bad:** The computer "trusted" the type and didn't warn us, but the app would have crashed at runtime when trying to use that missing data. It’s like having a recipe that lists "Eggs" in the ingredients but never tells you to take them out of the fridge.
+- **Rule to memorize:** Your database `SELECT` statement and your TypeScript `interface` must be mirrors of each other. If you add it to the type, you MUST add it to the query.
+
+### The Most Complex Technical Decision, Explained Like a PM
+
+- **Decision:** Performing an "In-Memory Merge" for the Daily Log instead of using a complex SQL query.
+- **Where it lives:** `src/lib/queries/dashboard.ts` -> `getDashboardDailyLog()`.
+
+**Plain-English version:**
+
+Imagine your studio has three separate paper books: a "New Bookings" book, a "Cancellations" notebook, and a "Sent Messages" file. We needed to show a single "Timeline" of the last 7 days.
+
+We had two main choices:
+1.  **The "Unified Binder" (SQL UNION):** Try to force all three books to have the exact same columns so we could photocopy them into one giant binder. This is hard because an "Email Sent" record doesn't have a "Price" or "Duration" like a booking does.
+2.  **The "Smart Intern" (In-Memory Merge):** Ask an intern to open all three books, look at the last 7 days in each, write every event down on a fresh sheet of paper, and then sort that list by time.
+
+We chose option 2 (The Smart Intern).
+
+**Python Analogy:**
+
+Instead of one giant, scary SQL query, we wrote three simple, fast ones and then used a standard Python-style sort:
+
+```python
+# 1. Grab data from different tables
+bookings = db.query("SELECT * FROM appointments WHERE created_at > 7_days_ago")
+events = db.query("SELECT * FROM appointment_events WHERE occurred_at > 7_days_ago")
+messages = db.query("SELECT * FROM message_log WHERE sent_at > 7_days_ago")
+
+# 2. The "Merge" (The Intern's Job)
+# We put them all in one big list and sort by time (newest first)
+daily_log = sorted(bookings + events + messages, key=lambda x: x.timestamp, reverse=True)
+
+# 3. Just show the top 50 items
+return daily_log[:50]
+```
+
+This was the right decision because it kept our database simple and flexible. If we want to add a fourth source (like "Staff Logins") tomorrow, we just add one more simple query to the list without rewriting a giant master query.
+
+---

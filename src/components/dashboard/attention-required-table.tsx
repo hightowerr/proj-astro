@@ -17,6 +17,9 @@ const PERIOD_OPTIONS = [
   { value: 336, chipLabel: "14 days" },
 ] as const;
 
+const HIGH_RISK_SCORE_THRESHOLD = 40;
+const HIGH_RISK_VOIDS_THRESHOLD = 2;
+
 function getInitials(name: string): string {
   return name
     .split(" ")
@@ -24,6 +27,15 @@ function getInitials(name: string): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+function isHighRiskAppointment(appointment: DashboardAppointment): boolean {
+  return (
+    appointment.customerTier === "risk" ||
+    (appointment.customerScore !== null &&
+      appointment.customerScore < HIGH_RISK_SCORE_THRESHOLD) ||
+    appointment.voidedLast90Days >= HIGH_RISK_VOIDS_THRESHOLD
+  );
 }
 
 interface AttentionRequiredTableProps {
@@ -77,7 +89,7 @@ export function AttentionRequiredTable({ appointments, currentPeriod }: Attentio
       ) : (
         <div className="space-y-4">
           {appointments.map((appointment) => {
-            const isHighRisk = (appointment.customerScore ?? 0) >= 60;
+            const isHighRisk = isHighRiskAppointment(appointment);
             const initials = getInitials(appointment.customerName);
 
             return (

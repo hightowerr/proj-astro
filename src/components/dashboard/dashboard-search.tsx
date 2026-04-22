@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   AppointmentSearchResult,
@@ -14,6 +14,7 @@ export function DashboardSearch() {
     | { type: "appointment"; data: AppointmentSearchResult };
 
   const router = useRouter();
+  const resultsListId = useId();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResponse | null>(null);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -81,6 +82,11 @@ export function DashboardSearch() {
   ];
   const hasResults = allItems.length > 0;
   const isEmptyState = open && results !== null && !hasResults;
+  const isListboxVisible = open && (hasResults || isEmptyState);
+  const activeOptionId =
+    activeIndex >= 0 && activeIndex < allItems.length
+      ? `${resultsListId}-option-${activeIndex}`
+      : undefined;
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (!open) return;
@@ -130,13 +136,20 @@ export function DashboardSearch() {
         onChange={(event) => handleQueryChange(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Search appointments or clients"
+        role="combobox"
         aria-label="Quick search"
+        aria-autocomplete="list"
+        aria-expanded={isListboxVisible}
+        aria-controls={isListboxVisible ? resultsListId : undefined}
+        aria-haspopup="listbox"
+        aria-activedescendant={isListboxVisible ? activeOptionId : undefined}
         autoComplete="off"
         className="w-full rounded-md border border-al-outline-variant bg-al-surface-low px-3 py-2 text-sm text-foreground placeholder:text-al-on-surface-variant outline-none ring-primary focus:ring-2"
       />
 
-      {open && (hasResults || isEmptyState) ? (
+      {isListboxVisible ? (
         <div
+          id={resultsListId}
           role="listbox"
           aria-label="Search results"
           className="absolute left-0 top-full z-30 mt-1.5 w-full rounded-lg bg-al-surface-lowest p-2 al-shadow-float"
@@ -151,6 +164,7 @@ export function DashboardSearch() {
                   {customers.map((customer, index) => (
                     <button
                       key={customer.id}
+                      id={`${resultsListId}-option-${index}`}
                       role="option"
                       aria-selected={activeIndex === index}
                       type="button"
@@ -202,6 +216,7 @@ export function DashboardSearch() {
                     return (
                       <button
                         key={appointment.id}
+                        id={`${resultsListId}-option-${itemIndex}`}
                         role="option"
                         aria-selected={activeIndex === itemIndex}
                         type="button"

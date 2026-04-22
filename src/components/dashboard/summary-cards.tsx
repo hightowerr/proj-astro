@@ -50,7 +50,7 @@ export function SummaryCards({
         </div>
         <h3 className="text-xs font-medium uppercase tracking-wider text-red-600 mb-2">High-Risk Customers</h3>
         <p className="text-4xl font-extrabold tabular-nums text-red-700">{highRiskCustomerCount}</p>
-        <p className="mt-1 text-xs text-red-600/70">Require confirmation</p>
+        <p className="mt-1 text-xs text-red-600/70">In selected window</p>
       </article>
 
       <article className="relative overflow-hidden rounded-2xl bg-amber-50 p-6 group hover:bg-amber-50/80 transition-colors duration-300">
