@@ -354,6 +354,14 @@
   --al-on-error:                      #ffffff;
   --al-on-error-container:            #93000a;
 
+  /* ── STATUS — Atelier Light semantic ─────────────────────── */
+  --al-status-positive:    #0e7a55;              /* settled · paid · top tier */
+  --al-status-positive-bg: rgba(14, 122, 85, 0.10);
+  --al-status-negative:    #a8294a;              /* voided · failed · risk tier */
+  --al-status-negative-bg: rgba(168, 41, 74, 0.10);
+  --al-status-caution:     #c97a2a;              /* unresolved · pending */
+  --al-status-caution-bg:  rgba(201, 122, 42, 0.10);
+
   /* Derived convenience tokens */
   --al-ghost-border:    rgba(195, 198, 209, 0.20);
   --al-shadow-float:    0px 20px 40px rgba(26, 28, 27, 0.06);

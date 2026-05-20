@@ -60,3 +60,13 @@ export const normalizeStripePaymentStatus = (
       return "processing";
   }
 };
+
+export function stripeDashboardLink(stripePaymentIntentId: string): string {
+  const isTest =
+    stripePaymentIntentId.startsWith("pi_test_") ||
+    process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_");
+  const base = isTest
+    ? "https://dashboard.stripe.com/test/payments"
+    : "https://dashboard.stripe.com/payments";
+  return `${base}/${stripePaymentIntentId}`;
+}

@@ -52,7 +52,22 @@
       "mcp__mental-models__glob_files",
       "WebFetch(domain:dap.berkeley.edu)",
       "WebFetch(domain:orm.drizzle.team)",
-      "Bash(PLAYWRIGHT_REUSE_EXISTING_SERVER=true PLAYWRIGHT_SKIP_MIGRATIONS=true pnpm test:e2e:*)"
+      "Bash(PLAYWRIGHT_REUSE_EXISTING_SERVER=true PLAYWRIGHT_SKIP_MIGRATIONS=true pnpm test:e2e:*)",
+      "mcp__mental-models__append_journal_entry",
+      "WebFetch(domain:api.anthropic.com)",
+      "Read(//tmp/design_pkg/appointments-page/**)",
+      "Read(//tmp/design_pkg/**)",
+      "Bash(gunzip -c \"/home/yunix/.claude/projects/-home-yunix-learning-agentic-ideas-proj-astro/8cd20833-e0e3-479b-8535-5daa90ecb931/tool-results/webfetch-1777373667392-s4079q.bin\")",
+      "Bash(tar -xf /tmp/customers_design.tar -C /tmp/)",
+      "Read(//tmp/**)",
+      "Bash(git:*)",
+      "Bash(file webfetch-*.bin)",
+      "Bash(cp \"/home/yunix/.claude/projects/-home-yunix-learning-agentic-ideas-proj-astro/ec78ac11-f707-41a7-bb88-0aa4dd31ed92/tool-results/webfetch-1777377746288-qto97n.bin\" design.gz)",
+      "Bash(gunzip -c design.gz)",
+      "Bash(mkdir -p /tmp/design-bundle)",
+      "Bash(tar -xzf /home/yunix/.claude/projects/-home-yunix-learning-agentic-ideas-proj-astro/c1b71215-61a7-4c8e-a0c5-7cc665d4dc0b/tool-results/webfetch-1777383344048-ikerzk.bin)",
+      "Bash(pnpm eslint:*)",
+      "mcp__mental-models__search_file_content"
     ]
   },
   "enableAllProjectMcpServers": true,

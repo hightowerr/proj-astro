@@ -16,9 +16,10 @@ const appNavLinks = [
 ];
 
 const settingsLinks = [
-  { href: "/app/settings/payment-policy", label: "Payment Policy", icon: "payments" },
+  { href: "/app/settings/payment-policy", label: "Payment Policy", icon: "receipt_long" },
   { href: "/app/settings/calendar", label: "Calendar", icon: "calendar_today" },
   { href: "/app/settings/reminders", label: "Reminders", icon: "notifications" },
+  { href: "/app/settings/billing", label: "Billing", icon: "payments" },
 ];
 
 type AppNavProps = {
@@ -107,7 +108,15 @@ export function AppNav({ user, shopName }: AppNavProps) {
           })}
         </nav>
         <div className="p-6 border-t border-al-outline-variant/10">
-          <div className="flex items-center gap-4">
+          <Link
+            href="/profile"
+            className={cn(
+              "flex items-center gap-4 rounded-xl p-2 -m-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+              pathname === "/profile"
+                ? "bg-[#003366] text-on-primary"
+                : "hover:bg-al-surface-low"
+            )}
+          >
             <Image
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover ring-2 ring-al-surface-container"
@@ -117,10 +126,10 @@ export function AppNav({ user, shopName }: AppNavProps) {
               referrerPolicy="no-referrer"
             />
             <div className="min-w-0">
-              <p className="text-sm font-bold text-primary truncate">{user.name}</p>
-              <p className="text-[10px] text-on-surface-variant uppercase tracking-tighter">Professional Plan</p>
+              <p className={cn("text-sm font-bold truncate", pathname === "/profile" ? "text-on-primary" : "text-primary")}>{user.name}</p>
+              <p className={cn("text-[10px] uppercase tracking-tighter", pathname === "/profile" ? "text-on-primary/70" : "text-on-surface-variant")}>Account & Profile</p>
             </div>
-          </div>
+          </Link>
         </div>
       </aside>
 
@@ -132,7 +141,11 @@ export function AppNav({ user, shopName }: AppNavProps) {
             {shopName}
           </h1>
         </div>
-        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/10">
+        <Link
+          href="/profile"
+          className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          aria-label="Your profile"
+        >
           <Image
             alt="User profile"
             className="w-full h-full object-cover"
@@ -141,7 +154,7 @@ export function AppNav({ user, shopName }: AppNavProps) {
             height={40}
             referrerPolicy="no-referrer"
           />
-        </div>
+        </Link>
       </header>
 
       {/* Mobile Bottom Navigation */}

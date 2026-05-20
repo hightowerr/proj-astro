@@ -60,7 +60,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${cormorant.variable} ${bricolage.variable} ${firaCode.variable} ${manrope.variable} antialiased bg-surface-base`}
+        className={`${cormorant.variable} ${bricolage.variable} ${firaCode.variable} ${manrope.variable} antialiased bg-background`}
       >
         {process.env.NODE_ENV === "development" ? (
           <Script id="react-dev-measure-guard" strategy="beforeInteractive">

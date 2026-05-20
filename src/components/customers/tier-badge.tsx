@@ -8,18 +8,18 @@ interface TierBadgeProps {
 const tierConfig: Record<Tier, { label: string; dot: string; pill: string }> = {
   top: {
     label: "Top",
-    dot: "bg-[#20d090]",
-    pill: "bg-[rgba(32,208,144,0.1)] text-[#34d399] border border-[rgba(32,208,144,0.3)]",
+    dot: "bg-[#0e7a55]",
+    pill: "bg-[rgba(14,122,85,0.10)] text-[#0e7a55] border border-[rgba(14,122,85,0.25)]",
   },
   neutral: {
     label: "Neutral",
-    dot: "bg-[#6a88a0]",
-    pill: "bg-[rgba(106,136,160,0.1)] text-[#8aa2bc] border border-[rgba(106,136,160,0.22)]",
+    dot: "bg-[#737780]",
+    pill: "bg-[#eeeeec] text-[#43474f] border border-[rgba(195,198,209,0.40)]",
   },
   risk: {
     label: "Risk",
-    dot: "bg-[#f45878]",
-    pill: "bg-[rgba(244,88,120,0.1)] text-[#fb7185] border border-[rgba(244,88,120,0.3)]",
+    dot: "bg-[#a8294a]",
+    pill: "bg-[rgba(168,41,74,0.10)] text-[#a8294a] border border-[rgba(168,41,74,0.25)]",
   },
 };
 

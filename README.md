@@ -1,116 +1,134 @@
-# Booking & Appointment Management System
+# Astro - Booking & Appointment Management System
 
-A high-performance booking and appointment management system with automated financial outcomes, policy-driven refunds, and AI-powered reliability scoring.
+A booking and appointment management system with automated financial outcomes, policy-driven refunds, and AI-powered reliability scoring.
 
-## 🚀 Features
+Built with Next.js 16, React 19, TypeScript, Drizzle ORM, PostgreSQL, Upstash Redis, Stripe, and Twilio.
 
-- **🔐 Authentication**: Better Auth with Google OAuth integration.
-- **💳 Payments & Refunds**: Stripe integration with idempotent refunds and policy-driven deposit retention.
-- **📱 SMS Notifications**: Twilio integration for booking confirmations, reminders, and slot recovery offers.
-- **⚖️ Policy Engine**: Versioned policy snapshots ensuring historical accuracy for every appointment.
-- **🎯 Tier & Scoring System**: Customer reliability scoring (0-100) with dynamic tiering (`top`, `neutral`, `risk`).
-- **♻️ Slot Recovery**: Automated offer loop that fills cancelled slots by prioritizing high-tier customers.
-- **📅 Calendar Integration**: Google Calendar conflict detection and event caching.
-- **🤖 No-Show Prediction**: Predictive risk levels based on historical attendance patterns.
-- **⚡ Modern Stack**: Next.js 16, React 19, TypeScript, Drizzle ORM, PostgreSQL, Upstash Redis.
+## Features
 
-## 📋 Prerequisites
+- **Authentication** - Better Auth with Google OAuth
+- **Payments & Refunds** - Stripe with idempotent refunds and policy-driven deposit retention
+- **SMS & Email Notifications** - Twilio for SMS (confirmations, reminders, slot recovery); Resend for transactional emails
+- **Policy Engine** - Versioned policy snapshots ensuring historical accuracy per appointment
+- **Tier & Scoring** - Customer reliability scoring (0-100) with dynamic tiering (`top`, `neutral`, `risk`)
+- **Slot Recovery** - Automated offer loop that fills cancelled slots, prioritizing high-tier customers
+- **Calendar Integration** - Google Calendar conflict detection and event caching
+- **No-Show Prediction** - Risk levels based on historical attendance patterns
+- **Owner Dashboard** - Protected dashboard with appointment tables, summary cards, customer analytics, and tier distribution charts
+- **AI Chat** - OpenRouter-powered assistant for shop owners
 
-- **Node.js**: Version 20.x or higher
-- **pnpm**: Recommended package manager
-- **PostgreSQL**: Local or hosted (e.g., Vercel Postgres)
-- **Redis**: Upstash Redis for locking and slot recovery
+## Prerequisites
 
-## 🛠️ Quick Setup
+- Node.js 20.x+
+- pnpm
+- PostgreSQL (local via Docker or hosted)
+- Upstash Redis
 
-**1. Clone the repository**
+## Quick Setup
+
+**1. Clone and install**
 
 ```bash
 git clone <repository-url>
 cd proj-astro
-```
-
-**2. Install dependencies**
-
-```bash
 pnpm install
 ```
 
-**3. Environment Setup**
-
-Copy the example environment file and fill in the values:
+**2. Environment**
 
 ```bash
 cp env.example .env
 ```
 
-Key variables required:
-- `POSTGRES_URL`: PostgreSQL connection string
-- `BETTER_AUTH_SECRET`: Random 32-character string
-- `STRIPE_SECRET_KEY`: Stripe API secret
-- `TWILIO_ACCOUNT_SID` / `AUTH_TOKEN`: Twilio credentials
-- `UPSTASH_REDIS_REST_URL` / `TOKEN`: Upstash Redis credentials
-- `CRON_SECRET`: Secret for authenticating background jobs
+See [docs/context/env-setup.md](./docs/context/env-setup.md) for the full variable reference. Key ones:
 
-**4. Database Setup**
+| Variable | Purpose |
+|---|---|
+| `POSTGRES_URL` | PostgreSQL connection string |
+| `BETTER_AUTH_SECRET` | Session signing secret |
+| `STRIPE_SECRET_KEY` | Stripe API secret |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | Twilio credentials |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Redis for locks and slot recovery |
+| `CRON_SECRET` | Authenticates background jobs |
+| `RESEND_API_KEY` | Email delivery |
+
+**3. Database**
 
 ```bash
+# Option A: Local PostgreSQL via Docker
+sudo docker compose up -d
+
+# Option B: Use a hosted Postgres URL in .env
+
+# Then run migrations
 pnpm db:migrate
 ```
 
-**5. Start Development Server**
+**4. Start dev server**
 
 ```bash
 pnpm dev
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 ### Booking Lifecycle
-1. **Booking**: Customer selects a slot → Appointment created → Payment intent → SMS confirmation.
-2. **Cancellation**: If before cutoff: full refund. If after: deposit retained based on policy snapshot.
-3. **Resolution**: Post-appointment, the `resolve-outcomes` job auto-determines if the appointment was `settled`, `voided`, or `refunded`.
+
+1. **Book** - Customer selects a slot, payment captured, SMS confirmation sent, manage link generated.
+2. **Cancel** - Before cutoff: full refund. After cutoff: deposit retained per policy snapshot.
+3. **Resolve** - The `resolve-outcomes` job auto-determines the final outcome (`settled`, `voided`, `refunded`).
 
 ### Key Abstractions
-- **Policy Snapshots**: Every appointment captures the active `policyVersion` at booking time to prevent retro-active policy changes affecting existing bookings.
-- **Slot Recovery**: Cancellations trigger a `slotOpening` which initiates an automated offer loop, prioritizing `top` tier customers via SMS.
-- **Advisory Locks**: Background jobs use PostgreSQL advisory locks to prevent concurrent execution.
 
-## ⚙️ Background Jobs (Cron)
+- **Policy Snapshots** - Every appointment captures the active `policyVersion` at booking time. Refund logic always uses the snapshot, never the current policy.
+- **Slot Recovery** - Cancellations create a `slotOpening` that triggers an automated SMS offer loop, prioritizing `top` tier customers first.
+- **Advisory Locks** - Background jobs use `pg_try_advisory_lock`; slot recovery uses Upstash Redis locks to prevent duplicate offers.
 
-All jobs require the `x-cron-secret` header.
+## Background Jobs
 
-- `/api/jobs/resolve-outcomes`: Finalizes financial outcomes after appointments end.
-- `/api/jobs/offer-loop`: Processes slot recovery offers.
-- `/api/jobs/recompute-scores`: Recalculates customer reliability scores.
-- `/api/jobs/scan-calendar-conflicts`: Syncs with Google Calendar to detect overlaps.
+All jobs are API routes requiring the `x-cron-secret` header.
 
-## 🧪 Testing
+| Route | Purpose |
+|---|---|
+| `/api/jobs/resolve-outcomes` | Finalize financial outcomes after appointments end |
+| `/api/jobs/offer-loop` | Process slot recovery offers |
+| `/api/jobs/expire-offers` | Expire unclaimed slot offers |
+| `/api/jobs/expire-pending-recoveries` | Clean up stale pending recoveries |
+| `/api/jobs/expire-confirmations` | Expire unconfirmed bookings |
+| `/api/jobs/recompute-scores` | Recalculate customer reliability scores |
+| `/api/jobs/recompute-no-show-stats` | Update no-show prediction statistics |
+| `/api/jobs/send-reminders` | Send SMS appointment reminders |
+| `/api/jobs/send-email-reminders` | Send email appointment reminders |
+| `/api/jobs/send-confirmations` | Send booking confirmation messages |
+| `/api/jobs/scan-calendar-conflicts` | Sync Google Calendar and flag overlaps |
+
+## Testing
 
 ```bash
-pnpm test          # Run unit tests (Vitest)
-pnpm test:e2e      # Run E2E tests (Playwright)
+pnpm test          # Unit tests (Vitest)
+pnpm test:e2e      # E2E tests (Playwright)
 ```
 
-**E2E Note**: Set `TWILIO_TEST_MODE=true` to use Twilio magic numbers and avoid real charges during tests.
+Set `TWILIO_TEST_MODE=true` for E2E to use Twilio magic numbers and avoid real charges.
 
-## 🔧 Available Scripts
+## Scripts
 
-- `pnpm dev`: Start dev server
-- `pnpm build`: Build for production
-- `pnpm lint`: Run ESLint
-- `pnpm typecheck`: TypeScript check
-- `pnpm db:generate`: Generate migrations
-- `pnpm db:migrate`: Apply migrations
-- `pnpm db:studio`: Open database GUI
+| Command | Purpose |
+|---|---|
+| `pnpm dev` | Start dev server (Turbopack) |
+| `pnpm build` | Build for production (runs migrations first) |
+| `pnpm lint` | ESLint |
+| `pnpm typecheck` | TypeScript check |
+| `pnpm check` | Lint + typecheck |
+| `pnpm format` | Prettier format |
+| `pnpm db:generate` | Generate Drizzle migrations |
+| `pnpm db:migrate` | Apply migrations |
+| `pnpm db:studio` | Open Drizzle Studio GUI |
 
-## 📖 Documentation for Stakeholders
+## Documentation
 
-- **[Astro: The Autonomous Appointment System (Bet)](./docs/BET-README.md)**: Product overview and successful delivery of Slices 0-8.
-- **[Sanity CMS Content Guidelines](./docs/SANITY-GUIDELINES.md)**: How to manage landing page content for non-technical stakeholders.
-- **[Marketing "How to Edit" Guide](./docs/MARKETING-EDIT-GUIDE.md)**: A quick guide for the marketing team to manage copy, pricing, and policies.
-- **[Performance Audit](./docs/PERFORMANCE-AUDIT.md)**: Estimated Lighthouse scores and bundle size analysis.
-
----
-
-**Happy booking! 🚀**
+- [Product & Business Rules](./docs/context/product-rules.md) - Booking lifecycle, tiers, slot recovery, refund logic
+- [Backend Architecture](./docs/context/backend-architecture.md) - Database conventions, cron jobs, identity, calendar
+- [Environment Setup](./docs/context/env-setup.md) - All required and optional environment variables
+- [Design System](./docs/design-system/design-system.md) - UI component guidelines and tokens
+- [Brand Guidelines](./docs/design-system/DESIGN.md) - Visual identity and design direction

@@ -21,7 +21,7 @@ const STARTER_PROMPT = `I'm working with an agentic coding boilerplate project t
 - **UI**: shadcn/ui components with Tailwind CSS
 - **Current Routes**:
   - \`/\` - Home page with setup instructions and feature overview
-  - \`/dashboard\` - Protected dashboard page (requires authentication)
+  - \`/dev\` - Dev hub (AI readiness check, requires authentication)
   - \`/chat\` - AI chat interface (requires OpenAI API key)
 
 ## Important Context

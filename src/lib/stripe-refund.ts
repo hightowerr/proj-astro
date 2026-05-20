@@ -17,13 +17,17 @@ interface ProcessRefundInput {
 
 const isAlreadyRefundedError = (error: unknown) => {
   const errorType = getStripeErrorType(error);
+  const errorCode = (error as { code?: string }).code ?? "";
   const errorMessage = getStripeErrorMessage(error);
 
   return (
     errorType === "StripeInvalidRequestError" &&
-    /already been refunded/i.test(errorMessage ?? "")
+    (errorCode === "charge_already_refunded" ||
+      /already been refunded/i.test(errorMessage ?? ""))
   );
 };
+
+const DISPUTED_CODES = ["charge_disputed", "cannot_refund_disputed_payment"];
 
 const isTestPaymentIntent = (paymentIntentId: string | null) =>
   Boolean(paymentIntentId && paymentIntentId.startsWith("pi_test_"));
@@ -197,6 +201,13 @@ export async function processRefund({
     } catch (error) {
       const errorType = getStripeErrorType(error);
       const errorMessage = getStripeErrorMessage(error);
+
+      const errorCode = (error as { code?: string }).code ?? "";
+      if (DISPUTED_CODES.includes(errorCode)) {
+        throw new Error(
+          "This payment is under dispute. Refunds are unavailable until the dispute is resolved."
+        );
+      }
 
       if (isAlreadyRefundedError(error)) {
         const existingRefundId = await getExistingRefundIdFromPaymentIntent(

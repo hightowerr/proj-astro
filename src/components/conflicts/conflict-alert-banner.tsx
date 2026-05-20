@@ -73,20 +73,20 @@ export function ConflictAlertBanner({ conflictCount, shopId }: ConflictAlertBann
   return (
     <div
       className="flex items-center justify-between gap-4 rounded-lg p-4"
-      style={{ border: "1px solid var(--color-warning-border)", background: "var(--color-warning-subtle)" }}
+      style={{ border: "1px solid rgba(201,122,42,0.25)", background: "var(--al-status-caution-bg)" }}
       role="alert"
       aria-live="polite"
     >
       <div className="flex min-w-0 items-center gap-3">
-        <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "var(--color-warning)" }} aria-hidden="true" />
+        <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "var(--al-status-caution)" }} aria-hidden="true" />
         <div>
-          <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--al-on-surface)" }}>
             Your Google Calendar conflicts with {conflictCount} {conflictCount === 1 ? "appointment" : "appointments"}.
           </p>
           <Link
             href="/app/conflicts"
             className="text-sm font-medium underline-offset-4 hover:underline"
-            style={{ color: "var(--color-warning)" }}
+            style={{ color: "var(--al-status-caution)" }}
           >
             View conflicts →
           </Link>
@@ -97,7 +97,7 @@ export function ConflictAlertBanner({ conflictCount, shopId }: ConflictAlertBann
         type="button"
         onClick={handleDismiss}
         className="shrink-0 transition-colors duration-200 hover:text-[var(--color-text-primary)]"
-        style={{ color: "var(--color-warning)" }}
+        style={{ color: "var(--al-status-caution)" }}
         aria-label="Dismiss conflict banner"
       >
         <X className="h-4 w-4" />

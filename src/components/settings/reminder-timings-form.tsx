@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { CheckIcon } from "lucide-react";
+import { Fragment, useState, useTransition } from "react";
+import { CheckIcon, LockIcon, CalendarIcon } from "lucide-react";
 import { updateReminderTimings } from "@/app/app/settings/reminders/actions";
 import { Button } from "@/components/ui/button";
 
@@ -9,20 +9,30 @@ type Interval = "10m" | "1h" | "2h" | "4h" | "24h" | "48h" | "1w";
 
 const PRESETS: Array<{
   value: Interval;
-  badge: string;
-  fullLabel: string;
-  persona: string;
+  label: string;
+  shortLabel: string;
+  description: string;
 }> = [
-  { value: "10m", badge: "10 min", fullLabel: "10 minutes before", persona: "Phone calls" },
-  { value: "1h", badge: "1 hr", fullLabel: "1 hour before", persona: "General" },
-  { value: "2h", badge: "2 hr", fullLabel: "2 hours before", persona: "Hairstylists" },
-  { value: "4h", badge: "4 hr", fullLabel: "4 hours before", persona: "General" },
-  { value: "24h", badge: "24 hr", fullLabel: "24 hours before", persona: "Most common" },
-  { value: "48h", badge: "48 hr", fullLabel: "48 hours before", persona: "Therapists" },
-  { value: "1w", badge: "1 wk", fullLabel: "1 week before", persona: "Therapists" },
+  { value: "10m", label: "10 min", shortLabel: "10m", description: "10 minutes before" },
+  { value: "1h", label: "1 hr", shortLabel: "1h", description: "1 hour before" },
+  { value: "2h", label: "2 hr", shortLabel: "2h", description: "2 hours before" },
+  { value: "4h", label: "4 hr", shortLabel: "4h", description: "4 hours before" },
+  { value: "24h", label: "24 hr", shortLabel: "24h", description: "24 hours before" },
+  { value: "48h", label: "48 hr", shortLabel: "48h", description: "48 hours before" },
+  { value: "1w", label: "1 wk", shortLabel: "1w", description: "1 week before" },
 ];
 
 const MAX = 3;
+
+const intervalMinutes: Record<Interval, number> = {
+  "10m": 10,
+  "1h": 60,
+  "2h": 120,
+  "4h": 240,
+  "24h": 1440,
+  "48h": 2880,
+  "1w": 10080,
+};
 
 const normalizeTimings = (timings: Interval[]) => {
   const set = new Set(timings);
@@ -63,116 +73,306 @@ export function ReminderTimingsForm({ initialTimings }: { initialTimings: Interv
     });
   }
 
+  const sortedForTimeline = [...selected].sort(
+    (a, b) => intervalMinutes[b] - intervalMinutes[a]
+  );
+
   return (
-    <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
-        <p className="text-muted-foreground text-sm">
-          Customers receive a reminder at each selected interval before their appointment. Changes
-          apply to new bookings only.
-        </p>
-        <div
-          className="flex shrink-0 items-center gap-1.5 pt-0.5"
-          aria-label={`${selected.length} of ${MAX} slots used`}
-        >
-          {Array.from({ length: MAX }).map((_, index) => (
-            <span
-              key={index}
-              className={
-                index < selected.length
-                  ? "block h-2 w-2 rounded-full bg-[var(--color-primary)] transition-colors duration-200"
-                  : "block h-2 w-2 rounded-full bg-[rgba(255,255,255,0.12)] transition-colors duration-200"
-              }
-            />
-          ))}
-          <span className="text-muted-foreground ml-1 font-mono text-xs">
-            {selected.length}/{MAX}
+    <div className="space-y-8">
+      {/* ── A: Pill Grid ── */}
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <span
+            className="text-xs font-semibold uppercase tracking-wide"
+            style={{ color: "var(--al-on-surface-variant)" }}
+          >
+            Reminder intervals
+          </span>
+          <span
+            className="font-mono text-xs"
+            style={{ color: "var(--al-outline)" }}
+          >
+            {selected.length} / {MAX}
           </span>
         </div>
-      </div>
 
-      {atMax ? (
-        <div className="rounded-md border border-[var(--color-accent-coral)]/25 bg-[var(--color-accent-coral)]/8 px-3.5 py-2.5">
-          <p className="text-xs text-[var(--color-accent-coral)]">
-            Max 3 reminders reached - deselect one to choose a different interval.
-          </p>
+        <div className="grid grid-cols-7 gap-2">
+          {PRESETS.map((preset) => {
+            const isSelected = selected.includes(preset.value);
+            const isLocked = atMax && !isSelected;
+
+            return (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => {
+                  if (!isLocked) toggle(preset.value);
+                }}
+                disabled={isLocked}
+                aria-pressed={isSelected}
+                className="relative rounded-full border py-3 px-1 text-center text-sm font-medium transition-all"
+                style={{
+                  background: isSelected
+                    ? "var(--al-primary)"
+                    : "var(--al-surface-container-low)",
+                  borderColor: isSelected
+                    ? "var(--al-primary)"
+                    : "var(--al-outline-variant)",
+                  color: isSelected
+                    ? "var(--al-on-primary)"
+                    : "var(--al-on-surface)",
+                  boxShadow: isSelected
+                    ? "0 1px 4px rgba(0,30,64,0.18)"
+                    : "none",
+                  opacity: isLocked ? 0.4 : 1,
+                  cursor: isLocked ? "not-allowed" : "pointer",
+                }}
+              >
+                {preset.label}
+
+                {isSelected && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full"
+                    style={{
+                      background: "var(--al-status-positive)",
+                      border: "1.5px solid var(--al-surface)",
+                    }}
+                  >
+                    <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                  </span>
+                )}
+
+                {isLocked && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full"
+                    style={{
+                      background: "var(--al-outline)",
+                      border: "1.5px solid var(--al-surface)",
+                    }}
+                  >
+                    <LockIcon className="h-2 w-2 text-white" strokeWidth={2.5} />
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
-      ) : null}
-
-      <div className="divide-y divide-[var(--color-border-subtle)]">
-        {PRESETS.map((preset) => {
-          const isSelected = selected.includes(preset.value);
-          const isDisabled = atMax && !isSelected;
-
-          return (
-            <button
-              key={preset.value}
-              type="button"
-              onClick={() => {
-                if (!isDisabled) {
-                  toggle(preset.value);
-                }
-              }}
-              disabled={isDisabled}
-              aria-pressed={isSelected}
-              className={[
-                "group flex w-full items-center gap-3 px-1 py-3 text-left transition-colors duration-150",
-                isDisabled ? "cursor-not-allowed opacity-40" : "cursor-pointer",
-                isSelected ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-              ].join(" ")}
-            >
-              <span
-                className={[
-                  "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all duration-150",
-                  isSelected
-                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]"
-                    : "border-[var(--color-border-medium)] bg-transparent",
-                ].join(" ")}
-              >
-                {isSelected ? (
-                  <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />
-                ) : null}
-              </span>
-
-              <span
-                className={[
-                  "w-12 shrink-0 font-mono text-xs font-semibold tracking-tight",
-                  isSelected ? "text-[var(--color-primary-light)]" : "text-muted-foreground",
-                ].join(" ")}
-              >
-                {preset.badge}
-              </span>
-
-              <span className="flex-1 text-sm">{preset.fullLabel}</span>
-
-              <span
-                className={[
-                  "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium transition-opacity",
-                  isSelected
-                    ? "bg-[var(--color-primary)]/15 text-[var(--color-primary-light)] opacity-100"
-                    : "text-muted-foreground bg-[rgba(255,255,255,0.06)] opacity-60 group-hover:opacity-80",
-                ].join(" ")}
-              >
-                {preset.persona}
-              </span>
-            </button>
-          );
-        })}
       </div>
 
-      <div className="flex items-center gap-3 pt-1">
+      {/* ── B: Selected Reminders Stack ── */}
+      <div>
+        <span
+          className="mb-3 block text-xs font-semibold uppercase tracking-wide"
+          style={{ color: "var(--al-on-surface-variant)" }}
+        >
+          Selected reminders
+        </span>
+
+        <div className="space-y-2">
+          {Array.from({ length: MAX }).map((_, index) => {
+            const interval = selected[index];
+            const preset = interval
+              ? PRESETS.find((p) => p.value === interval)
+              : null;
+
+            if (preset) {
+              return (
+                <div
+                  key={index}
+                  className="flex h-12 items-center gap-3 rounded-lg border px-4 transition-all"
+                  style={{
+                    borderColor: "var(--al-outline-variant)",
+                    background: "var(--al-surface-container-lowest)",
+                  }}
+                >
+                  <span
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+                    style={{ background: "var(--al-primary)" }}
+                  >
+                    <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                  </span>
+
+                  <span
+                    className="rounded-full px-2.5 py-0.5 font-mono font-bold"
+                    style={{
+                      fontSize: "11px",
+                      background: "var(--al-primary-fixed)",
+                      color: "var(--al-on-primary-fixed)",
+                    }}
+                  >
+                    {preset.label}
+                  </span>
+
+                  <span
+                    className="flex-1 text-sm"
+                    style={{ color: "var(--al-on-surface)" }}
+                  >
+                    {preset.description}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => toggle(preset.value)}
+                    className="text-xs hover:underline"
+                    style={{ color: "var(--al-outline)" }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div
+                key={index}
+                className="flex h-12 items-center gap-3 rounded-lg border border-dashed px-4 transition-all"
+                style={{
+                  borderColor: "var(--al-outline-variant)",
+                  background: "transparent",
+                }}
+              >
+                <span
+                  className="text-xs"
+                  style={{ color: "var(--al-outline)" }}
+                >
+                  Slot {index + 1} — empty
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── C: Reminder Timeline Preview ── */}
+      <div>
+        <div className="mb-3">
+          <span
+            className="block text-xs font-semibold uppercase tracking-wide"
+            style={{ color: "var(--al-on-surface-variant)" }}
+          >
+            Reminder timeline preview
+          </span>
+          <span
+            className="mt-0.5 block text-xs"
+            style={{ color: "var(--al-outline)" }}
+          >
+            What your customer experiences, chronologically
+          </span>
+        </div>
+
+        <div
+          className="rounded-xl border px-5 py-4"
+          style={{
+            background: "var(--al-surface-container-low)",
+            borderColor: "var(--al-outline-variant)",
+          }}
+        >
+          {selected.length === 0 ? (
+            <p
+              className="text-center text-sm"
+              style={{ color: "var(--al-outline)" }}
+            >
+              Select intervals above to preview the reminder timeline
+            </p>
+          ) : (
+            <div className="flex items-center">
+              {sortedForTimeline.map((interval, idx) => {
+                const preset = PRESETS.find((p) => p.value === interval)!;
+
+                return (
+                  <Fragment key={interval}>
+                    <div className="flex shrink-0 flex-col items-center gap-1">
+                      <div
+                        className="flex h-9 w-9 items-center justify-center rounded-full font-mono text-[10px] font-bold"
+                        style={{
+                          background: "var(--al-primary-fixed)",
+                          border: "2px solid var(--al-primary)",
+                          color: "var(--al-on-primary-fixed)",
+                        }}
+                      >
+                        {preset.shortLabel}
+                      </div>
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          color: "var(--al-outline)",
+                        }}
+                      >
+                        SMS
+                      </span>
+                    </div>
+
+                    {idx < sortedForTimeline.length - 1 && (
+                      <div
+                        className="mx-2 h-px min-w-[16px] flex-1"
+                        style={{ background: "var(--al-outline-variant)" }}
+                      />
+                    )}
+                  </Fragment>
+                );
+              })}
+
+              {/* Connector before appointment node */}
+              <div
+                className="mx-2 h-px min-w-[16px] flex-1"
+                style={{ background: "var(--al-outline-variant)" }}
+              />
+
+              {/* Appointment endpoint */}
+              <div className="flex shrink-0 flex-col items-center gap-1">
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-full"
+                  style={{ background: "var(--al-primary)" }}
+                >
+                  <CalendarIcon
+                    className="h-4 w-4"
+                    style={{ color: "var(--al-on-primary)" }}
+                  />
+                </div>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "var(--al-outline)",
+                  }}
+                >
+                  Appt
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Save Controls ── */}
+      <div
+        className="flex items-center gap-3 border-t pt-5"
+        style={{ borderColor: "var(--al-outline-variant)" }}
+      >
         <Button
           onClick={handleSave}
           disabled={isPending || !isDirty || selected.length === 0}
           size="sm"
         >
-          {isPending ? "Saving..." : "Save"}
+          {isPending ? "Saving\u2026" : "Save reminders"}
         </Button>
-        {savedKey > 0 && !isDirty ? (
-          <span className="text-xs text-[var(--color-success-green)]">Saved</span>
-        ) : null}
-        {selected.length === 0 ? (
-          <span className="text-muted-foreground text-xs">Select at least one interval</span>
-        ) : null}
+
+        {savedKey > 0 && !isDirty && (
+          <span
+            className="text-xs"
+            style={{ color: "var(--al-status-positive)" }}
+          >
+            Saved
+          </span>
+        )}
+
+        {selected.length === 0 && (
+          <span
+            className="text-xs"
+            style={{ color: "var(--al-outline)" }}
+          >
+            Select at least one interval
+          </span>
+        )}
       </div>
     </div>
   );

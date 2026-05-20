@@ -32,11 +32,15 @@ export default async function PaymentPolicyPage() {
 
   if (!shop) {
     return (
-      <div className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-semibold">Payment policy</h1>
-        <p className="text-sm text-muted-foreground">
-          Create your shop to configure payment policies.
-        </p>
+      <div style={{ minHeight: '100vh', background: 'var(--al-surface)', fontFamily: 'var(--al-font)' }}>
+        <div style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 48px' }}>
+          <h1 style={{ fontSize: 44, fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--al-primary)', lineHeight: 1.0, margin: '0 0 10px' }}>
+            Payment policy
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--al-on-surface-variant)', lineHeight: 1.55, margin: 0 }}>
+            Create your shop to configure payment policies.
+          </p>
+        </div>
       </div>
     );
   }
@@ -112,70 +116,182 @@ export default async function PaymentPolicyPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10 space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold">Payment policy</h1>
-        <p className="text-sm text-muted-foreground">
-          Control whether bookings require a deposit or full prepay.
-        </p>
-      </header>
+    <div style={{ minHeight: '100vh', background: 'var(--al-surface)', fontFamily: 'var(--al-font)' }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 48px' }}>
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Base policy</h2>
-        <PaymentPolicyForm
-          action={updatePolicy}
-          initial={{
-            currency: policy?.currency ?? DEFAULT_POLICY.currency,
-            paymentMode: policy?.paymentMode ?? DEFAULT_POLICY.paymentMode,
-            depositAmountCents:
-              policy?.depositAmountCents ?? DEFAULT_POLICY.depositAmountCents,
-          }}
-        />
-      </section>
+        {/* Breadcrumb topbar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--al-on-surface-variant)', opacity: 0.65 }}>
+            <span>Studio</span>
+            <span style={{ opacity: 0.4 }}>/</span>
+            <span>Settings</span>
+            <span style={{ opacity: 0.4 }}>/</span>
+            <span style={{ color: 'var(--al-primary)' }}>Payment Policy</span>
+          </div>
+          <button
+            type="button"
+            style={{
+              padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(195,198,209,.4)',
+              background: '#fff', fontFamily: 'var(--al-font)', fontWeight: 600, fontSize: 13,
+              color: 'var(--al-on-surface-variant)', display: 'inline-flex', alignItems: 'center',
+              gap: 6, cursor: 'pointer',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 15, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>history</span>
+            Audit log
+          </button>
+        </div>
 
-      <section className="space-y-4">
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold">Tier-based overrides</h2>
-          <p className="text-sm text-muted-foreground">
-            Configure optional deposit and offer behavior overrides per reliability tier.
+        {/* Page header */}
+        <div style={{ marginBottom: 36 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--al-on-surface-variant)', opacity: 0.55, marginBottom: 8 }}>
+            Settings &middot; /app/settings/payment-policy
+          </div>
+          <h1 style={{ fontSize: 44, fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--al-primary)', lineHeight: 1.0, margin: '0 0 10px' }}>
+            Payment policy
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--al-on-surface-variant)', maxWidth: '62ch', lineHeight: 1.55, margin: 0 }}>
+            Control whether bookings require a deposit or full prepayment.
+            Two sections, each saves independently — base policy first, tier-based overrides below.
           </p>
         </div>
 
-        <TierPolicyForm
-          action={updateShopPolicyTierSettings.bind(null, shop.id)}
-          initial={{
-            riskDepositAmountCents: policy?.riskDepositAmountCents ?? null,
-            topDepositWaived: policy?.topDepositWaived ?? false,
-            topDepositAmountCents: policy?.topDepositAmountCents ?? null,
-            excludeRiskFromOffers: policy?.excludeRiskFromOffers ?? false,
-            excludeHighNoShowFromOffers:
-              policy?.excludeHighNoShowFromOffers ?? false,
-            baseDepositAmountCents: policy?.depositAmountCents ?? null,
-          }}
-        />
-      </section>
+        {/* Form sections */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <PaymentPolicyForm
+            action={updatePolicy}
+            initial={{
+              currency: policy?.currency ?? DEFAULT_POLICY.currency,
+              paymentMode: policy?.paymentMode ?? DEFAULT_POLICY.paymentMode,
+              depositAmountCents:
+                policy?.depositAmountCents ?? DEFAULT_POLICY.depositAmountCents,
+            }}
+          />
+          <TierPolicyForm
+            action={updateShopPolicyTierSettings.bind(null, shop.id)}
+            initial={{
+              riskDepositAmountCents: policy?.riskDepositAmountCents ?? null,
+              topDepositWaived: policy?.topDepositWaived ?? false,
+              topDepositAmountCents: policy?.topDepositAmountCents ?? null,
+              excludeRiskFromOffers: policy?.excludeRiskFromOffers ?? false,
+              excludeHighNoShowFromOffers:
+                policy?.excludeHighNoShowFromOffers ?? false,
+              baseDepositAmountCents: policy?.depositAmountCents ?? null,
+              currency: policy?.currency ?? 'USD',
+              basePaymentMode: policy?.paymentMode ?? 'deposit',
+            }}
+          />
 
-      <section className="max-w-xl rounded-lg border bg-muted/30 p-4">
-        <h2 className="text-sm font-medium">How tiers work</h2>
-        <div className="mt-2 space-y-2 text-xs text-muted-foreground">
-          <p>
-            <strong>Top tier:</strong> score &ge;80 and no recent voids.
-          </p>
-          <p>
-            <strong>Neutral tier:</strong> default tier for most customers.
-          </p>
-          <p>
-            <strong>Risk tier:</strong> score &lt;40 or repeated recent voids.
-          </p>
-          <p>
-            Tier assignments are computed automatically. Review customer tier distribution on the{" "}
-            <Link href="/app/customers" className="underline">
-              customers page
-            </Link>
-            .
-          </p>
+          {/* Tiers explainer card */}
+          <TiersExplainerCard />
         </div>
-      </section>
+
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Tiers explainer — inline server component                                 */
+/* -------------------------------------------------------------------------- */
+
+const TIER_DEFINITIONS = [
+  {
+    key: 'top',
+    label: 'Top',
+    bg: 'rgba(14,122,85,0.10)',
+    fg: '#0e7a55',
+    dot: '#0e7a55',
+    title: 'Top tier',
+    rule: 'Score \u2265 80 and no voids in 90 days',
+    note: 'Reliable customers \u2014 bookings rarely require follow-up.',
+  },
+  {
+    key: 'neutral',
+    label: 'Neutral',
+    bg: '#eeeeec',
+    fg: '#43474f',
+    dot: '#737780',
+    title: 'Neutral tier',
+    rule: 'Default tier for customers with moderate history',
+    note: 'Mixed record; not enough signal to push to either edge.',
+  },
+  {
+    key: 'risk',
+    label: 'Risk',
+    bg: 'rgba(168,41,74,0.10)',
+    fg: '#a8294a',
+    dot: '#a8294a',
+    title: 'Risk tier',
+    rule: 'Score < 40 or two or more voids in 90 days',
+    note: 'Consider requiring a deposit before confirming bookings.',
+  },
+] as const;
+
+function TiersExplainerCard() {
+  return (
+    <div style={{
+      background: '#fff', borderRadius: 24, padding: '28px 28px 24px',
+      boxShadow: '0 20px 40px rgba(26,28,27,0.04)',
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+        gap: 16, flexWrap: 'wrap' as const,
+        paddingBottom: 18, borderBottom: '1px solid rgba(195,198,209,.20)', marginBottom: 20,
+      }}>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#43474f', opacity: 0.55 }}>Reference</div>
+          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', color: '#001e40', marginTop: 4 }}>How tiers work</div>
+        </div>
+        <Link href="/app/customers" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          fontSize: 12, fontWeight: 700, color: '#001e40', textDecoration: 'none',
+          padding: '8px 12px', borderRadius: 9999,
+          background: 'rgba(0,30,64,0.05)', border: '1px solid rgba(0,30,64,0.15)',
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 15, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>groups</span>
+          See live distribution on the Customers page
+          <span className="material-symbols-outlined" style={{ fontSize: 14, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>arrow_outward</span>
+        </Link>
+      </div>
+
+      {/* 3-column grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+        {TIER_DEFINITIONS.map((t) => (
+          <div key={t.key} style={{
+            padding: '18px 18px', background: '#f9f9f7',
+            border: '1px solid rgba(195,198,209,.30)', borderRadius: 14,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              {/* Tier badge */}
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '4px 11px', borderRadius: 9999,
+                background: t.bg, color: t.fg,
+                fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' as const, lineHeight: 1,
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: 9999, background: t.dot }} />
+                {t.label}
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: '#001e40', letterSpacing: '-0.015em' }}>{t.title}</span>
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#43474f', lineHeight: 1.5, marginBottom: 6 }}>{t.rule}</div>
+            <div style={{ fontSize: 12, color: '#43474f', opacity: 0.78, lineHeight: 1.5 }}>{t.note}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        marginTop: 18, paddingTop: 14,
+        borderTop: '1px solid rgba(195,198,209,.20)',
+        fontSize: 11, color: '#43474f', opacity: 0.75,
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+      }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>schedule</span>
+        Tier assignments are recomputed nightly from booking outcomes over the last 180 days.
+      </div>
     </div>
   );
 }
