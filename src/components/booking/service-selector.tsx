@@ -45,15 +45,15 @@ export function ServiceSelector({
             background: "none",
             border: "none",
             padding: 0,
-            color: "var(--color-brand)",
+            color: "var(--al-primary)",
             cursor: "pointer",
             transition: `color var(--duration-fast) ease`,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = "var(--color-brand-hover)";
+            e.currentTarget.style.color = "var(--al-primary-container)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = "var(--color-brand)";
+            e.currentTarget.style.color = "var(--al-primary)";
           }}
         >
           &larr; Change service
@@ -61,8 +61,8 @@ export function ServiceSelector({
         <div
           className="max-w-xl"
           style={{
-            background: "var(--color-surface-raised)",
-            border: "1px solid var(--color-border-default)",
+            background: "var(--al-surface-container-lowest)",
+            border: "1px solid var(--al-outline-variant)",
             borderRadius: "var(--radius-xl)",
             padding: "1.5rem",
           }}
@@ -91,19 +91,19 @@ export function ServiceSelector({
           key={eventType.id}
           type="button"
           onClick={() => setSelected(eventType)}
-          className="service-card text-left"
+          className="al-service-card text-left"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p
                 className="text-base font-semibold"
-                style={{ color: "var(--color-text-primary)" }}
+                style={{ color: "var(--al-on-surface)" }}
               >
                 {eventType.name}
               </p>
               <p
                 className="mt-1 text-sm"
-                style={{ color: "var(--color-text-secondary)" }}
+                style={{ color: "var(--al-on-surface-variant)" }}
               >
                 <span className="font-mono">
                   {eventType.durationMinutes}
@@ -116,7 +116,7 @@ export function ServiceSelector({
               {eventType.description ? (
                 <p
                   className="mt-1 text-sm"
-                  style={{ color: "var(--color-text-secondary)" }}
+                  style={{ color: "var(--al-on-surface-variant)" }}
                 >
                   {eventType.description}
                 </p>
@@ -124,7 +124,7 @@ export function ServiceSelector({
             </div>
             <span
               className="service-card-arrow shrink-0 text-base"
-              style={{ color: "var(--color-brand)" }}
+              style={{ color: "var(--al-primary)" }}
               aria-hidden="true"
             >
               &rarr;

@@ -66,9 +66,9 @@ function BrandCheckbox({
           height: "1rem",
           borderRadius: "var(--radius-sm)",
           border: checked
-            ? "1px solid var(--color-brand)"
-            : "1px solid var(--color-border-default)",
-          background: checked ? "var(--color-brand)" : "var(--color-surface-overlay)",
+            ? "1px solid var(--al-primary)"
+            : "1px solid var(--al-outline-variant)",
+          background: checked ? "var(--al-primary)" : "var(--al-surface-container-low)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -86,7 +86,7 @@ function BrandCheckbox({
           >
             <path
               d="M2 5L4 7L8 3"
-              stroke="var(--color-surface-void)"
+              stroke="var(--al-on-primary)"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -94,7 +94,7 @@ function BrandCheckbox({
           </svg>
         ) : null}
       </div>
-      <span style={{ color: "var(--color-text-primary)" }}>{label}</span>
+      <span style={{ color: "var(--al-on-surface)" }}>{label}</span>
     </label>
   );
 }
@@ -187,9 +187,9 @@ export function EventTypeForm({
             name="durationMinutes"
             defaultValue={String(defaultDuration)}
             style={{
-              background: "var(--color-surface-overlay)",
-              border: "1px solid var(--color-border-default)",
-              color: "var(--color-text-primary)",
+              background: "var(--al-surface-container-low)",
+              border: "1px solid var(--al-outline-variant)",
+              color: "var(--al-on-surface)",
               borderRadius: "var(--radius-lg)",
               padding: "0.625rem 0.875rem",
               fontSize: "0.875rem",
@@ -202,7 +202,7 @@ export function EventTypeForm({
               </option>
             ))}
           </select>
-          <p className="text-xs" style={{ color: "var(--color-text-tertiary)" }}>
+          <p className="text-xs" style={{ color: "var(--al-on-surface-variant)" }}>
             Must align to your {slotMinutes}-minute booking grid.
           </p>
         </div>
@@ -226,7 +226,7 @@ export function EventTypeForm({
       </div>
 
       <fieldset className="space-y-3">
-        <legend className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+        <legend className="text-sm font-medium" style={{ color: "var(--al-on-surface)" }}>
           Buffer
         </legend>
         <div className="flex flex-wrap gap-3">
@@ -246,14 +246,14 @@ export function EventTypeForm({
                   cursor: "pointer",
                   transition: "all 150ms ease",
                   background: isSelected
-                    ? "var(--color-brand-subtle)"
-                    : "var(--color-surface-overlay)",
+                    ? "rgba(0, 30, 64, 0.08)"
+                    : "var(--al-surface-container-low)",
                   border: isSelected
-                    ? "1px solid var(--color-brand-border)"
-                    : "1px solid var(--color-border-default)",
+                    ? "1px solid var(--al-hairline-strong)"
+                    : "1px solid var(--al-outline-variant)",
                   color: isSelected
-                    ? "var(--color-brand)"
-                    : "var(--color-text-secondary)",
+                    ? "var(--al-primary)"
+                    : "var(--al-on-surface-variant)",
                 }}
               >
                 <input
@@ -290,7 +290,7 @@ export function EventTypeForm({
       </div>
 
       {error ? (
-        <p className="text-sm" style={{ color: "var(--color-error)" }}>
+        <p className="text-sm" style={{ color: "var(--al-status-negative)" }}>
           {error}
         </p>
       ) : null}
@@ -299,8 +299,8 @@ export function EventTypeForm({
         type="submit"
         disabled={isSubmitting}
         style={{
-          background: isSubmitting ? "var(--color-brand-dim)" : "var(--color-brand)",
-          color: "var(--color-surface-void)",
+          background: isSubmitting ? "var(--al-primary)" : "var(--al-primary)",
+          color: "var(--al-on-primary)",
           borderRadius: "var(--radius-lg)",
           padding: "0.5rem 1rem",
           fontSize: "0.875rem",

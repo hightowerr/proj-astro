@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feature Spec: Page Header — Booking Page</title>
+  <style>
+    :root {
+      --al-primary: #001e40;
+      --al-background: #f9f9f7;
+      --al-surface-container-lowest: #ffffff;
+      --al-on-surface: #1a1c1b;
+      --al-on-surface-variant: #43474f;
+      --al-outline-variant: #c3c6d1;
+      --al-hairline: rgba(195, 198, 209, 0.20);
+      --al-font: 'Manrope', system-ui, -apple-system, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--al-font);
+      background: var(--al-background);
+      color: var(--al-on-surface);
+      padding: 40px;
+    }
+
+    .spec-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--al-on-surface-variant);
+      opacity: 0.55;
+      margin-bottom: 8px;
+    }
+    .spec-heading {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--al-primary);
+      margin-bottom: 8px;
+    }
+    .spec-desc {
+      font-size: 14px;
+      color: var(--al-on-surface-variant);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .spec-notes {
+      margin-top: 32px;
+      padding: 20px 24px;
+      background: var(--al-surface-container-lowest);
+      border-radius: 16px;
+      border: 1px solid var(--al-hairline);
+    }
+    .spec-notes h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--al-primary);
+      margin-bottom: 12px;
+    }
+    .spec-notes ul { list-style: none; padding: 0; }
+    .spec-notes li {
+      font-size: 13px;
+      color: var(--al-on-surface-variant);
+      line-height: 1.6;
+      padding-left: 16px;
+      position: relative;
+    }
+    .spec-notes li::before {
+      content: "~";
+      position: absolute;
+      left: 0;
+      color: var(--al-outline-variant);
+    }
+
+    /* ── Component preview ── */
+    .preview {
+      background: var(--al-background);
+      border-radius: 24px;
+      padding: 48px 64px;
+      border: 1px solid var(--al-hairline);
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--al-on-surface-variant);
+      opacity: 0.55;
+      margin-bottom: 12px;
+    }
+    .page-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--al-primary);
+      margin-bottom: 8px;
+    }
+    .page-subtitle {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--al-on-surface-variant);
+    }
+  </style>
+</head>
+<body>
+  <div class="spec-title">Feature Spec</div>
+  <h1 class="spec-heading">Page Header</h1>
+  <p class="spec-desc">
+    The top section of the booking form area. Displays context about the booking:
+    an eyebrow label, the shop name as the primary heading, and a subtitle with
+    the service name and duration.
+  </p>
+
+  <div class="preview">
+    <div class="eyebrow">Book an appointment</div>
+    <h1 class="page-title">Book with kicksnare</h1>
+    <p class="page-subtitle">Free Audit &middot; 60 minutes</p>
+  </div>
+
+  <div class="spec-notes">
+    <h3>Design notes</h3>
+    <ul>
+      <li>Eyebrow: 11px, weight 800, 0.2em tracking, uppercase, #43474f @ 0.55 opacity</li>
+      <li>Heading: 32px (headline-lg), weight 800, -0.02em tracking, navy (#001e40)</li>
+      <li>Subtitle: 16px (body-md), weight 400, muted (#43474f), shows "[Service] · [Duration]"</li>
+      <li>Spacing: 12px below eyebrow, 8px below heading</li>
+      <li>Content area: padded 48px top, 64px horizontal — centered on the page background</li>
+      <li>The shop name ("[slug]") is dynamic, pulled from the booking link slug</li>
+      <li>Design change only — no new functionality</li>
+    </ul>
+  </div>
+</body>
+</html>

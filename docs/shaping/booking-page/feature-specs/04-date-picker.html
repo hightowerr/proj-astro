@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feature Spec: Date Picker — Booking Page</title>
+  <style>
+    :root {
+      --al-primary: #001e40;
+      --al-background: #f9f9f7;
+      --al-surface-container-lowest: #ffffff;
+      --al-on-surface: #1a1c1b;
+      --al-on-surface-variant: #43474f;
+      --al-outline: #737780;
+      --al-outline-variant: #c3c6d1;
+      --al-hairline: rgba(195, 198, 209, 0.20);
+      --al-hairline-rest: rgba(195, 198, 209, 0.30);
+      --al-hairline-strong: rgba(195, 198, 209, 0.50);
+      --al-focus-ring: 0 0 0 3px rgba(0, 30, 64, 0.12);
+      --al-font: 'Manrope', system-ui, -apple-system, sans-serif;
+      --al-radius-xl: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--al-font);
+      background: var(--al-background);
+      color: var(--al-on-surface);
+      padding: 40px;
+    }
+
+    .spec-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--al-on-surface-variant);
+      opacity: 0.55;
+      margin-bottom: 8px;
+    }
+    .spec-heading {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--al-primary);
+      margin-bottom: 8px;
+    }
+    .spec-desc {
+      font-size: 14px;
+      color: var(--al-on-surface-variant);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .spec-notes {
+      margin-top: 32px;
+      padding: 20px 24px;
+      background: var(--al-surface-container-lowest);
+      border-radius: 16px;
+      border: 1px solid var(--al-hairline);
+    }
+    .spec-notes h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--al-primary);
+      margin-bottom: 12px;
+    }
+    .spec-notes ul { list-style: none; padding: 0; }
+    .spec-notes li {
+      font-size: 13px;
+      color: var(--al-on-surface-variant);
+      line-height: 1.6;
+      padding-left: 16px;
+      position: relative;
+    }
+    .spec-notes li::before {
+      content: "~";
+      position: absolute;
+      left: 0;
+      color: var(--al-outline-variant);
+    }
+
+    /* ── Component preview ── */
+    .preview {
+      max-width: 560px;
+      margin-bottom: 24px;
+    }
+
+    .field-group {
+      margin-bottom: 24px;
+    }
+    .field-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--al-primary);
+      margin-bottom: 8px;
+    }
+    .field-required {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--al-primary);
+      display: inline-block;
+    }
+    .date-input-wrap {
+      position: relative;
+      background: var(--al-surface-container-lowest);
+      border: 1px solid var(--al-hairline-strong);
+      border-radius: var(--al-radius-xl);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .date-input-wrap:focus-within {
+      border-color: var(--al-primary);
+      box-shadow: var(--al-focus-ring);
+    }
+    .date-input {
+      font-family: var(--al-font);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--al-primary);
+      border: none;
+      outline: none;
+      background: transparent;
+      width: 100%;
+    }
+    .date-icon {
+      color: var(--al-outline);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="spec-title">Feature Spec</div>
+  <h1 class="spec-heading">Date Picker</h1>
+  <p class="spec-desc">
+    A date input field that lets the customer select a booking date. Uses a
+    native date input styled to match the Atelier Light theme. The required
+    indicator is a small navy dot next to the label.
+  </p>
+
+  <div class="preview">
+    <div class="field-group">
+      <label class="field-label">
+        Date
+        <span class="field-required"></span>
+      </label>
+      <div class="date-input-wrap">
+        <input type="date" class="date-input" value="2026-06-23">
+        <span class="date-icon">&#xe935;</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="spec-notes">
+    <h3>Design notes</h3>
+    <ul>
+      <li>Label: 13px, weight 800, navy (#001e40)</li>
+      <li>Required indicator: 6px navy dot (not an asterisk)</li>
+      <li>Input wrap: white bg, 1px border rgba(195,198,209,0.50), radius 12px, 14px 16px padding</li>
+      <li>Input text: 16px, weight 700, navy (#001e40)</li>
+      <li>Calendar icon: 20px Material Symbol, muted (#737780), right-aligned</li>
+      <li>Focus state: navy border + focus ring 0 0 0 3px rgba(0,30,64,0.12)</li>
+      <li>Uses native &lt;input type="date"&gt; — browser date picker pops up on click</li>
+      <li>Default value: next available booking date</li>
+      <li>Design change only — no new functionality</li>
+    </ul>
+  </div>
+</body>
+</html>

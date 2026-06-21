@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #15 — Services Page Typography</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Oversized Typography</span>
+  <h1>#15 &mdash; Services Page: Title Size 72px &rarr; 44px</h1>
+  <p class="meta">File: <code>src/app/app/settings/services/page.tsx</code> &middot; Typography Alignment &middot; <strong>Wave 4</strong></p>
+  <p class="meta">Dependencies: <strong>#04</strong> &mdash; needs <code>.al-page-title</code>, <code>.al-eyebrow</code>, <code>.al-lede</code></p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>The services settings page has a page title of <code>text-5xl md:text-7xl</code> which renders at <strong>72px on desktop</strong> &mdash; nearly double the canonical 44px page title. This makes the services page look like a completely different app from every other settings page.</p>
+    <pre>/* Current — way too large */
+&lt;h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter leading-[0.9]"&gt;
+  Services
+&lt;/h1&gt;</pre>
+    <p>Also uses <code>text-on-surface-variant</code> (missing <code>al-</code> prefix) and has an inline <code>style={{ color: "var(--al-primary)" }}</code> on the breadcrumb.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <ul>
+      <li>Page title: <code>text-5xl md:text-7xl font-extrabold tracking-tighter</code> &rarr; <code>al-page-title</code></li>
+      <li>Breadcrumb: Replace <code>text-[10px] font-extrabold uppercase tracking-[0.2em]</code> with <code>al-eyebrow</code></li>
+      <li>Breadcrumb active item: Replace inline <code>style={{ color: "var(--al-primary)", opacity: 1 }}</code> with <code>className="text-al-primary opacity-100"</code></li>
+      <li>Subtitle: Replace <code>text-lg font-medium</code> with <code>al-lede</code></li>
+      <li>Color class: <code>text-on-surface-variant</code> &rarr; <code>text-al-on-surface-variant</code></li>
+      <li>Padding: Align to canonical <code>py-8 px-12</code></li>
+    </ul>
+    <p class="file-ref">File: <code>src/app/app/settings/services/page.tsx</code></p>
+  </section>
+</body>
+</html>

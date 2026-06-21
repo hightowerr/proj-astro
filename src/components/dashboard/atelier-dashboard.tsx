@@ -1,21 +1,26 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
-import {
-  ArrowRight,
-  BarChart3,
-  CalendarDays,
-  ChevronRight,
-  Copy,
-  ExternalLink,
-  Package,
-  UserPlus,
-  Users,
-} from "lucide-react";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { cn } from "@/lib/utils";
+
+function MsIcon({ name, size = 20, fill = false }: { name: string; size?: number; fill?: boolean }) {
+  return (
+    <span
+      className="material-symbols-outlined"
+      aria-hidden="true"
+      style={{
+        fontSize: size,
+        fontVariationSettings: `'FILL' ${fill ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
+        lineHeight: 1,
+        display: "inline-flex",
+      }}
+    >
+      {name}
+    </span>
+  );
+}
 
 type AtelierDashboardProps = {
   userName: string;
@@ -32,7 +37,7 @@ const essentials: {
   description: string;
   kicker: string | null;
   kickerStyle: KickerStyle;
-  icon: React.ElementType;
+  icon: string;
   tone: "surface" | "tertiary";
 }[] = [
   {
@@ -41,7 +46,7 @@ const essentials: {
     description: "Track professional products, retail stock, and set low-stock alerts.",
     kicker: "12 Items Low",
     kickerStyle: "error",
-    icon: Package,
+    icon: "inventory_2",
     tone: "surface",
   },
   {
@@ -50,7 +55,7 @@ const essentials: {
     description: "Deep dive into daily earnings, popular services, and client retention.",
     kicker: "+14% This Month",
     kickerStyle: "emerald",
-    icon: BarChart3,
+    icon: "bar_chart",
     tone: "surface",
   },
   {
@@ -59,10 +64,12 @@ const essentials: {
     description: "Manage barber chairs, staff rotations, and stylist permissions.",
     kicker: null,
     kickerStyle: null,
-    icon: Users,
+    icon: "group",
     tone: "tertiary",
   },
 ];
+
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(0,30,64,0.12)] focus-visible:ring-offset-2";
 
 export function AtelierDashboard({
   userName,
@@ -85,10 +92,10 @@ export function AtelierDashboard({
 
         {/* Hero */}
         <section className="mb-16">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.28em] text-al-on-surface-variant/60">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-al-on-surface-variant/60">
             Home Hub
           </p>
-          <h1 className="mb-5 font-manrope text-5xl font-extrabold tracking-tight text-al-primary md:text-7xl">
+          <h1 className="mb-5 font-manrope font-extrabold text-al-primary" style={{ fontSize: 'var(--al-display-lg)', letterSpacing: '-0.02em' }}>
             Welcome back,
             <br className="hidden md:block" /> {userName}.
           </h1>
@@ -99,25 +106,25 @@ export function AtelierDashboard({
 
         {/* Onboarding & Setup */}
         <section className="mb-16">
-          <div className="mb-8 flex items-center justify-between border-b border-al-surface-container-high pb-4">
-            <h2 className="text-xs font-extrabold uppercase tracking-[0.28em] text-al-primary">
+          <div className="mb-8 flex items-center justify-between border-b pb-4" style={{ borderColor: 'var(--al-hairline)' }}>
+            <h2 className="text-xs font-extrabold uppercase tracking-[0.2em] text-al-primary">
               Onboarding &amp; Setup
             </h2>
-            <span className="rounded-full bg-[#ffdbcf] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-[#2a170f]">
+            <span className="rounded-full bg-al-secondary-fixed px-4 py-1.5 font-mono tabular-nums text-[11px] font-bold uppercase tracking-[0.2em] text-al-on-secondary-fixed">
               Step 1 of 2
             </span>
           </div>
 
           <div className="space-y-4">
             {/* Calendar sync — primary card */}
-            <div className="group relative overflow-hidden rounded-2xl border border-al-surface-container-low bg-al-surface-lowest p-8 shadow-[0px_10px_30px_rgba(26,28,27,0.04)] md:p-10">
-              <div className="pointer-events-none absolute -right-8 -top-8 text-al-primary opacity-[0.035] transition-opacity group-hover:opacity-[0.065]">
-                <CalendarDays className="h-52 w-52" strokeWidth={1} />
+            <div className="group relative overflow-hidden rounded-3xl border border-al-surface-container-low bg-al-surface-lowest p-8 shadow-[var(--al-shadow-float)] md:p-10">
+              <div className="pointer-events-none absolute -right-8 -top-8 text-al-primary opacity-[0.035]">
+                <MsIcon name="calendar_month" size={208} />
               </div>
 
               <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:gap-10">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-al-surface-container text-al-primary md:h-20 md:w-20">
-                  <CalendarDays className="h-8 w-8 md:h-10 md:w-10" />
+                  <MsIcon name="calendar_month" size={32} />
                 </div>
 
                 <div className="flex-1">
@@ -131,10 +138,11 @@ export function AtelierDashboard({
 
                 <Link
                   href="/app/settings/calendar"
-                  className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-al-primary px-7 py-4 text-base font-bold text-white shadow-[0px_8px_24px_rgba(0,30,64,0.28)] transition-transform hover:-translate-y-0.5 md:w-auto"
+                  className={cn("inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl px-7 py-4 text-base font-bold text-white md:w-auto", focusRing)}
+                  style={{ background: 'var(--al-gradient-cta)', boxShadow: 'var(--al-shadow-cta)' }}
                 >
                   <span>Connect Now</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <MsIcon name="arrow_forward" size={16} />
                 </Link>
               </div>
             </div>
@@ -142,24 +150,24 @@ export function AtelierDashboard({
             {/* Book first client — secondary card */}
             <Link
               href="/app/appointments"
-              className="group flex flex-col gap-5 rounded-2xl border border-al-surface-container-low bg-al-surface-container-low/60 p-6 transition-colors hover:bg-al-surface-lowest md:flex-row md:items-center md:justify-between md:p-8"
+              className={cn("group flex flex-col gap-5 rounded-3xl border border-al-surface-container-low bg-al-surface-container-low/60 p-6 transition-colors hover:bg-al-surface-lowest md:flex-row md:items-center md:justify-between md:p-8", focusRing)}
             >
               <div className="flex flex-col gap-5 md:flex-row md:items-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#fdd8cb] text-[#785c53] md:h-14 md:w-14">
-                  <UserPlus className="h-6 w-6" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-al-secondary-container text-al-on-secondary-container md:h-14 md:w-14">
+                  <MsIcon name="person_add" size={24} />
                 </div>
                 <div>
                   <h4 className="font-manrope text-lg font-bold text-al-primary md:text-xl">
                     Book Your First Client
                   </h4>
-                  <p className="mt-0.5 text-xs font-bold uppercase tracking-[0.22em] text-al-on-surface-variant/60">
+                  <p className="mt-0.5 text-xs font-bold uppercase tracking-[0.2em] text-al-on-surface-variant/60">
                     Coming up next
                   </p>
                 </div>
               </div>
-              <div className="inline-flex items-center gap-2 font-semibold text-al-primary transition-transform group-hover:translate-x-1">
+              <div className="inline-flex items-center gap-2 font-semibold text-al-primary">
                 <span>View Appointments</span>
-                <ChevronRight className="h-4 w-4" />
+                <MsIcon name="chevron_right" size={16} />
               </div>
             </Link>
           </div>
@@ -167,74 +175,65 @@ export function AtelierDashboard({
 
         {/* Studio Essentials */}
         <section className="mb-16">
-          <div className="mb-8 border-b border-al-surface-container-high pb-4">
-            <h2 className="text-xs font-extrabold uppercase tracking-[0.28em] text-al-primary">
+          <div className="mb-8 border-b pb-4" style={{ borderColor: 'var(--al-hairline)' }}>
+            <h2 className="text-xs font-extrabold uppercase tracking-[0.2em] text-al-primary">
               Studio Essentials
             </h2>
           </div>
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {essentials.map(({ href, label, description, kicker, kickerStyle, icon: Icon, tone }) => (
+            {essentials.map(({ href, label, description, kicker, kickerStyle, icon: iconName, tone }) => (
               <Link
                 key={label}
                 href={href}
                 className={cn(
-                  "group flex min-h-[17rem] flex-col justify-between rounded-2xl p-6 transition-shadow",
-                  tone === "tertiary"
-                    ? "border border-[#ffdbcf]/50 bg-[#fff8f5] hover:shadow-[0px_12px_32px_rgba(74,40,20,0.1)]"
-                    : "border border-al-surface-container-low bg-al-surface-lowest hover:shadow-[0px_12px_32px_rgba(0,30,64,0.1)]"
+                  "group flex min-h-[17rem] flex-col justify-between rounded-3xl border border-al-surface-container-low bg-al-surface-lowest p-6 transition-colors hover:bg-al-surface-container",
+                  focusRing
                 )}
               >
                 {tone === "tertiary" ? (
                   <div className="mb-4 flex items-start justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/60 shadow-sm transition-transform duration-200 group-hover:scale-110">
-                      <Icon className="h-6 w-6 text-[#74584f]" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-al-surface-container text-al-primary shadow-sm">
+                      <MsIcon name={iconName} size={24} />
                     </div>
                     <div className="flex -space-x-2">
                       {["A", "B"].map((init) => (
                         <div
                           key={init}
-                          className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#fff8f5] bg-[#fdd8cb] text-[10px] font-extrabold text-[#74584f]"
+                          className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-al-secondary-container text-[10px] font-extrabold text-al-secondary"
                         >
                           {init}
                         </div>
                       ))}
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#fff8f5] bg-[#fdd8cb] text-[10px] font-extrabold text-[#74584f]">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-al-secondary-container text-[10px] font-extrabold text-al-secondary">
                         +2
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-al-surface-container text-al-primary shadow-sm transition-transform duration-200 group-hover:scale-110">
-                    <Icon className="h-6 w-6" />
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-al-surface-container text-al-primary shadow-sm">
+                    <MsIcon name={iconName} size={24} />
                   </div>
                 )}
 
                 <div>
-                  <h4
-                    className={cn(
-                      "mb-2 font-manrope text-xl font-bold",
-                      tone === "tertiary" ? "text-[#74584f]" : "text-al-primary"
-                    )}
-                  >
+                  <h4 className="mb-2 font-manrope text-xl font-bold text-al-primary">
                     {label}
                   </h4>
-                  <p
-                    className={cn(
-                      "mb-5 text-sm leading-relaxed",
-                      tone === "tertiary" ? "text-[#9a6f64]" : "text-al-on-surface-variant"
-                    )}
-                  >
+                  <p className="mb-5 text-sm leading-relaxed text-al-on-surface-variant">
                     {description}
                   </p>
                   <div className="flex items-center justify-between">
                     {tone !== "tertiary" ? (
                       kickerStyle === "error" ? (
-                        <span className="rounded-full bg-[#ffdad6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#93000a]">
+                        <span className="rounded-full bg-al-error-container px-3 py-1 font-mono tabular-nums text-[11px] font-bold uppercase tracking-[0.2em] text-al-on-error-container">
                           {kicker}
                         </span>
                       ) : kickerStyle === "emerald" ? (
-                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-800">
+                        <span
+                          className="rounded-full px-3 py-1 font-mono tabular-nums text-[11px] font-bold uppercase tracking-[0.2em]"
+                          style={{ background: 'var(--al-status-positive-bg)', color: 'var(--al-status-positive)' }}
+                        >
                           {kicker}
                         </span>
                       ) : (
@@ -243,12 +242,9 @@ export function AtelierDashboard({
                     ) : (
                       <span />
                     )}
-                    <ExternalLink
-                      className={cn(
-                        "h-4 w-4 opacity-25 transition-opacity group-hover:opacity-80",
-                        tone === "tertiary" ? "text-[#74584f]" : "text-al-primary"
-                      )}
-                    />
+                    <span className="text-al-primary opacity-40">
+                      <MsIcon name="open_in_new" size={16} />
+                    </span>
                   </div>
                 </div>
               </Link>
@@ -258,19 +254,19 @@ export function AtelierDashboard({
 
         {/* Public Booking Link */}
         <section>
-          <div className="mb-8 border-b border-al-surface-container-high pb-4">
-            <h2 className="text-xs font-extrabold uppercase tracking-[0.28em] text-al-primary">
+          <div className="mb-8 border-b pb-4" style={{ borderColor: 'var(--al-hairline)' }}>
+            <h2 className="text-xs font-extrabold uppercase tracking-[0.2em] text-al-primary">
               Public Booking Link
             </h2>
           </div>
 
-          <div className="rounded-2xl border border-al-surface-container-low bg-al-surface-lowest p-8 shadow-[0px_10px_30px_rgba(26,28,27,0.03)] md:p-10">
+          <div className="rounded-3xl border border-al-surface-container-low bg-al-surface-lowest p-8 shadow-[var(--al-shadow-float)] md:p-10">
             <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
               <div className="space-y-2">
                 <h3 className="font-manrope text-2xl font-extrabold tracking-tight text-al-primary">
                   {shopName}
                 </h3>
-                <p className="break-all text-sm text-al-on-surface-variant">{bookingUrl}</p>
+                <p className="break-all font-mono tabular-nums text-sm text-al-on-surface-variant">{bookingUrl}</p>
                 <p className="text-sm text-al-on-surface-variant/60">
                   Share{" "}
                   <code className="rounded bg-al-surface-container px-1.5 py-0.5 font-mono text-xs">
@@ -284,17 +280,18 @@ export function AtelierDashboard({
                 <Link
                   href={`/book/${shopSlug}`}
                   target="_blank"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-al-primary px-5 py-3.5 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
+                  className={cn("inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white", focusRing)}
+                  style={{ background: 'var(--al-gradient-cta)', boxShadow: 'var(--al-shadow-cta)' }}
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <MsIcon name="open_in_new" size={16} />
                   <span>Open Booking Page</span>
                 </Link>
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-al-outline-variant/30 bg-al-surface-container-low px-5 py-3.5 text-sm font-bold text-al-primary transition-colors hover:bg-al-surface-container"
+                  className={cn("inline-flex items-center justify-center gap-2 rounded-xl border border-al-outline-variant/30 bg-al-surface-container-low px-5 py-3.5 text-sm font-bold text-al-primary transition-colors hover:bg-al-surface-container", focusRing)}
                 >
-                  <Copy className="h-4 w-4" />
+                  <MsIcon name="content_copy" size={16} />
                   <span>Copy Booking Link</span>
                 </button>
               </div>

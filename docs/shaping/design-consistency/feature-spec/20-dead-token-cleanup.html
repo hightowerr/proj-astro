@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #20 — Dead Token Cleanup</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--minor { background: #d5e3ff; color: #001e40; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    .note { border-left: 4px solid #c97a2a; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--minor">Minor &mdash; Cleanup (Do Last)</span>
+  <h1>#20 &mdash; Remove Dead Deep Ledger Tokens</h1>
+  <p class="meta">File: <code>src/app/globals.css</code> &middot; Cleanup &middot; <strong>Wave 5</strong></p>
+  <p class="meta">Dependencies: <strong>#05 &ndash; #19</strong> &mdash; all component and page migrations must be complete before removing tokens</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>After Specs #5&ndash;#19 migrate all pages and components away from Deep Ledger tokens, the following sections in <code>globals.css</code> become dead code. <strong>Line numbers updated 2026-06-19 post-Wave 1 (added ~60 lines of AL tokens):</strong></p>
+    <ul>
+      <li><code>--color-surface-*</code> dark surface tokens (~lines 16&ndash;21)</li>
+      <li>Backwards compat aliases <code>--color-bg-dark-*</code> (~lines 24&ndash;26)</li>
+      <li><code>--color-text-*</code> dark text tokens (~lines 28&ndash;35)</li>
+      <li><code>--color-brand-*</code> teal brand tokens (~lines 38&ndash;48)</li>
+      <li><code>--color-accent-*</code> amber accent tokens (~lines 51&ndash;58)</li>
+      <li><code>--color-tier-*</code> dark tier tokens (~lines 82&ndash;92)</li>
+      <li><code>--color-border-*</code> dark border tokens (~lines 95&ndash;99)</li>
+      <li><code>--shadow-*</code> dark shadows (~lines 102&ndash;107)</li>
+      <li><code>.dark {}</code> block (~lines 455&ndash;487)</li>
+      <li>Deep Ledger utility classes: <code>.surface-*</code>, <code>.card-glass</code>, <code>.glow-brand</code>, <code>.skeleton</code>, <code>.service-card</code>, <code>.service-card-arrow</code>, <code>.focus-brand</code>, <code>.tier-dot-*</code>, <code>.status-pill</code> (~lines 517&ndash;603). Also includes <code>.font-display</code>, <code>.font-body</code>, <code>.font-mono</code> utility classes (~lines 517&ndash;519) which now point to AL tokens but retain Deep Ledger-era names.</li>
+    </ul>
+    <p style="margin-top:0.5rem"><strong>Post-Wave 2 note:</strong> Spec #08 is now implemented &mdash; <code>service-selector.tsx</code> uses <code>.al-service-card</code> (line 94). The legacy <code>.service-card</code> class and its <code>.service-card:hover .service-card-arrow</code> rule are now dead CSS. However, the <code>.service-card-arrow</code> class is still referenced by <code>service-selector.tsx</code> (line 126) for the arrow <code>&lt;span&gt;</code> &mdash; its hover-reveal is currently non-functional because the parent changed from <code>.service-card</code> to <code>.al-service-card</code>. Either migrate the hover rule to <code>.al-service-card:hover .service-card-arrow</code> or remove the arrow animation. <code>.al-service-card</code> (~line 648) must NOT be removed.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <ol>
+      <li><strong>Verify</strong> no remaining references: <code>rg "color-surface|color-text|color-brand|color-border|color-tier|color-accent" src/</code> should return zero matches.</li>
+      <li><strong>Remove</strong> all dead token declarations listed above from <code>@theme inline</code>.</li>
+      <li><strong>Remove</strong> the <code>.dark {}</code> block entirely.</li>
+      <li><strong>Remove</strong> all Deep Ledger utility classes.</li>
+      <li><strong>Keep</strong> the shadcn compatibility aliases (<code>--primary</code>, <code>--muted</code>, <code>--background</code>, etc.) since they're mapped to AL values and used by shadcn components.</li>
+      <li><strong>Keep</strong> the <code>--color-success</code>, <code>--color-warning</code>, <code>--color-error</code> semantic tokens only if still referenced; otherwise remove in favor of <code>--al-status-*</code>.</li>
+    </ol>
+  </section>
+
+  <section class="note">
+    <h2>Deferred: Landing Page Components</h2>
+    <p>The landing page (<code>hero-section.tsx</code>, <code>site-header.tsx</code>, <code>site-footer.tsx</code>) still uses Deep Ledger tokens for an intentionally dark marketing aesthetic. Converting these is a visual redesign and should be handled in a separate spec/PR. Do not remove tokens that are still referenced by landing page components until that work is complete.</p>
+  </section>
+</body>
+</html>

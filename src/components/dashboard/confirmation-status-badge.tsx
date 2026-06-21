@@ -11,19 +11,19 @@ const STATUS_STYLES: Record<
 > = {
   none: {
     label: "None",
-    className: "bg-white/10 text-text-light-muted",
+    className: "bg-[var(--al-status-neutral-bg)] text-[var(--al-status-neutral)]",
   },
   pending: {
     label: "Pending",
-    className: "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/30",
+    className: "bg-[var(--al-status-caution-bg)] text-[var(--al-status-caution)] ring-1 ring-[var(--al-status-caution)]/30",
   },
   confirmed: {
     label: "Confirmed",
-    className: "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30",
+    className: "bg-[var(--al-status-positive-bg)] text-[var(--al-status-positive)] ring-1 ring-[var(--al-status-positive)]/30",
   },
   expired: {
     label: "Expired",
-    className: "bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/30",
+    className: "bg-[var(--al-status-negative-bg)] text-[var(--al-status-negative)] ring-1 ring-[var(--al-status-negative)]/30",
   },
 };
 

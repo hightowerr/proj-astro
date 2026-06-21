@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #3 — Missing AL Tokens</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--moderate { background: #fff3cd; color: #856404; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 700; color: var(--navy); }
+  </style>
+</head>
+<body>
+  <span class="badge badge--moderate">Moderate &mdash; Missing Infrastructure</span>
+  <span class="badge" style="background:#d4edda;color:#155724;">IMPLEMENTED &mdash; Wave 1 Slice 1 (2026-06-19)</span>
+  <h1>#3 &mdash; Missing AL Tokens in Production</h1>
+  <p class="meta">File: <code>src/app/globals.css</code> &middot; Foundation &middot; <strong>Wave 1</strong></p>
+  <p class="meta">Dependencies: <strong>None</strong> &middot; Parallel: #01, #05, #07</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>The design system defines a full typography scale, spacing scale, and motion tokens in <code>docs/design-system/tokens/</code>, but most of these were <strong>never added to the production <code>globals.css</code></strong>. Only <code>--al-display-lg</code> and <code>--al-track-eyebrow</code> exist; the rest are missing.</p>
+    <p>This forces pages to hardcode pixel values inline instead of referencing design tokens.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Add these tokens to the <code>:root</code> block in <code>globals.css</code> (after line 389, inside the existing AL tokens section):</p>
+
+    <p style="margin-top: 1rem;"><strong>Typography scale:</strong></p>
+    <pre>--al-display-md:   2.75rem;   /* 44px &mdash; page title */
+--al-display-sm:   2.25rem;   /* 36px &mdash; money figures */
+--al-headline-lg:  2rem;      /* 32px */
+--al-headline-md:  1.5rem;    /* 24px &mdash; section title */
+--al-headline-sm:  1.25rem;   /* 20px */
+--al-title-lg:     1.125rem;  /* 18px */
+--al-title-md:     1rem;      /* 16px */
+--al-title-sm:     0.875rem;  /* 14px */
+--al-body-lg:      1.125rem;
+--al-body-md:      1rem;
+--al-body-sm:      0.875rem;
+--al-label-lg:     0.875rem;
+--al-label-md:     0.75rem;   /* 12px */
+--al-label-sm:     0.6875rem; /* 11px &mdash; eyebrow */
+--al-label-xs:     0.625rem;  /* 10px */</pre>
+
+    <p style="margin-top: 1rem;"><strong>Weight scale:</strong></p>
+    <pre>--al-w-light:    300;
+--al-w-regular:  400;
+--al-w-medium:   500;
+--al-w-semibold: 600;
+--al-w-bold:     700;
+--al-w-extra:    800;</pre>
+
+    <p style="margin-top: 1rem;"><strong>Tracking:</strong></p>
+    <pre>--al-track-pill:    0.16em;
+--al-track-display: -0.025em;
+--al-track-tight:   -0.01em;</pre>
+
+    <p style="margin-top: 1rem;"><strong>Spacing scale:</strong></p>
+    <pre>--al-sp-1:  4px;
+--al-sp-2:  8px;
+--al-sp-3:  12px;
+--al-sp-4:  16px;
+--al-sp-5:  20px;
+--al-sp-6:  24px;
+--al-sp-8:  32px;
+--al-sp-10: 40px;
+--al-sp-12: 48px;
+--al-sp-16: 64px;
+--al-sp-20: 80px;
+--al-sp-24: 136px;</pre>
+
+    <p style="margin-top: 1rem;"><strong>Layout:</strong></p>
+    <pre>--al-main-pad-x: 48px;
+--al-main-pad-y: 32px;
+--al-sidebar-w:  264px;</pre>
+
+    <p style="margin-top: 1rem;"><strong>Motion:</strong></p>
+    <pre>--al-dur-instant: 0.12s;
+--al-dur-fast:    0.15s;
+--al-dur-normal:  0.25s;
+--al-dur-slow:    0.30s;</pre>
+
+    <p style="margin-top: 1rem;"><strong>Additional effects:</strong></p>
+    <pre>--al-shadow-menu:  0px 20px 40px rgba(26, 28, 27, 0.10);
+--al-shadow-mark:  0px 8px 18px rgba(0, 30, 64, 0.18);
+--al-shadow-ring:  0 0 0 4px rgba(0, 30, 64, 0.08);
+--al-hairline-rest:   rgba(195, 198, 209, 0.30);
+--al-hairline-strong: rgba(195, 198, 209, 0.50);</pre>
+
+    <p class="file-ref">Source: <code>docs/design-system/tokens/typography.css</code>, <code>spacing.css</code>, <code>effects.css</code></p>
+  </section>
+</body>
+</html>

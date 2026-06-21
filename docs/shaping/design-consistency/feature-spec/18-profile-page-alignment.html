@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #18 — Profile Page Alignment</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Visually Distinct from Rest of App</span>
+  <h1>#18 &mdash; Profile Page: Align to Atelier Light</h1>
+  <p class="meta">File: <code>src/app/profile/page.tsx</code> &middot; Typography Alignment &middot; <strong>Wave 4</strong></p>
+  <p class="meta">Dependencies: <strong>#04</strong> &mdash; needs <code>.al-page</code>, <code>.al-page-title</code>, <code>.al-card</code></p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>The profile page looks like a different app. It uses the default shadcn/ui Card aesthetic with no Atelier Light styling:</p>
+    <ul>
+      <li>Container: <code>container max-w-4xl mx-auto py-8 px-4</code> &mdash; different from canonical <code>al-page</code> padding</li>
+      <li>Title: <code>text-3xl font-bold</code> (30px/700) &mdash; should be <code>al-page-title</code> (44px/800)</li>
+      <li>Uses Lucide icons (<code>Mail</code>, <code>Calendar</code>, <code>ArrowLeft</code>, etc.) instead of Material Symbols</li>
+      <li>Hardcoded green colors: <code>text-green-600</code>, <code>border-green-600</code>, <code>bg-green-500</code> &mdash; should use AL status tokens</li>
+      <li>Uses <code>text-muted-foreground</code> everywhere &mdash; works via shadcn compat but inconsistent with other pages using <code>text-al-on-surface-variant</code></li>
+      <li>Card radius: default shadcn <code>rounded-lg</code> (8px) instead of canonical <code>rounded-3xl</code> (24px)</li>
+    </ul>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <ul>
+      <li>Adopt <code>al-page</code> wrapper for consistent page shell</li>
+      <li>Title: <code>text-3xl font-bold</code> &rarr; <code>al-page-title</code></li>
+      <li>Replace Lucide icons (imported on line 5: <code>Mail, Calendar, User, Shield, ArrowLeft, Lock, Smartphone</code>) with Material Symbols Outlined equivalents:
+        <ul>
+          <li><code>Mail</code> &rarr; <code>mail</code></li>
+          <li><code>Calendar</code> &rarr; <code>calendar_month</code></li>
+          <li><code>ArrowLeft</code> &rarr; <code>arrow_back</code></li>
+          <li><code>User</code> &rarr; <code>account_circle</code></li>
+          <li><code>Shield</code> &rarr; <code>shield</code></li>
+          <li><code>Lock</code> &rarr; <code>lock</code></li>
+          <li><code>Smartphone</code> &rarr; <code>smartphone</code></li>
+        </ul>
+      </li>
+      <li>Replace hardcoded green colors with AL status tokens</li>
+      <li>Replace <code>text-muted-foreground</code> with <code>text-al-on-surface-variant</code></li>
+      <li>Apply <code>al-card</code> class to card containers (gets 24px radius + float shadow)</li>
+    </ul>
+    <p class="file-ref">File: <code>src/app/profile/page.tsx</code></p>
+  </section>
+</body>
+</html>

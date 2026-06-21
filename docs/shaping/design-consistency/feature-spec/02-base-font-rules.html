@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #2 — Base Font Rules</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Wrong Default Fonts</span>
+  <span class="badge" style="background:#d4edda;color:#155724;">IMPLEMENTED &mdash; Wave 2 Slice 1 completed Steps 2 &amp; 3 (2026-06-19)</span>
+  <h1>#2 &mdash; Base Font Rules in globals.css</h1>
+  <p class="meta">File: <code>src/app/globals.css</code> &middot; Foundation &middot; <strong>Wave 2</strong></p>
+  <p class="meta">Dependencies: <strong>#01 + #03</strong> (both implemented) &mdash; <code>--font-jetbrains-mono</code> and <code>--al-font-mono</code> already exist</p>
+
+  <section class="problem">
+    <h2>Problem (updated post-Wave 1)</h2>
+    <p>Wave 1 Slice 1 already repointed <code>@theme inline</code> font stacks to Manrope/JetBrains Mono and added the <code>--al-font-mono</code> token. However, the <code>@layer base</code> rules and utility classes still use the legacy <code>--font-display</code>/<code>--font-body</code> intermediary variables instead of the canonical <code>--al-font</code> token. This works (fonts resolve correctly), but creates a normalization gap.</p>
+    <pre>/* @layer base (~lines 496-508) — functional but not canonical */
+body { font-family: var(--font-body); }        /* works (resolves to Manrope via @theme) */
+h1-h6 { font-family: var(--font-display); }   /* works (resolves to Manrope via @theme) */
+code { font-family: var(--font-mono); }        /* works (resolves to JetBrains Mono via @theme) */
+
+/* Utility classes (~lines 515-517) — same issue */
+.font-display { font-family: var(--font-display); }
+.font-body    { font-family: var(--font-body); }
+.font-mono    { font-family: var(--font-mono); }</pre>
+    <p>These should be normalized to use <code>--al-font</code> and <code>--al-font-mono</code> directly, reducing dependence on the legacy <code>@theme inline</code> aliases.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix (remaining steps only)</h2>
+    <p><del><strong>Step 1 &mdash; Update <code>@theme inline</code></strong> — DONE by Wave 1 Slice 1. Lines 10-12 now point to Manrope/JetBrains Mono.</del></p>
+
+    <p style="margin-top: 1rem;"><strong>Step 2 &mdash; Update <code>@layer base</code> (~lines 496&ndash;508):</strong></p>
+    <pre>body {
+  @apply bg-background text-foreground;
+  font-family: var(--al-font);
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--al-font);
+}
+code, kbd, samp, pre {
+  font-family: var(--al-font-mono);
+}</pre>
+
+    <p style="margin-top: 1rem;"><strong>Step 3 &mdash; Update utility classes (~lines 515&ndash;517):</strong></p>
+    <pre>.font-display { font-family: var(--al-font); }
+.font-body    { font-family: var(--al-font); }
+.font-mono    { font-family: var(--al-font-mono); }</pre>
+
+    <p><del><strong>Step 4 &mdash; Add <code>--al-font-mono</code></strong> — DONE by Wave 1 Slice 1. Token exists at ~line 375.</del></p>
+
+    <p class="file-ref">File: <code>src/app/globals.css</code> ~lines 496&ndash;508, 515&ndash;517</p>
+  </section>
+</body>
+</html>

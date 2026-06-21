@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #9 — Appointments Page Inline Styles</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Entirely Inline-Styled Page</span>
+  <h1>#9 &mdash; Appointments Page: Convert Inline Styles to Tailwind</h1>
+  <p class="meta">File: <code>src/app/app/appointments/page.tsx</code> &middot; Page Conversion &middot; <strong>Wave 4</strong></p>
+  <p class="meta">Dependencies: <strong>#04</strong> &mdash; needs <code>.al-page</code>, <code>.al-eyebrow</code>, <code>.al-page-title</code>, <code>.al-section-title</code>, <code>.al-lede</code>, <code>.al-card</code>, <code>.al-mono</code></p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>The appointments page (~365 lines) uses <strong>~63 inline <code>style={{}}</code> objects</strong> instead of Tailwind classes. Every element has hardcoded pixel values and hex colors:</p>
+    <pre>/* Root wrapper */
+style={{ fontFamily: "var(--al-font)", background: "var(--al-background)",
+         minHeight: "100vh", padding: "32px 48px",
+         display: "flex", flexDirection: "column", gap: 28 }}
+
+/* Eyebrow pattern repeated 5+ times */
+style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".2em",
+         textTransform: "uppercase", color: "#43474f", opacity: .6 }}
+
+/* Hardcoded hex colors throughout */
+"#001e40"  /* should be var(--al-primary) */
+"#43474f"  /* should be var(--al-on-surface-variant) */
+"#0e7a55"  /* should be var(--al-status-positive) */
+"#c97a2a"  /* should be var(--al-status-caution) */
+"#a8294a"  /* should be var(--al-status-negative) */
+
+/* Card containers with inline box model */
+style={{ background: "#fff", borderRadius: 24,
+         overflow: "hidden", boxShadow: "0 20px 40px rgba(26,28,27,.04)" }}</pre>
+    <p>This is the most inline-heavy page in the app and the primary source of visual inconsistency.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Convert all inline styles to Tailwind classes and AL utility classes. Key conversions:</p>
+    <ul>
+      <li>Root wrapper &rarr; <code>className="al-page"</code></li>
+      <li>All eyebrow patterns &rarr; <code>className="al-eyebrow"</code></li>
+      <li>Page title &rarr; <code>className="al-page-title"</code></li>
+      <li>Section titles &rarr; <code>className="al-section-title"</code></li>
+      <li>Lede/description text &rarr; <code>className="al-lede"</code></li>
+      <li>Card containers &rarr; <code>className="al-card"</code></li>
+      <li>Hardcoded <code>#001e40</code> &rarr; <code>text-al-primary</code></li>
+      <li>Hardcoded <code>#43474f</code> &rarr; <code>text-al-on-surface-variant</code></li>
+      <li>Outcome stat numbers &rarr; add <code>al-mono</code> class</li>
+      <li>Status colors &rarr; <code>text-[var(--al-status-positive)]</code> etc.</li>
+      <li>Grid layouts &rarr; <code>grid grid-cols-3 gap-3.5</code></li>
+      <li>Inline padding/margin &rarr; Tailwind spacing classes (<code>p-6</code>, <code>gap-7</code>, etc.)</li>
+    </ul>
+    <p style="margin-top: 0.75rem;">The <code>RECOVERY_STATUS</code> color object should use AL status token references instead of hardcoded hex tuples.</p>
+    <p><strong>Target:</strong> Zero <code>style={{}}</code> props remaining. All styling via Tailwind + AL classes.</p>
+    <p class="file-ref">File: <code>src/app/app/appointments/page.tsx</code> (full file)</p>
+  </section>
+</body>
+</html>

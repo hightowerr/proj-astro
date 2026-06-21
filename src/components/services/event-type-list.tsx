@@ -35,19 +35,19 @@ function StatusPill({
 }) {
   const styles: Record<string, React.CSSProperties> = {
     default: {
-      background: "var(--color-brand-subtle)",
-      border: "1px solid var(--color-brand-border)",
-      color: "var(--color-brand)",
+      background: "rgba(0, 30, 64, 0.08)",
+      border: "1px solid var(--al-hairline-rest)",
+      color: "var(--al-primary)",
     },
     hidden: {
-      background: "var(--color-warning-subtle)",
-      border: "1px solid var(--color-warning-border)",
-      color: "var(--color-warning)",
+      background: "var(--al-status-caution-bg)",
+      border: "1px solid var(--al-status-caution-border)",
+      color: "var(--al-status-caution)",
     },
     inactive: {
-      background: "var(--color-error-subtle)",
-      border: "1px solid var(--color-error-border)",
-      color: "var(--color-error)",
+      background: "var(--al-status-negative-bg)",
+      border: "1px solid var(--al-status-negative-border)",
+      color: "var(--al-status-negative)",
     },
   };
 
@@ -92,11 +92,11 @@ export function EventTypeList({
         className="p-6"
         style={{
           borderRadius: "var(--radius-xl)",
-          border: "1px dashed var(--color-border-medium)",
-          background: "var(--color-surface-raised)",
+          border: "1px dashed var(--al-outline-variant)",
+          background: "var(--al-surface-container-lowest)",
         }}
       >
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+        <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
           No services yet. Add one below to start organizing your booking page.
         </p>
       </section>
@@ -114,8 +114,8 @@ export function EventTypeList({
             className="p-4"
             style={{
               borderRadius: "var(--radius-xl)",
-              border: "1px solid var(--color-border-default)",
-              background: "var(--color-surface-raised)",
+              border: "1px solid var(--al-outline-variant)",
+              background: "var(--al-surface-container-lowest)",
             }}
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -123,7 +123,7 @@ export function EventTypeList({
                 <div className="flex flex-wrap items-center gap-2">
                   <h2
                     className="text-lg font-semibold"
-                    style={{ color: "var(--color-text-primary)" }}
+                    style={{ color: "var(--al-on-surface)" }}
                   >
                     {eventType.name}
                   </h2>
@@ -138,7 +138,7 @@ export function EventTypeList({
                   ) : null}
                 </div>
 
-                <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                   {eventType.durationMinutes} min
                   {eventType.bufferMinutes != null && eventType.bufferMinutes > 0
                     ? ` \u2022 ${eventType.bufferMinutes} min buffer`
@@ -146,13 +146,13 @@ export function EventTypeList({
                 </p>
 
                 {eventType.depositAmountCents !== null ? (
-                  <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                     {formatDeposit(eventType.depositAmountCents)}
                   </p>
                 ) : null}
 
                 {eventType.description ? (
-                  <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                     {eventType.description}
                   </p>
                 ) : null}
@@ -166,8 +166,8 @@ export function EventTypeList({
                   }}
                   style={{
                     background: "transparent",
-                    border: "1px solid var(--color-brand-border)",
-                    color: "var(--color-brand)",
+                    border: "1px solid var(--al-hairline-rest)",
+                    color: "var(--al-primary)",
                     borderRadius: "var(--radius-lg)",
                     padding: "0.5rem 1rem",
                     fontSize: "0.875rem",
@@ -185,8 +185,8 @@ export function EventTypeList({
                     )
                   }
                   style={{
-                    background: "var(--color-brand)",
-                    color: "var(--color-surface-void)",
+                    background: "var(--al-primary)",
+                    color: "var(--al-on-primary)",
                     borderRadius: "var(--radius-lg)",
                     padding: "0.5rem 1rem",
                     fontSize: "0.875rem",
@@ -201,7 +201,7 @@ export function EventTypeList({
             </div>
 
             {copyError ? (
-              <p className="mt-3 text-sm" style={{ color: "var(--color-error)" }}>
+              <p className="mt-3 text-sm" style={{ color: "var(--al-status-negative)" }}>
                 {copyError}
               </p>
             ) : null}
@@ -209,7 +209,7 @@ export function EventTypeList({
             {isExpanded ? (
               <div
                 className="mt-6 pt-6"
-                style={{ borderTop: "1px solid var(--color-border-subtle)" }}
+                style={{ borderTop: "1px solid var(--al-ghost-border)" }}
               >
                 <EventTypeForm
                   action={updateAction.bind(null, eventType.id)}

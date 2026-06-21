@@ -293,7 +293,7 @@ function PaymentStep({
 
   return (
         <div className="space-y-6">
-      <div className="p-4 space-y-1" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}>
+      <div className="p-4 space-y-1" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--al-outline-variant)", background: "var(--al-surface-container-lowest)" }}>
         <p className="text-sm font-medium">Payment due</p>
         <p className="text-2xl font-semibold">
           {formatCurrency(amountCents, currency)}
@@ -302,19 +302,19 @@ function PaymentStep({
           <p className="text-sm font-medium">{serviceName}</p>
         ) : null}
         {serviceDurationMinutes ? (
-          <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="text-xs" style={{ color: "var(--al-on-surface-variant)" }}>
             {serviceDurationMinutes} minutes
           </p>
         ) : null}
-        <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+        <p className="text-xs" style={{ color: "var(--al-on-surface-variant)" }}>
           Booking time: {slotLabel} ({timezone})
         </p>
       </div>
 
       <form onSubmit={handlePayment} className="space-y-4">
         {usePaymentSimulator ? (
-          <div className="space-y-3 rounded-md border border-dashed p-3" style={{ borderColor: "var(--color-border-medium)", background: "var(--color-surface-overlay)" }}>
-            <p className="text-xs" style={{ color: "var(--color-text-tertiary)" }}>Playwright payment simulator</p>
+          <div className="space-y-3 rounded-md border border-dashed p-3" style={{ borderColor: "var(--al-outline-variant)", background: "var(--al-surface-container-low)" }}>
+            <p className="text-xs" style={{ color: "var(--al-on-surface-variant)" }}>Playwright payment simulator</p>
             <div className="space-y-2">
               <Label htmlFor="playwright-card-number">Card number</Label>
               <Input
@@ -355,10 +355,10 @@ function PaymentStep({
           <PaymentElement options={{ layout: "tabs" }} />
         )}
         {paymentError ? (
-          <p className="text-sm" style={{ color: "var(--color-error)" }}>{paymentError}</p>
+          <p className="text-sm" style={{ color: "var(--al-status-negative)" }}>{paymentError}</p>
         ) : null}
         {bookingUrl ? (
-          <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="text-xs" style={{ color: "var(--al-on-surface-variant)" }}>
             Need to finish later? Use your booking link:{" "}
             <a href={bookingUrl} className="underline">
               Resume payment
@@ -377,8 +377,8 @@ function PaymentStep({
           }
           style={{
             width: "100%",
-            background: isPaying ? "var(--color-brand-dim)" : "var(--color-brand)",
-            color: "var(--color-surface-void)",
+            background: isPaying ? "var(--al-primary)" : "var(--al-primary)",
+            color: "var(--al-on-primary)",
             borderRadius: "var(--radius-lg)",
             padding: "0.625rem 1.25rem",
             fontSize: "0.875rem",
@@ -396,14 +396,14 @@ function PaymentStep({
         </button>
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <button type="button" onClick={onBack} disabled={isPaying || Boolean(isCancelling)} style={{ background: "transparent", border: "1px solid var(--color-brand-border)", color: "var(--color-brand)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Back to details</button>
+          <button type="button" onClick={onBack} disabled={isPaying || Boolean(isCancelling)} style={{ background: "transparent", border: "1px solid var(--al-hairline-rest)", color: "var(--al-primary)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Back to details</button>
           {onCancel ? (
-            <button type="button" onClick={() => { void onCancel(); }} disabled={isPaying || Boolean(isCancelling)} style={{ background: "var(--color-error-subtle)", border: "1px solid var(--color-error-border)", color: "var(--color-error)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>
+            <button type="button" onClick={() => { void onCancel(); }} disabled={isPaying || Boolean(isCancelling)} style={{ background: "var(--al-status-negative-bg)", border: "1px solid var(--al-status-negative-border)", color: "var(--al-status-negative)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>
               {isCancelling ? "Cancelling…" : "Cancel booking"}
             </button>
           ) : null}
         </div>
-        {cancelError ? <p className="text-sm" style={{ color: "var(--color-error)" }}>{cancelError}</p> : null}
+        {cancelError ? <p className="text-sm" style={{ color: "var(--al-status-negative)" }}>{cancelError}</p> : null}
       </form>
     </div>
   );
@@ -944,9 +944,9 @@ export function BookingForm({
 
   if (shouldResume && resumeLoading) {
     return (
-      <div className="p-6 space-y-2" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}>
+      <div className="p-6 space-y-2" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--al-outline-variant)", background: "var(--al-surface-container-lowest)" }}>
         <h2 className="text-xl font-semibold">Loading your booking</h2>
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+        <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
           Fetching payment details…
         </p>
       </div>
@@ -962,9 +962,9 @@ export function BookingForm({
 
     if (!shouldUsePaymentSimulator && !resolvedStripePromise) {
       return (
-        <div className="p-6 space-y-2" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}>
+        <div className="p-6 space-y-2" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--al-outline-variant)", background: "var(--al-surface-container-lowest)" }}>
           <h2 className="text-xl font-semibold">Payment unavailable</h2>
-          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
             Payment setup is missing. Please try again later.
           </p>
         </div>
@@ -973,12 +973,12 @@ export function BookingForm({
 
     if (showPaymentDetails) {
       return (
-        <div className="p-4 space-y-3" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--color-border-default)", background: "var(--color-surface-raised)" }}>
+        <div className="p-4 space-y-3" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--al-outline-variant)", background: "var(--al-surface-container-lowest)" }}>
           <p className="text-sm font-medium">Booking details</p>
-          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
             {slotLabel} ({timezone})
           </p>
-          <div className="grid gap-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>
+          <div className="grid gap-1 text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
             {fullName ? <p>Name: {fullName}</p> : null}
             {phone ? <p>Phone: {phone}</p> : null}
             {email ? <p>Email: {email}</p> : null}
@@ -989,8 +989,8 @@ export function BookingForm({
               onClick={() => setShowPaymentDetails(false)}
               disabled={isCancellingBooking}
               style={{
-                background: "var(--color-brand)",
-                color: "var(--color-surface-void)",
+                background: "var(--al-primary)",
+                color: "var(--al-on-primary)",
                 borderRadius: "var(--radius-lg)",
                 padding: "0.5rem 1rem",
                 fontSize: "0.875rem",
@@ -1002,13 +1002,13 @@ export function BookingForm({
               Return to payment
             </button>
             {manageToken ? (
-              <button type="button" onClick={() => { void handleCancelBooking(); }} disabled={isCancellingBooking} style={{ background: "var(--color-error-subtle)", border: "1px solid var(--color-error-border)", color: "var(--color-error)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>
+              <button type="button" onClick={() => { void handleCancelBooking(); }} disabled={isCancellingBooking} style={{ background: "var(--al-status-negative-bg)", border: "1px solid var(--al-status-negative-border)", color: "var(--al-status-negative)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>
                 {isCancellingBooking ? "Cancelling…" : "Cancel booking"}
               </button>
             ) : null}
           </div>
           {cancelBookingError ? (
-            <p className="text-sm" style={{ color: "var(--color-error)" }}>{cancelBookingError}</p>
+            <p className="text-sm" style={{ color: "var(--al-status-negative)" }}>{cancelBookingError}</p>
           ) : null}
         </div>
       );
@@ -1066,58 +1066,122 @@ export function BookingForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-7">
       {selectedEventTypeName ? (
-        <div className="p-4" style={{ borderRadius: "var(--radius-2xl)", border: "1px solid var(--color-border-default)", background: "var(--color-brand-subtle)" }}>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em]" style={{ color: "var(--color-text-tertiary)" }}>
-            Selected service
-          </p>
-          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold">{selectedEventTypeName}</h2>
-              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                {effectiveDurationMinutes} minutes - {timezone}
-              </p>
+        <div style={{
+          background: 'var(--al-surface-container-low)',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div>
+            <div style={{
+              fontSize: '10px', fontWeight: 800, letterSpacing: '0.2em',
+              textTransform: 'uppercase' as const, color: 'var(--al-on-surface-variant)',
+              opacity: 0.55, marginBottom: '6px',
+            }}>Selected service</div>
+            <div style={{
+              fontSize: '16px', fontWeight: 700, color: 'var(--al-primary)', marginBottom: '4px',
+            }}>{selectedEventTypeName}</div>
+            <div style={{ fontSize: '13px', color: 'var(--al-on-surface-variant)' }}>
+              {effectiveDurationMinutes} minutes {'\u00b7'} {timezone}
             </div>
-            <p className="text-sm font-medium text-foreground">
-              {selectedEventTypeId ? "Selected service" : "Default service"}
-            </p>
+          </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '11px', fontWeight: 700, letterSpacing: '0.16em',
+            textTransform: 'uppercase' as const,
+            color: 'var(--al-status-positive)',
+            background: 'var(--al-status-positive-bg)',
+            padding: '6px 14px', borderRadius: '9999px',
+          }}>
+            <span style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: 'var(--al-status-positive)',
+            }} />
+            Selected
           </div>
         </div>
       ) : null}
 
       {cancelBookingMessage ? (
-        <div className="p-3" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--color-success-border)", background: "var(--color-success-subtle)" }}>
-          <p className="text-sm" style={{ color: "var(--color-success)" }}>{cancelBookingMessage}</p>
+        <div className="p-3" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--al-status-positive-border)", background: "var(--al-status-positive-bg)" }}>
+          <p className="text-sm" style={{ color: "var(--al-status-positive)" }}>{cancelBookingMessage}</p>
         </div>
       ) : null}
 
-      <div className="space-y-2.5">
-        <Label htmlFor="booking-date" className="text-sm font-semibold">Date</Label>
-        <Input
-          id="booking-date"
-          type="date"
-          value={date}
-          onChange={(event) => setDate(event.target.value)}
-          required
-        />
+      <div style={{ marginBottom: '24px' }}>
+        <label
+          htmlFor="booking-date"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '13px', fontWeight: 800, color: 'var(--al-primary)',
+            marginBottom: '8px',
+          }}
+        >
+          Date
+          <span style={{
+            width: '6px', height: '6px', borderRadius: '50%',
+            background: 'var(--al-primary)', display: 'inline-block',
+          }} />
+        </label>
+        <div
+          className="al-input-wrap"
+          style={{
+            background: 'var(--al-surface-container-lowest)',
+            border: '1px solid rgba(195,198,209,0.50)',
+            borderRadius: '12px',
+            padding: '14px 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+          }}>
+          <input
+            id="booking-date"
+            type="date"
+            value={date}
+            onChange={(event) => setDate(event.target.value)}
+            required
+            style={{
+              fontFamily: 'var(--font-manrope-raw), sans-serif',
+              fontSize: '16px', fontWeight: 700, color: 'var(--al-primary)',
+              border: 'none', outline: 'none', background: 'transparent', width: '100%',
+            }}
+          />
+          <span
+            className="material-symbols-outlined"
+            style={{ color: 'var(--al-outline)', fontSize: '20px', flexShrink: 0 }}
+            aria-hidden="true"
+          >calendar_today</span>
+        </div>
       </div>
 
-      <fieldset className="space-y-3">
-        <div className="space-y-1">
-          <legend className="text-sm font-semibold">Available slots</legend>
-          <p className="text-sm opacity-90">
-            {availabilityDurationMinutes} minutes - {timezone}
+      <fieldset>
+        <div style={{ marginBottom: '12px' }}>
+          <legend style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '13px', fontWeight: 800, color: 'var(--al-primary)',
+            marginBottom: '4px',
+          }}>
+            Available slots
+            <span style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: 'var(--al-primary)', display: 'inline-block',
+            }} />
+          </legend>
+          <p style={{ fontSize: '13px', color: 'var(--al-on-surface-variant)' }}>
+            {availabilityDurationMinutes} minutes {'\u00b7'} {timezone}
           </p>
         </div>
         {loading ? (
-          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Loading slots…</p>
+          <p style={{ fontSize: '13px', color: 'var(--al-on-surface-variant)' }}>Loading slots…</p>
         ) : availabilityError ? (
-          <p className="text-sm" style={{ color: "var(--color-error)" }}>{availabilityError}</p>
+          <p style={{ fontSize: '13px', color: 'var(--al-error)' }}>{availabilityError}</p>
         ) : slots.length === 0 ? (
-          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+          <p style={{ fontSize: '13px', color: 'var(--al-on-surface-variant)' }}>
             No slots available for this day.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '10px' }}>
             {slots.map((slot) => {
               const label = timeFormatter.format(new Date(slot.startsAt));
               const selected = selectedSlot === slot.startsAt;
@@ -1130,15 +1194,18 @@ export function BookingForm({
                   data-booking-slot={slot.startsAt}
                   aria-pressed={selected}
                   style={{
-                    height: "2.75rem",
-                    borderRadius: "var(--radius-lg)",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    border: selected ? "none" : "1px solid var(--color-border-default)",
-                    background: selected ? "var(--color-brand)" : "var(--color-surface-overlay)",
-                    color: selected ? "var(--color-surface-void)" : "var(--color-text-secondary)",
-                    cursor: "pointer",
-                    transition: "all 150ms ease",
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    fontWeight: selected ? 700 : 600,
+                    fontVariantNumeric: 'tabular-nums',
+                    color: selected ? 'var(--al-on-primary)' : 'var(--al-on-surface-variant)',
+                    background: selected ? 'var(--al-primary)' : 'var(--al-surface-container-lowest)',
+                    border: `1px solid ${selected ? 'var(--al-primary)' : 'rgba(195,198,209,0.50)'}`,
+                    borderRadius: '12px',
+                    padding: '12px 20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: selected ? '0 0 0 4px rgba(0,30,64,0.08)' : 'none',
                   }}
                 >
                   {label}
@@ -1149,87 +1216,180 @@ export function BookingForm({
         )}
       </fieldset>
 
-      <div className="space-y-4">
-        <div className="space-y-2.5">
-          <Label htmlFor="full-name" className="text-sm font-semibold">Full name</Label>
-          <Input
-            id="full-name"
-            name="fullName"
-            autoComplete="name"
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
-            required
-          />
+      <div>
+        <div style={{ marginBottom: '20px' }}>
+          <label htmlFor="full-name" style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            fontSize: '13px', fontWeight: 800, color: 'var(--al-primary)',
+            marginBottom: '8px',
+          }}>
+            Full name
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--al-primary)', display: 'inline-block' }} />
+          </label>
+          <div className="al-input-wrap" style={{
+            background: 'var(--al-surface-container-lowest)',
+            border: '1px solid rgba(195,198,209,0.50)',
+            borderRadius: '12px',
+            padding: '14px 16px',
+            transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+          }}>
+            <input
+              id="full-name"
+              name="fullName"
+              type="text"
+              autoComplete="name"
+              placeholder="Jordan Carter"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              required
+              style={{
+                fontFamily: 'var(--font-manrope-raw), sans-serif',
+                fontSize: '16px', fontWeight: 700, color: 'var(--al-primary)',
+                border: 'none', outline: 'none', background: 'transparent', width: '100%',
+              }}
+            />
+          </div>
         </div>
-        <div className="space-y-2.5">
-          <Label htmlFor="phone" className="text-sm font-semibold">Phone</Label>
-          <Input
-            id="phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-2.5">
-          <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            spellCheck={false}
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div>
+            <label htmlFor="phone" style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              fontSize: '13px', fontWeight: 800, color: 'var(--al-primary)',
+              marginBottom: '8px',
+            }}>
+              Phone
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--al-primary)', display: 'inline-block' }} />
+            </label>
+            <div className="al-input-wrap" style={{
+              background: 'var(--al-surface-container-lowest)',
+              border: '1px solid rgba(195,198,209,0.50)',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+            }}>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="+44 7700 900123"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                required
+                style={{
+                  fontFamily: 'var(--font-manrope-raw), sans-serif',
+                  fontSize: '16px', fontWeight: 700, color: 'var(--al-primary)',
+                  border: 'none', outline: 'none', background: 'transparent', width: '100%',
+                }}
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="email" style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              fontSize: '13px', fontWeight: 800, color: 'var(--al-primary)',
+              marginBottom: '8px',
+            }}>
+              Email
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--al-primary)', display: 'inline-block' }} />
+            </label>
+            <div className="al-input-wrap" style={{
+              background: 'var(--al-surface-container-lowest)',
+              border: '1px solid rgba(195,198,209,0.50)',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+            }}>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                spellCheck={false}
+                placeholder="you@email.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+                style={{
+                  fontFamily: 'var(--font-manrope-raw), sans-serif',
+                  fontSize: '16px', fontWeight: 700, color: 'var(--al-primary)',
+                  border: 'none', outline: 'none', background: 'transparent', width: '100%',
+                }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-start gap-3">
-        <input
-          id="sms-opt-in"
-          type="checkbox"
-          className="mt-0.5 h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          checked={smsOptIn}
-          onChange={(event) => setSmsOptIn(event.target.checked)}
-        />
-        <Label htmlFor="sms-opt-in" className="text-sm font-medium leading-5 cursor-pointer">
-          Send me SMS updates about this booking.
-        </Label>
-      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '12px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+          <span style={{
+            width: '20px', height: '20px',
+            border: smsOptIn ? '2px solid var(--al-primary)' : '2px solid rgba(195,198,209,0.50)',
+            borderRadius: '6px', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: smsOptIn ? 'var(--al-primary)' : 'var(--al-surface-container-lowest)',
+            transition: 'all 0.15s ease',
+          }}>
+            {smsOptIn && <span style={{ color: 'var(--al-on-primary)', fontSize: '14px', fontWeight: 700 }}>{'\u2713'}</span>}
+          </span>
+          <input
+            type="checkbox"
+            checked={smsOptIn}
+            onChange={(event) => setSmsOptIn(event.target.checked)}
+            style={{ position: 'absolute' as const, opacity: 0, width: 0, height: 0 }}
+            aria-label="Send me SMS updates about this booking"
+          />
+          <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--al-on-surface)' }}>
+            Send me SMS updates about this booking.
+          </span>
+        </label>
 
-      <div className="flex items-start gap-3 p-4" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border-subtle)", background: "var(--color-surface-overlay)" }}>
-        <input
-          id="email-opt-in"
-          type="checkbox"
-          className="mt-0.5 h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          checked={emailOptIn}
-          onChange={(event) => setEmailOptIn(event.target.checked)}
-        />
-        <div className="space-y-1.5">
-          <Label htmlFor="email-opt-in" className="cursor-pointer text-sm font-medium leading-5">
-            Send me email reminders.
-          </Label>
-          <p className="text-sm leading-relaxed opacity-85">
-            Get an email reminder about 24 hours before your appointment. You can
-            opt out later.
-          </p>
-        </div>
+        <label style={{
+          display: 'flex', alignItems: 'flex-start', gap: '12px',
+          padding: '16px 20px',
+          background: 'var(--al-surface-container-low)',
+          borderRadius: '12px', cursor: 'pointer',
+        }}>
+          <span style={{
+            width: '20px', height: '20px',
+            border: emailOptIn ? '2px solid var(--al-primary)' : '2px solid rgba(195,198,209,0.50)',
+            borderRadius: '6px', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: emailOptIn ? 'var(--al-primary)' : 'var(--al-surface-container-lowest)',
+            transition: 'all 0.15s ease', marginTop: '2px',
+          }}>
+            {emailOptIn && <span style={{ color: 'var(--al-on-primary)', fontSize: '14px', fontWeight: 700 }}>{'\u2713'}</span>}
+          </span>
+          <input
+            type="checkbox"
+            checked={emailOptIn}
+            onChange={(event) => setEmailOptIn(event.target.checked)}
+            style={{ position: 'absolute' as const, opacity: 0, width: 0, height: 0 }}
+            aria-label="Send me email reminders"
+          />
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--al-on-surface)', marginBottom: '4px' }}>
+              Send me email reminders.
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--al-on-surface-variant)', lineHeight: 1.5 }}>
+              Get an email reminder about 24 hours before your appointment. You can opt out later.
+            </div>
+          </div>
+        </label>
       </div>
 
       {error ? (
-        <div className="p-3.5" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--color-error-border)", background: "var(--color-error-subtle)" }}>
-          <p className="text-sm font-semibold" style={{ color: "var(--color-error)" }}>{error.message}</p>
+        <div className="p-3.5" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--al-status-negative-border)", background: "var(--al-status-negative-bg)" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--al-status-negative)" }}>{error.message}</p>
           <p className="mt-1.5 text-sm opacity-85">
             Please select a different time slot and try again.
           </p>
         </div>
       ) : null}
 
-      <button type="submit" disabled={isSubmitting} style={{ width: "100%", height: "2.75rem", background: isSubmitting ? "var(--color-brand-dim)" : "var(--color-brand)", color: "var(--color-surface-void)", borderRadius: "var(--radius-lg)", fontSize: "1rem", fontWeight: 600, border: "none", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
+      <button type="submit" disabled={isSubmitting} style={{ width: "100%", height: "2.75rem", background: isSubmitting ? "var(--al-primary)" : "var(--al-primary)", color: "var(--al-on-primary)", borderRadius: "var(--radius-lg)", fontSize: "1rem", fontWeight: 600, border: "none", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
         {isSubmitting ? "Booking…" : "Confirm booking"}
       </button>
     </form>

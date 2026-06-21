@@ -1,0 +1,37 @@
+/* ============================================================
+   Astro · Atelier Light — Effects (shadow · gradient · motion)
+   ------------------------------------------------------------
+   Flat by default. ONE soft, near-colorless float for cards.
+   Color (navy) shadows are reserved for things that lift toward
+   the user: CTAs, the active brand mark, menus. Separation is
+   otherwise done with hairlines, never boxes.
+
+   Motion stays under ~0.3s. .15s is the de-facto state-change
+   standard. Default easing unless a spring is genuinely needed.
+   ============================================================ */
+
+:root {
+  /* ── Shadows ──────────────────────────────────────────────── */
+  --al-shadow-float:  0px 20px 40px rgba(26, 28, 27, 0.04);  /* the one card float */
+  --al-shadow-menu:   0px 20px 40px rgba(26, 28, 27, 0.10);  /* dropdowns */
+  --al-shadow-cta:    0px 14px 28px rgba(0, 30, 64, 0.20);   /* primary buttons */
+  --al-shadow-mark:   0px 8px 18px rgba(0, 30, 64, 0.18);    /* brand mark tile */
+  --al-shadow-ring:   0 0 0 4px rgba(0, 30, 64, 0.08);       /* selected radio/buffer */
+  --al-focus-ring:    0 0 0 3px rgba(0, 30, 64, 0.12);       /* input :focus-visible */
+
+  /* ── Gradients ────────────────────────────────────────────── */
+  --al-gradient-cta:      linear-gradient(135deg, #001e40, #003366);   /* @kind other */
+  --al-gradient-avatar-top: linear-gradient(135deg, #d5e3ff, #a7c8ff); /* @kind other */
+  --al-gradient-avatar-std: linear-gradient(135deg, #fdd8cb, #e2bfb3); /* @kind other */
+
+  /* Hatch fill — closed-day / unavailable texture */
+  --al-hatch: repeating-linear-gradient(135deg, transparent 0 7px, rgba(195,198,209,0.18) 7px 8px); /* @kind other */
+
+  /* ── Motion ───────────────────────────────────────────────── */
+  --al-dur-instant: 0.12s;  /* @kind other */
+  --al-dur-fast:    0.15s;  /* @kind other */
+  --al-dur-normal:  0.25s;  /* @kind other */
+  --al-dur-slow:    0.30s;  /* @kind other */
+  --al-ease:        ease;   /* @kind other */
+  --al-ease-spring: cubic-bezier(.2, .7, .3, 1); /* @kind other */
+}

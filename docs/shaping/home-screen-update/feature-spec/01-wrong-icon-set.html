@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #1 — Wrong Icon Set</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --terracotta: #a0522d;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major — Breaks a Brand Law</span>
+  <h1>#1 — Wrong Icon Set</h1>
+  <p class="meta">Component: <code>atelier-dashboard.tsx</code> &middot; Home Hub</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>Every dashboard icon — <code>calendar</code>, <code>arrow</code>, <code>Package</code>, <code>BarChart3</code>, <code>Users</code>, <code>UserPlus</code>, <code>ExternalLink</code>, <code>Copy</code>, <code>ChevronRight</code> — is imported from <code>lucide-react</code>.</p>
+    <p>The design system mandates <strong>Material Symbols Outlined exclusively</strong> — no second icon set is permitted. The sidebar (<code>app-nav.tsx</code>) already does this correctly; the dashboard doesn't, creating an inconsistency.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Swap every icon to <code>&lt;span className="material-symbols-outlined"&gt;</code> (or the DS <code>Icon</code> component).</p>
+    <p><strong>Icon mapping:</strong></p>
+    <ul>
+      <li><code>calendar</code> → <code>calendar_month</code></li>
+      <li><code>arrow</code> → <code>arrow_forward</code></li>
+      <li><code>Package</code> → <code>inventory_2</code></li>
+      <li><code>BarChart3</code> → <code>bar_chart</code></li>
+      <li><code>Users</code> → <code>group</code></li>
+      <li><code>UserPlus</code> → <code>person_add</code></li>
+      <li><code>ExternalLink</code> → <code>open_in_new</code></li>
+      <li><code>Copy</code> → <code>content_copy</code></li>
+      <li><code>ChevronRight</code> → <code>chevron_right</code></li>
+    </ul>
+    <p>Use <code>FILL 1</code> for active/emphasis states.</p>
+    <pre>&lt;span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}&gt;
+  calendar_month
+&lt;/span&gt;</pre>
+  </section>
+</body>
+</html>

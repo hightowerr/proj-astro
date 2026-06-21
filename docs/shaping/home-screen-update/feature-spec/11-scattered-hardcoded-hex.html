@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #11 — Scattered Hardcoded Hex</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --yellow: #c9a800;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--minor { background: #fff9c4; color: #7a6800; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--yellow); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+    th { font-weight: 700; color: var(--navy); }
+    .off-palette { background: #fff3e0; }
+    .note { background: #f5f5f0; border-radius: 10px; padding: 1rem; margin-top: 0.75rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--minor">Minor — Polish</span>
+  <span class="badge" style="background:#e8f5e9;color:#2e7d32;margin-left:8px">Implemented</span>
+  <h1>#11 — Scattered Hardcoded Hex</h1>
+  <p class="meta">Component: <code>atelier-dashboard.tsx</code> &middot; Various Elements &middot; Implemented 2026-06-19</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>Multiple hardcoded hex values appear throughout the component instead of DS tokens:</p>
+    <table>
+      <thead>
+        <tr><th>Hardcoded Hex</th><th>Maps To Token</th><th>Location</th><th>Tailwind Utility</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>#2a170f</code></td><td><code>--al-on-secondary-fixed</code></td><td>Step pill text</td><td><code>text-al-on-secondary-fixed</code></td></tr>
+        <tr><td><code>#ffdbcf</code></td><td><code>--al-secondary-fixed</code></td><td>Step pill bg</td><td><code>bg-al-secondary-fixed</code></td></tr>
+        <tr><td><code>#fdd8cb</code></td><td><code>--al-secondary-container</code></td><td>Book-first icon bg, avatar bg (&times;3)</td><td><code>bg-al-secondary-container</code></td></tr>
+        <tr><td><code>#785c53</code></td><td><code>--al-on-secondary-container</code></td><td>Book-first icon text</td><td>&mdash; <em>no theme mapping</em></td></tr>
+        <tr><td><code>#74584f</code></td><td><code>--al-secondary</code></td><td>Avatar initials text (&times;3)</td><td><code>text-al-secondary</code></td></tr>
+        <tr><td><code>#93000a</code></td><td><code>--al-on-error-container</code></td><td>Error pill text</td><td><code>text-al-on-error-container</code></td></tr>
+        <tr><td><code>#ffdad6</code></td><td><code>--al-error-container</code></td><td>Error pill bg</td><td><code>bg-al-error-container</code></td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <strong>Resolved:</strong> <code>#fff8f5</code> and <code>#9a6f64</code> were off-palette and have already been removed by the Spec #2 implementation (Team card switched to white surface with navy text tokens).
+    </div>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Replace each hex literal with its Tailwind utility or <code>var()</code> inline style. Six of seven tokens have <code>@theme</code> mappings and can use Tailwind classes directly. One requires an inline style or a theme mapping prerequisite.</p>
+    <pre>/* Tailwind utility (6 of 7 tokens) */
+bg-[#ffdbcf]  &rarr;  bg-al-secondary-fixed
+text-[#2a170f] &rarr;  text-al-on-secondary-fixed
+bg-[#fdd8cb]  &rarr;  bg-al-secondary-container
+text-[#74584f] &rarr;  text-al-secondary
+bg-[#ffdad6]  &rarr;  bg-al-error-container
+text-[#93000a] &rarr;  text-al-on-error-container
+
+/* Inline style (no theme mapping) */
+text-[#785c53] &rarr;  style={{ color: 'var(--al-on-secondary-container)' }}
+/* or add --color-al-on-secondary-container to @theme inline first */</pre>
+    <div class="note">
+      <strong>Prerequisite:</strong> <code>--al-on-secondary-container</code> (<code>#785c53</code>) has no <code>--color-al-on-secondary-container</code> entry in the <code>@theme inline</code> block of <code>globals.css</code>. Either add the mapping or use an inline style for this single value.
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feature Spec: Service Card — Booking Page</title>
+  <style>
+    :root {
+      --al-primary: #001e40;
+      --al-background: #f9f9f7;
+      --al-surface-container-lowest: #ffffff;
+      --al-surface-container-low: #f4f4f2;
+      --al-on-surface: #1a1c1b;
+      --al-on-surface-variant: #43474f;
+      --al-outline-variant: #c3c6d1;
+      --al-hairline: rgba(195, 198, 209, 0.20);
+      --al-status-positive: #0e7a55;
+      --al-status-positive-bg: rgba(14, 122, 85, 0.10);
+      --al-font: 'Manrope', system-ui, -apple-system, sans-serif;
+      --al-radius-3xl: 24px;
+      --al-radius-full: 9999px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--al-font);
+      background: var(--al-background);
+      color: var(--al-on-surface);
+      padding: 40px;
+    }
+
+    .spec-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--al-on-surface-variant);
+      opacity: 0.55;
+      margin-bottom: 8px;
+    }
+    .spec-heading {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--al-primary);
+      margin-bottom: 8px;
+    }
+    .spec-desc {
+      font-size: 14px;
+      color: var(--al-on-surface-variant);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .spec-notes {
+      margin-top: 32px;
+      padding: 20px 24px;
+      background: var(--al-surface-container-lowest);
+      border-radius: 16px;
+      border: 1px solid var(--al-hairline);
+    }
+    .spec-notes h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--al-primary);
+      margin-bottom: 12px;
+    }
+    .spec-notes ul { list-style: none; padding: 0; }
+    .spec-notes li {
+      font-size: 13px;
+      color: var(--al-on-surface-variant);
+      line-height: 1.6;
+      padding-left: 16px;
+      position: relative;
+    }
+    .spec-notes li::before {
+      content: "~";
+      position: absolute;
+      left: 0;
+      color: var(--al-outline-variant);
+    }
+
+    /* ── Component preview ── */
+    .preview {
+      max-width: 560px;
+      margin-bottom: 24px;
+    }
+
+    .service-card {
+      background: var(--al-surface-container-low);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .service-info {}
+    .service-eyebrow {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--al-on-surface-variant);
+      opacity: 0.55;
+      margin-bottom: 6px;
+    }
+    .service-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--al-primary);
+      margin-bottom: 4px;
+    }
+    .service-meta {
+      font-size: 13px;
+      color: var(--al-on-surface-variant);
+    }
+    .service-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--al-status-positive);
+      background: var(--al-status-positive-bg);
+      padding: 6px 14px;
+      border-radius: var(--al-radius-full);
+    }
+    .service-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--al-status-positive);
+    }
+  </style>
+</head>
+<body>
+  <div class="spec-title">Feature Spec</div>
+  <h1 class="spec-heading">Service Card</h1>
+  <p class="spec-desc">
+    Displays the currently selected service with its name, duration, and timezone.
+    Shows a "Selected" status badge. When multiple services are available, this
+    acts as the selectable service option.
+  </p>
+
+  <div class="preview">
+    <div class="service-card">
+      <div class="service-info">
+        <div class="service-eyebrow">Selected service</div>
+        <div class="service-name">Free Audit</div>
+        <div class="service-meta">60 minutes &middot; UTC</div>
+      </div>
+      <div class="service-badge">
+        <span class="service-badge-dot"></span>
+        Selected
+      </div>
+    </div>
+  </div>
+
+  <div class="spec-notes">
+    <h3>Design notes</h3>
+    <ul>
+      <li>Card background: #f4f4f2 (surface-container-low), radius 16px</li>
+      <li>Eyebrow: 10px, weight 800, 0.2em tracking, uppercase, muted @ 0.55</li>
+      <li>Service name: 16px, weight 700, navy (#001e40)</li>
+      <li>Meta line: 13px, muted (#43474f), format "[duration] · [timezone]"</li>
+      <li>Badge: green pill (#0e7a55 text on rgba(14,122,85,0.10) bg), radius 9999px, 11px weight 700, 0.16em tracking</li>
+      <li>Badge includes a 6px green dot before the text</li>
+      <li>Padding: 20px vertical, 24px horizontal</li>
+      <li>When only one service exists, it's pre-selected and non-interactive</li>
+      <li>Design change only — no new functionality</li>
+    </ul>
+  </div>
+</body>
+</html>

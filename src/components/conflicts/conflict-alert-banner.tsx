@@ -96,7 +96,7 @@ export function ConflictAlertBanner({ conflictCount, shopId }: ConflictAlertBann
       <button
         type="button"
         onClick={handleDismiss}
-        className="shrink-0 transition-colors duration-200 hover:text-[var(--color-text-primary)]"
+        className="shrink-0 transition-colors duration-200 hover:text-[var(--al-on-surface)]"
         style={{ color: "var(--al-status-caution)" }}
         aria-label="Dismiss conflict banner"
       >

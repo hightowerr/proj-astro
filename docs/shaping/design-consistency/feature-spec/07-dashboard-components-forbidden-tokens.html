@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #7 — Dashboard Components Forbidden Tokens</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    section h3 { font-size: 0.95rem; font-weight: 700; margin: 1rem 0 0.3rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 700; color: var(--navy); }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Forbidden Tokens in Dashboard Components</span>
+  <span class="badge" style="background:#d4edda;color:#155724;">IMPLEMENTED &mdash; Wave 1 Slice 3 (2026-06-19)</span>
+  <h1>#7 &mdash; Dashboard Components Use Deep Ledger Tokens</h1>
+  <p class="meta">Components: <code>src/components/dashboard/</code> &middot; Shared Components &middot; <strong>Wave 1</strong></p>
+  <p class="meta">Dependencies: <strong>None</strong> &mdash; uses existing <code>--al-*</code> and <code>--al-status-*</code> tokens already in production</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>Five dashboard components use forbidden <code>--color-*</code> Deep Ledger tokens or hardcoded non-AL colors:</p>
+
+    <h3>shop-overview-card.tsx</h3>
+    <p>Entirely styled with <code>--color-border-default</code>, <code>--color-surface-raised</code>, <code>--color-text-primary</code>, <code>--color-text-tertiary</code>, <code>--color-brand</code>, <code>--color-brand-hover</code>, <code>--color-text-inverse</code>, <code>--color-surface-base</code>.</p>
+
+    <h3>confirmation-status-badge.tsx</h3>
+    <p>Uses hardcoded Tailwind dark-theme colors instead of AL status tokens:</p>
+    <pre>bg-amber-500/15 text-amber-300    /* for pending */
+bg-emerald-500/15 text-emerald-300 /* for confirmed */
+bg-rose-500/15 text-rose-300       /* for expired */</pre>
+
+    <h3>success-banner.tsx</h3>
+    <p>Uses <code>--color-brand</code>, <code>--color-surface-raised</code>, <code>--color-text-primary</code>.</p>
+
+    <h3>copy-button.tsx</h3>
+    <p>Uses <code>--color-brand</code>, <code>--color-text-secondary</code>.</p>
+
+    <h3>booking-management-choice.tsx</h3>
+    <p>Uses <code>--color-surface-raised</code>, <code>--color-border-default</code>, <code>--color-text-*</code>, <code>--color-brand</code>.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Apply the standard token mapping across all five files:</p>
+    <table>
+      <tr><th>Deep Ledger / hardcoded</th><th>AL replacement</th></tr>
+      <tr><td><code>--color-border-default</code></td><td><code>--al-outline-variant</code></td></tr>
+      <tr><td><code>--color-surface-raised</code></td><td><code>--al-surface-container-lowest</code></td></tr>
+      <tr><td><code>--color-surface-base</code></td><td><code>--al-background</code></td></tr>
+      <tr><td><code>--color-text-primary</code></td><td><code>--al-on-surface</code></td></tr>
+      <tr><td><code>--color-text-secondary</code></td><td><code>--al-on-surface-variant</code></td></tr>
+      <tr><td><code>--color-text-tertiary</code></td><td><code>--al-on-surface-variant</code></td></tr>
+      <tr><td><code>--color-text-inverse</code></td><td><code>--al-on-primary</code></td></tr>
+      <tr><td><code>--color-brand</code></td><td><code>--al-primary</code></td></tr>
+      <tr><td><code>--color-brand-hover</code></td><td><code>--al-primary-container</code></td></tr>
+      <tr><td><code>bg-amber-500/15 text-amber-300</code></td><td><code>bg-[var(--al-status-caution-bg)] text-[var(--al-status-caution)]</code></td></tr>
+      <tr><td><code>bg-emerald-500/15 text-emerald-300</code></td><td><code>bg-[var(--al-status-positive-bg)] text-[var(--al-status-positive)]</code></td></tr>
+      <tr><td><code>bg-rose-500/15 text-rose-300</code></td><td><code>bg-[var(--al-status-negative-bg)] text-[var(--al-status-negative)]</code></td></tr>
+    </table>
+    <p class="file-ref">Files: <code>src/components/dashboard/shop-overview-card.tsx</code>, <code>confirmation-status-badge.tsx</code>, <code>success-banner.tsx</code>, <code>copy-button.tsx</code>, <code>booking-management-choice.tsx</code></p>
+  </section>
+</body>
+</html>

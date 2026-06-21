@@ -1,0 +1,54 @@
+/* ============================================================
+   Astro · Atelier Light — Base & Utilities
+   ------------------------------------------------------------
+   Minimal, non-token CSS that components rely on: the Material
+   Symbols icon class, body reset, focus ring, and a few
+   signature helpers (eyebrow, mono, hatch). Tokens themselves
+   live in tokens/*.css.
+   ============================================================ */
+
+body {
+  margin: 0;
+  background: var(--al-background);
+  color: var(--al-on-surface);
+  font-family: var(--al-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Inputs get the only global focus affordance in the system */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: var(--al-focus-ring);
+}
+
+/* ── Material Symbols Outlined icon font ──────────────────────
+   FILL 0 default · FILL 1 when active/selected/emphasis. */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.material-symbols-outlined[data-fill="1"] { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+
+/* ── Signature helpers ────────────────────────────────────────── */
+.al-card {
+  background: var(--al-surface-container-lowest);
+  border-radius: var(--al-radius-3xl);
+  box-shadow: var(--al-shadow-float);
+  overflow: hidden;
+}
+.al-hatch-fill { background-image: var(--al-hatch); }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #5 — Card Radius Below Sheet Spec</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --orange: #e67e22;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--moderate { background: #fff3e0; color: #bf5f00; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--orange); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+    th { font-weight: 700; color: var(--navy); }
+  </style>
+</head>
+<body>
+  <span class="badge badge--moderate">Moderate — Token / Scale Violation</span>
+  <h1>#5 — Card Radius Below Sheet Spec</h1>
+  <p class="meta">Component: <code>atelier-dashboard.tsx</code> &middot; All Cards</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>Cards/sheets use <code>rounded-2xl</code> (16px). The DS radius ladder specifies sheets at <strong>24px</strong>.</p>
+    <table>
+      <thead>
+        <tr><th>Element</th><th>DS Radius</th><th>Tailwind</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Sheets / Cards</td><td>24px</td><td><code>rounded-3xl</code></td></tr>
+        <tr><td>Controls / Buttons</td><td>10–12px</td><td><code>rounded-xl</code></td></tr>
+        <tr><td>Pills</td><td>9999px</td><td><code>rounded-full</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Apply <code>rounded-3xl</code> (24px) on the four sheet-level cards. Keep <code>rounded-xl</code> (12px) on buttons and icon tiles.</p>
+    <pre>/* Before */
+&lt;div className="rounded-2xl ..."&gt;
+
+/* After */
+&lt;div className="rounded-3xl ..."&gt;</pre>
+  </section>
+</body>
+</html>

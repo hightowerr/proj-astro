@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Astro App Screen" description="Atelier Light admin screen — sidebar shell, page header, and a ledger Sheet with status rows + CTA." -->
+<helmet>
+  <script src="./ds-base.js"></script>
+  <style>
+    body { margin: 0; background: var(--al-surface-container-low); font-family: var(--al-font); }
+  </style>
+</helmet>
+
+<div style="display:grid; grid-template-columns:264px 1fr; min-height:100vh;">
+
+  <!-- Sidebar -->
+  <aside style="background:var(--al-background); border-right:1px solid var(--al-hairline); padding:32px 20px; display:flex; flex-direction:column;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="width:42px; height:42px; border-radius:12px; background:var(--al-gradient-cta); color:#fff; display:grid; place-items:center; box-shadow:var(--al-shadow-mark);">
+        <span class="material-symbols-outlined" data-fill="1" style="font-size:24px;">dashboard_customize</span>
+      </span>
+      <span style="font-size:20px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:var(--al-primary);">Astro</span>
+    </div>
+    <div style="font-size:10px; font-weight:500; letter-spacing:.2em; text-transform:uppercase; color:var(--al-on-surface-variant); opacity:.7; margin:6px 0 28px 54px;">Atelier No. 9</div>
+
+    <nav style="display:flex; flex-direction:column; gap:4px;">
+      <div style="display:flex; align-items:center; gap:14px; padding:11px 14px; border-radius:10px; background:var(--al-primary); color:#fff; font-size:14px; font-weight:700;">
+        <span class="material-symbols-outlined" data-fill="1" style="font-size:20px;">dashboard</span>Dashboard
+      </div>
+      <div style="display:flex; align-items:center; gap:14px; padding:11px 14px; border-radius:10px; color:var(--al-on-surface-variant); font-size:14px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:20px;">calendar_month</span>Appointments
+      </div>
+      <div style="display:flex; align-items:center; gap:14px; padding:11px 14px; border-radius:10px; color:var(--al-on-surface-variant); font-size:14px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:20px;">group</span>Customers
+      </div>
+      <div style="display:flex; align-items:center; gap:14px; padding:11px 14px; border-radius:10px; color:var(--al-on-surface-variant); font-size:14px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:20px;">notifications</span>Reminders
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main style="padding:32px 48px 64px; display:flex; flex-direction:column; gap:28px;">
+    <div>
+      <h1 style="margin:0; font-size:40px; font-weight:800; letter-spacing:-.025em; color:var(--al-primary);">Dashboard</h1>
+      <p style="margin:8px 0 0; font-size:14px; font-weight:500; color:var(--al-on-surface-variant);">Monitor high-risk appointments and reliability trends.</p>
+    </div>
+
+    <x-import component-from-global-scope="AstroDesignSystem_424d7f.Sheet" eyebrow="The ledger" title="Recent appointments" lede="Settled, pending and voided outcomes from the last 7 days." padded="{{ false }}" hint-size="100%,300px">
+      <div style="border-top:1px solid var(--al-hairline);">
+        <div style="display:flex; align-items:center; gap:12px; padding:18px 28px;">
+          <x-import component-from-global-scope="AstroDesignSystem_424d7f.Avatar" initials="SM" tier="top" size="{{ 34 }}" hint-size="34px,34px"></x-import>
+          <div style="flex:1;">
+            <div style="font-size:14px; font-weight:700; color:var(--al-on-surface);">Sarah Mitchell</div>
+            <div style="font-size:13px; color:var(--al-on-surface-variant);">Balayage refresh</div>
+          </div>
+          <x-import component-from-global-scope="AstroDesignSystem_424d7f.StatusPill" variant="positive" tinted="{{ false }}" hint-size="90px,18px">Settled</x-import>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; padding:18px 28px; border-top:1px solid var(--al-hairline);">
+          <x-import component-from-global-scope="AstroDesignSystem_424d7f.Avatar" initials="TR" tier="risk" size="{{ 34 }}" hint-size="34px,34px"></x-import>
+          <div style="flex:1;">
+            <div style="font-size:14px; font-weight:700; color:var(--al-on-surface);">Taylor Reed</div>
+            <div style="font-size:13px; color:var(--al-on-surface-variant);">Colour correction</div>
+          </div>
+          <x-import component-from-global-scope="AstroDesignSystem_424d7f.StatusPill" variant="caution" tinted="{{ false }}" hint-size="110px,18px">Unresolved</x-import>
+        </div>
+      </div>
+    </x-import>
+
+    <div style="display:flex; gap:12px;">
+      <x-import component-from-global-scope="AstroDesignSystem_424d7f.Button" hint-size="140px,44px">Resolve all</x-import>
+      <x-import component-from-global-scope="AstroDesignSystem_424d7f.Button" variant="ghost" hint-size="120px,44px">Export</x-import>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>

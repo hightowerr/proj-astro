@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #4 — AL Utility Classes</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--moderate { background: #fff3cd; color: #856404; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--moderate">Moderate &mdash; Missing Shared Patterns</span>
+  <h1>#4 &mdash; AL Utility Classes</h1>
+  <p class="meta">File: <code>src/app/globals.css</code> &middot; Foundation &middot; <strong>Wave 3</strong></p>
+  <p class="meta">Dependencies: <strong>#02</strong> (implemented), <strong>#03</strong> (implemented). Note: <code>--al-font-mono</code> already exists (Wave 1 Slice 1). Most #03 tokens exist, but <code>--al-track-eyebrow</code> (0.2em) and <code>--al-radius-3xl</code> (24px) must be added to production CSS first &mdash; they exist in <code>docs/design-system/tokens/</code> but were never added to <code>globals.css</code>.</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>Pages repeat the same styling patterns inline (eyebrows, page titles, section titles, card containers, lede text) because no shared utility classes exist in production. The design system docs define <code>.al-eyebrow</code>, <code>.al-card</code>, <code>.al-num</code>, and <code>.al-mono</code> in <code>docs/design-system/tokens/</code>, but these were never added to <code>globals.css</code>.</p>
+    <p>Without these classes, every page re-invents the same patterns with slightly different values &mdash; causing the inconsistencies across the app.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p><strong>Pre-req:</strong> Add two missing tokens to the <code>:root</code> block before adding utilities:</p>
+    <pre>/* Add to Tracking section (~line 407) */
+--al-track-eyebrow: 0.2em;
+
+/* Add to Roundness section (~line 452) */
+--al-radius-3xl:  24px;</pre>
+    <p>Then add the following utility classes at the end of the "Atelier Light Utilities" section of <code>globals.css</code> (after the toggle switch block, approximately line 724+; exact line may vary):</p>
+
+    <pre>/* Standard app page wrapper */
+.al-page {
+  font-family: var(--al-font);
+  background: var(--al-background);
+  min-height: 100vh;
+  padding: var(--al-main-pad-y) var(--al-main-pad-x);
+  display: flex;
+  flex-direction: column;
+  gap: var(--al-sp-6);
+}
+
+/* Page title &mdash; canonical 44px / 800 */
+.al-page-title {
+  font-size: var(--al-display-md);
+  font-weight: var(--al-w-extra);
+  letter-spacing: var(--al-track-display);
+  color: var(--al-primary);
+  line-height: 1.0;
+}
+
+/* Section title &mdash; 24px / 800 */
+.al-section-title {
+  font-size: var(--al-headline-md);
+  font-weight: var(--al-w-extra);
+  letter-spacing: -0.02em;
+  color: var(--al-primary);
+  line-height: 1.1;
+}
+
+/* Eyebrow motif &mdash; the signature element */
+.al-eyebrow {
+  font-family: var(--al-font);
+  font-size: var(--al-label-sm);
+  font-weight: var(--al-w-extra);
+  letter-spacing: var(--al-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--al-on-surface-variant);
+  opacity: 0.55;
+}
+
+/* Body lede / description text */
+.al-lede {
+  font-size: var(--al-title-sm);
+  color: var(--al-on-surface-variant);
+  line-height: 1.55;
+  max-width: 62ch;
+}
+
+/* Card container &mdash; the single elevation recipe */
+.al-card {
+  background: var(--al-surface-container-lowest);
+  border-radius: var(--al-radius-3xl);
+  box-shadow: var(--al-shadow-float);
+  overflow: hidden;
+}
+
+/* Tabular numerics utility */
+.al-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Monospace numerics (time, money, counts) */
+.al-mono {
+  font-family: var(--al-font-mono);
+  font-variant-numeric: tabular-nums;
+}</pre>
+
+    <p style="margin-top: 1rem;"><strong>Canonical page structure:</strong></p>
+    <pre>&lt;div className="al-page"&gt;
+  &lt;div className="al-eyebrow"&gt;Studio / Page Name&lt;/div&gt;
+  &lt;h1 className="al-page-title"&gt;Page Title&lt;/h1&gt;
+  &lt;p className="al-lede"&gt;Description text.&lt;/p&gt;
+  &lt;section&gt;
+    &lt;h2 className="al-section-title"&gt;Section&lt;/h2&gt;
+    &lt;div className="al-card p-6"&gt;...&lt;/div&gt;
+  &lt;/section&gt;
+&lt;/div&gt;</pre>
+
+    <p class="file-ref">Source patterns: <code>docs/design-system/tokens/base.css</code>, <code>typography.css</code></p>
+  </section>
+</body>
+</html>

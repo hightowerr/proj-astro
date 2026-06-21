@@ -1,0 +1,30 @@
+<!-- @dsCard group="Spacing" viewport="700x150" name="Hairline & Spacing" subtitle="rgba(195,198,209,.2–.55) dividers; generous gap rhythm" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--al-background); font-family: var(--al-font); display: flex; gap: 40px; }
+  .lab { font-family: var(--al-font-mono); font-size: 10px; color: #43474f; }
+  .hl { height: 1px; width: 240px; margin: 14px 0; }
+  .scale { display: flex; align-items: flex-end; gap: 8px; }
+  .bar { background: #001e40; width: 16px; border-radius: 3px 3px 0 0; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="lab">hairline .20</div><div class="hl" style="background:rgba(195,198,209,.20)"></div>
+    <div class="lab">rest .30</div><div class="hl" style="background:rgba(195,198,209,.30)"></div>
+    <div class="lab">strong .50</div><div class="hl" style="background:rgba(195,198,209,.50)"></div>
+  </div>
+  <div>
+    <div class="scale">
+      <div class="bar" style="height:8px"></div><div class="bar" style="height:16px"></div>
+      <div class="bar" style="height:24px"></div><div class="bar" style="height:32px"></div>
+      <div class="bar" style="height:48px"></div><div class="bar" style="height:64px"></div>
+    </div>
+    <div class="lab" style="margin-top:8px">spacing · 8 · 16 · 24 · 32 · 48 · 64</div>
+  </div>
+</body>
+</html>

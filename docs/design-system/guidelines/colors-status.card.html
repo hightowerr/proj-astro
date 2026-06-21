@@ -1,0 +1,26 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Status Vocabulary" subtitle="Navy / green / amber / rose — only as small tinted pills or dots" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--al-background); display: flex; flex-direction: column; gap: 16px; font-family: var(--al-font); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  .dot { width: 5px; height: 5px; border-radius: 9999px; }
+  .hex { font-family: var(--al-font-mono); font-size: 11px; color: #43474f; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <span class="pill" style="background:rgba(14,122,85,.10);color:#0e7a55"><span class="dot" style="background:#0e7a55"></span>Settled</span>
+    <span class="pill" style="background:rgba(168,41,74,.10);color:#a8294a"><span class="dot" style="background:#a8294a"></span>Voided</span>
+    <span class="pill" style="background:rgba(201,122,42,.10);color:#c97a2a"><span class="dot" style="background:#c97a2a"></span>Pending</span>
+    <span class="pill" style="background:#eeeeec;color:#43474f"><span class="dot" style="background:#43474f"></span>Refunded</span>
+  </div>
+  <div class="row">
+    <span class="hex">positive #0e7a55</span><span class="hex">negative #a8294a</span><span class="hex">caution #c97a2a</span><span class="hex">neutral #43474f</span>
+  </div>
+</body>
+</html>

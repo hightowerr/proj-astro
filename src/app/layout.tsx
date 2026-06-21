@@ -1,35 +1,21 @@
-import { Cormorant_Garamond, Bricolage_Grotesque, Fira_Code, Manrope } from "next/font/google";
+import { Manrope, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { RouteChrome } from "@/components/layout/route-chrome";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin"],
-  variable: "--font-bricolage",
-  display: "swap",
-});
-
-const firaCode = Fira_Code({
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  variable: "--font-fira-code",
-  display: "swap",
-});
-
 const manrope = Manrope({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-manrope-raw",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -60,7 +46,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${cormorant.variable} ${bricolage.variable} ${firaCode.variable} ${manrope.variable} antialiased bg-background`}
+        className={`${manrope.variable} ${jetbrainsMono.variable} antialiased bg-background`}
       >
         {process.env.NODE_ENV === "development" ? (
           <Script id="react-dev-measure-guard" strategy="beforeInteractive">

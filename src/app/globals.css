@@ -7,9 +7,9 @@
    * ================================================================ */
 
   /* --- Typography --- */
-  --font-display:  var(--font-cormorant), Georgia, 'Times New Roman', serif;
-  --font-body:     var(--font-bricolage), system-ui, -apple-system, sans-serif;
-  --font-mono:     var(--font-fira-code), 'Courier New', monospace;
+  --font-display:  var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
+  --font-body:     var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
+  --font-mono:     var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
   --font-manrope:  var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
 
   /* --- Surface Hierarchy (6 levels, dark-first) --- */
@@ -361,6 +361,8 @@
   --al-status-negative-bg: rgba(168, 41, 74, 0.10);
   --al-status-caution:     #c97a2a;              /* unresolved · pending */
   --al-status-caution-bg:  rgba(201, 122, 42, 0.10);
+  --al-status-neutral:     #43474f;              /* refunded · unpaid */
+  --al-status-neutral-bg:  #eeeeec;
 
   /* Derived convenience tokens */
   --al-ghost-border:    rgba(195, 198, 209, 0.20);
@@ -372,6 +374,74 @@
   --al-font-headline:   var(--al-font);
   --al-font-body:       var(--al-font);
   --al-font-label:      var(--al-font);
+  --al-font-mono:       var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Typography scale */
+  --al-display-md:   2.75rem;
+  --al-display-sm:   2.25rem;
+  --al-headline-lg:  2rem;
+  --al-headline-md:  1.5rem;
+  --al-headline-sm:  1.25rem;
+  --al-title-lg:     1.125rem;
+  --al-title-md:     1rem;
+  --al-title-sm:     0.875rem;
+  --al-body-lg:      1.125rem;
+  --al-body-md:      1rem;
+  --al-body-sm:      0.875rem;
+  --al-label-lg:     0.875rem;
+  --al-label-md:     0.75rem;
+  --al-label-sm:     0.6875rem;
+  --al-label-xs:     0.625rem;
+
+  /* Weight scale */
+  --al-w-light:    300;
+  --al-w-regular:  400;
+  --al-w-medium:   500;
+  --al-w-semibold: 600;
+  --al-w-bold:     700;
+  --al-w-extra:    800;
+
+  /* Tracking */
+  --al-track-pill:    0.16em;
+  --al-track-display: -0.025em;
+  --al-track-tight:   -0.01em;
+
+  /* Spacing */
+  --al-sp-1:  4px;
+  --al-sp-2:  8px;
+  --al-sp-3:  12px;
+  --al-sp-4:  16px;
+  --al-sp-5:  20px;
+  --al-sp-6:  24px;
+  --al-sp-8:  32px;
+  --al-sp-10: 40px;
+  --al-sp-12: 48px;
+  --al-sp-16: 64px;
+  --al-sp-20: 80px;
+  --al-sp-24: 136px;
+
+  /* Layout */
+  --al-main-pad-x: 48px;
+  --al-main-pad-y: 32px;
+  --al-sidebar-w:  264px;
+
+  /* Motion */
+  --al-dur-instant: 0.12s;
+  --al-dur-fast:    0.15s;
+  --al-dur-normal:  0.25s;
+  --al-dur-slow:    0.30s;
+
+  /* Effects */
+  --al-shadow-menu:  0px 20px 40px rgba(26, 28, 27, 0.10);
+  --al-shadow-mark:  0px 8px 18px rgba(0, 30, 64, 0.18);
+  --al-shadow-ring:  0 0 0 4px rgba(0, 30, 64, 0.08);
+  --al-hairline-rest:   rgba(195, 198, 209, 0.30);
+  --al-hairline-strong: rgba(195, 198, 209, 0.50);
+
+  /* Status */
+  --al-status-positive-border: rgba(14, 122, 85, 0.20);
+  --al-status-negative-border: rgba(168, 41, 74, 0.20);
+  --al-status-caution-border: rgba(201, 122, 42, 0.20);
 
   /* Roundness */
   --al-radius-sm:   4px;
@@ -427,15 +497,15 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-body, system-ui, sans-serif);
+    font-family: var(--al-font);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display, Georgia, serif);
+    font-family: var(--al-font);
   }
 
   code, kbd, samp, pre {
-    font-family: var(--font-mono, monospace);
+    font-family: var(--al-font-mono);
   }
 }
 
@@ -444,9 +514,9 @@
    ================================================================ */
 
 /* Typography utilities */
-.font-display { font-family: var(--font-display, Georgia, serif); }
-.font-body    { font-family: var(--font-body, system-ui, sans-serif); }
-.font-mono    { font-family: var(--font-mono, monospace); }
+.font-display { font-family: var(--al-font); }
+.font-body    { font-family: var(--al-font); }
+.font-mono    { font-family: var(--al-font-mono); }
 
 /* Surface utilities */
 .surface-void     { background-color: var(--color-surface-void); }

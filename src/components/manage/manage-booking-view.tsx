@@ -213,9 +213,9 @@ export function ManageBookingView({
       return (
         <span style={{
           ...baseStyle,
-          background: "var(--color-error-subtle)",
-          border: "1px solid var(--color-error-border)",
-          color: "var(--color-error)",
+          background: "var(--al-status-negative-bg)",
+          border: "1px solid var(--al-status-negative-border)",
+          color: "var(--al-status-negative)",
         }}>
           <XCircle className="h-3 w-3" aria-hidden="true" />
           Cancelled
@@ -226,9 +226,9 @@ export function ManageBookingView({
       return (
         <span style={{
           ...baseStyle,
-          background: "var(--color-brand-subtle)",
-          border: "1px solid var(--color-brand-border)",
-          color: "var(--color-brand)",
+          background: "rgba(0, 30, 64, 0.08)",
+          border: "1px solid var(--al-hairline-rest)",
+          color: "var(--al-primary)",
         }}>
           <CheckCircle className="h-3 w-3" aria-hidden="true" />
           Completed
@@ -239,9 +239,9 @@ export function ManageBookingView({
       return (
         <span style={{
           ...baseStyle,
-          background: "var(--color-warning-subtle)",
-          border: "1px solid var(--color-warning-border)",
-          color: "var(--color-warning)",
+          background: "var(--al-status-caution-bg)",
+          border: "1px solid var(--al-status-caution-border)",
+          color: "var(--al-status-caution)",
         }}>
           <Clock className="h-3 w-3" aria-hidden="true" />
           Pending payment
@@ -251,9 +251,9 @@ export function ManageBookingView({
     return (
       <span style={{
         ...baseStyle,
-        background: "var(--color-success-subtle)",
-        border: "1px solid var(--color-success-border)",
-        color: "var(--color-success)",
+        background: "var(--al-status-positive-bg)",
+        border: "1px solid var(--al-status-positive-border)",
+        color: "var(--al-status-positive)",
       }}>
         <CheckCircle className="h-3 w-3" aria-hidden="true" />
         Confirmed
@@ -288,7 +288,7 @@ export function ManageBookingView({
     <div className="container mx-auto max-w-2xl px-4 py-10 space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold">Manage your booking</h1>
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+        <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
           View appointment details and cancellation eligibility.
         </p>
         <Link
@@ -296,8 +296,8 @@ export function ManageBookingView({
           className="inline-flex items-center"
           style={{
             background: "transparent",
-            border: "1px solid var(--color-brand-border)",
-            color: "var(--color-brand)",
+            border: "1px solid var(--al-hairline-rest)",
+            color: "var(--al-primary)",
             borderRadius: "var(--radius-lg)",
             padding: "0.5rem 1rem",
             fontSize: "0.875rem",
@@ -310,13 +310,13 @@ export function ManageBookingView({
       </div>
 
       <div className="rounded-2xl p-6" style={{
-        background: "var(--color-surface-raised)",
-        border: "1px solid var(--color-border-default)",
+        background: "var(--al-surface-container-lowest)",
+        border: "1px solid var(--al-outline-variant)",
       }}>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h2 className="text-xl font-semibold">Appointment details</h2>
-            <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
               Ends at {endTimeFormatted}
             </p>
           </div>
@@ -325,11 +325,11 @@ export function ManageBookingView({
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <Calendar className="h-5 w-5 mt-0.5" style={{ color: "var(--color-text-tertiary)" }} aria-hidden="true" />
+            <Calendar className="h-5 w-5 mt-0.5" style={{ color: "var(--al-on-surface-variant)" }} aria-hidden="true" />
             <div>
-              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Date &amp; time</p>
-              <p className="font-medium" style={{ color: "var(--color-text-primary)" }}>{appointmentTimeFormatted}</p>
-              <p className="text-sm" style={{ color: "var(--color-text-tertiary)" }}>
+              <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>Date &amp; time</p>
+              <p className="font-medium" style={{ color: "var(--al-on-surface)" }}>{appointmentTimeFormatted}</p>
+              <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                 Duration: {appointment.durationMinutes} minutes
               </p>
             </div>
@@ -337,47 +337,47 @@ export function ManageBookingView({
 
           {appointment.eventTypeName ? (
             <div className="flex items-start gap-3">
-              <Tag className="mt-0.5 h-5 w-5" style={{ color: "var(--color-text-tertiary)" }} aria-hidden="true" />
+              <Tag className="mt-0.5 h-5 w-5" style={{ color: "var(--al-on-surface-variant)" }} aria-hidden="true" />
               <div>
-                <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Service</p>
-                <p className="font-medium" style={{ color: "var(--color-text-primary)" }}>{appointment.eventTypeName}</p>
+                <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>Service</p>
+                <p className="font-medium" style={{ color: "var(--al-on-surface)" }}>{appointment.eventTypeName}</p>
               </div>
             </div>
           ) : null}
 
           <div className="flex items-start gap-3">
-            <MapPin className="h-5 w-5 mt-0.5" style={{ color: "var(--color-text-tertiary)" }} aria-hidden="true" />
+            <MapPin className="h-5 w-5 mt-0.5" style={{ color: "var(--al-on-surface-variant)" }} aria-hidden="true" />
             <div>
-              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Location</p>
-              <p className="font-medium" style={{ color: "var(--color-text-primary)" }}>{shop.name}</p>
+              <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>Location</p>
+              <p className="font-medium" style={{ color: "var(--al-on-surface)" }}>{shop.name}</p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <User className="h-5 w-5 mt-0.5" style={{ color: "var(--color-text-tertiary)" }} aria-hidden="true" />
+            <User className="h-5 w-5 mt-0.5" style={{ color: "var(--al-on-surface-variant)" }} aria-hidden="true" />
             <div>
-              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Customer</p>
-              <p className="font-medium" style={{ color: "var(--color-text-primary)" }}>{customer.fullName}</p>
-              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>{customer.email}</p>
-              <p className="text-sm" style={{ fontFamily: "var(--font-mono)", color: "var(--color-text-secondary)" }}>{customer.phone}</p>
+              <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>Customer</p>
+              <p className="font-medium" style={{ color: "var(--al-on-surface)" }}>{customer.fullName}</p>
+              <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>{customer.email}</p>
+              <p className="text-sm" style={{ fontFamily: "var(--font-mono)", color: "var(--al-on-surface-variant)" }}>{customer.phone}</p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <CreditCard className="h-5 w-5 mt-0.5" style={{ color: "var(--color-text-tertiary)" }} aria-hidden="true" />
+            <CreditCard className="h-5 w-5 mt-0.5" style={{ color: "var(--al-on-surface-variant)" }} aria-hidden="true" />
             <div>
-              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Payment</p>
+              <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>Payment</p>
               {payment ? (
                 <>
-                  <p className="font-medium" style={{ fontFamily: "var(--font-mono)", color: "var(--color-brand)" }}>
+                  <p className="font-medium" style={{ fontFamily: "var(--font-mono)", color: "var(--al-primary)" }}>
                     {formatCurrency(payment.amountCents, payment.currency)}
                   </p>
-                  <p className="text-sm capitalize" style={{ color: "var(--color-text-secondary)" }}>
+                  <p className="text-sm capitalize" style={{ color: "var(--al-on-surface-variant)" }}>
                     Status: {formatStatus(payment.status)}
                   </p>
                 </>
               ) : (
-                <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                   {appointment.paymentRequired
                     ? "Payment pending"
                     : "No payment required"}
@@ -389,12 +389,12 @@ export function ManageBookingView({
       </div>
 
       <div className="rounded-2xl p-6 space-y-4" style={{
-        background: "var(--color-surface-raised)",
-        border: "1px solid var(--color-border-default)",
+        background: "var(--al-surface-container-lowest)",
+        border: "1px solid var(--al-outline-variant)",
       }}>
         <div>
           <h2 className="text-xl font-semibold">Email preferences</h2>
-          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
             Control whether this booking can receive reminder emails.
           </p>
         </div>
@@ -403,8 +403,8 @@ export function ManageBookingView({
           htmlFor="emailOptIn"
           className="flex items-start gap-3 cursor-pointer rounded-xl p-4"
           style={{
-            background: "var(--color-surface-overlay)",
-            border: "1px solid var(--color-border-default)",
+            background: "var(--al-surface-container-low)",
+            border: "1px solid var(--al-outline-variant)",
           }}
         >
           <input
@@ -417,7 +417,7 @@ export function ManageBookingView({
           />
           <div className="space-y-1">
             <p className="font-medium">Send me email reminders</p>
-            <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
               Get an email reminder about 24 hours before your appointment.
             </p>
           </div>
@@ -428,8 +428,8 @@ export function ManageBookingView({
             className="text-sm"
             style={{
               color: preferencesMessage.toLowerCase().includes("failed")
-                ? "var(--color-error)"
-                : "var(--color-success)",
+                ? "var(--al-status-negative)"
+                : "var(--al-status-positive)",
             }}
             role="status"
           >
@@ -440,8 +440,8 @@ export function ManageBookingView({
 
       {canCancel && (
         <div className="rounded-2xl p-6 space-y-4" style={{
-          background: "var(--color-surface-raised)",
-          border: "1px solid var(--color-border-default)",
+          background: "var(--al-surface-container-lowest)",
+          border: "1px solid var(--al-outline-variant)",
         }}>
           <h2 className="text-xl font-semibold">
             {isPendingPayment ? "Cancellation" : "Cancellation policy"}
@@ -451,14 +451,14 @@ export function ManageBookingView({
             <div
               className="flex items-start gap-3 rounded-lg p-4"
               style={{
-                background: "var(--color-success-subtle)",
-                border: "1px solid var(--color-success-border)",
+                background: "var(--al-status-positive-bg)",
+                border: "1px solid var(--al-status-positive-border)",
               }}
             >
-              <CheckCircle className="h-5 w-5 mt-0.5" style={{ color: "var(--color-success)" }} aria-hidden="true" />
+              <CheckCircle className="h-5 w-5 mt-0.5" style={{ color: "var(--al-status-positive)" }} aria-hidden="true" />
               <div className="flex-1">
                 <p className="font-semibold mb-1">No payment has been taken</p>
-                <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                   You can cancel this booking now. No refund is needed because the payment is still pending.
                 </p>
               </div>
@@ -466,39 +466,39 @@ export function ManageBookingView({
           ) : (
             <>
               <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 mt-0.5" style={{ color: "var(--color-text-tertiary)" }} aria-hidden="true" />
+                <Clock className="h-5 w-5 mt-0.5" style={{ color: "var(--al-on-surface-variant)" }} aria-hidden="true" />
                 <div>
-                  <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                     Cancellation deadline
                   </p>
-                  <p className="font-medium" style={{ color: "var(--color-text-primary)" }}>{eligibility.cutoffTimeFormatted}</p>
-                  <p className="text-sm" style={{ color: "var(--color-text-tertiary)" }}>
+                  <p className="font-medium" style={{ color: "var(--al-on-surface)" }}>{eligibility.cutoffTimeFormatted}</p>
+                  <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                     ({formatCutoffWindow(policy.cancelCutoffMinutes)} before
                     appointment)
                   </p>
                 </div>
               </div>
 
-              <div style={{ borderTop: "1px solid var(--color-border-subtle)", margin: "0.25rem 0" }} />
+              <div style={{ borderTop: "1px solid var(--al-ghost-border)", margin: "0.25rem 0" }} />
 
               <div
                 className="flex items-start gap-3 rounded-lg p-4"
                 style={
                   eligibility.isEligibleForRefund
                     ? {
-                        background: "var(--color-success-subtle)",
-                        border: "1px solid var(--color-success-border)",
+                        background: "var(--al-status-positive-bg)",
+                        border: "1px solid var(--al-status-positive-border)",
                       }
                     : {
-                        background: "var(--color-warning-subtle)",
-                        border: "1px solid var(--color-warning-border)",
+                        background: "var(--al-status-caution-bg)",
+                        border: "1px solid var(--al-status-caution-border)",
                       }
                 }
               >
                 {eligibility.isEligibleForRefund ? (
-                  <CheckCircle className="h-5 w-5 mt-0.5" style={{ color: "var(--color-success)" }} aria-hidden="true" />
+                  <CheckCircle className="h-5 w-5 mt-0.5" style={{ color: "var(--al-status-positive)" }} aria-hidden="true" />
                 ) : (
-                  <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: "var(--color-warning)" }} aria-hidden="true" />
+                  <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: "var(--al-status-caution)" }} aria-hidden="true" />
                 )}
                 <div className="flex-1">
                   <p className="font-semibold mb-1">
@@ -506,7 +506,7 @@ export function ManageBookingView({
                       ? "Full refund available"
                       : "No refund available"}
                   </p>
-                  <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>{refundMessage()}</p>
+                  <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>{refundMessage()}</p>
                 </div>
               </div>
             </>
@@ -516,16 +516,16 @@ export function ManageBookingView({
 
       {appointment.status === "cancelled" && (
         <div className="rounded-2xl p-6" style={{
-          background: "var(--color-surface-raised)",
-          border: "1px solid var(--color-border-default)",
+          background: "var(--al-surface-container-lowest)",
+          border: "1px solid var(--al-outline-variant)",
         }}>
           <div className="flex items-start gap-3">
             {appointment.financialOutcome === "refunded" ? (
               <>
-                <CheckCircle className="h-6 w-6 mt-0.5" style={{ color: "var(--color-success)" }} aria-hidden="true" />
+                <CheckCircle className="h-6 w-6 mt-0.5" style={{ color: "var(--al-status-positive)" }} aria-hidden="true" />
                 <div>
                   <h3 className="font-semibold text-lg mb-1">Refund Processed</h3>
-                  <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                     Your appointment has been cancelled and a full refund of{" "}
                     {payment
                       ? formatCurrency(
@@ -535,19 +535,19 @@ export function ManageBookingView({
                       : "$0.00"}{" "}
                     has been issued to your original payment method.
                   </p>
-                  <p className="text-sm mt-2" style={{ color: "var(--color-text-tertiary)" }}>
+                  <p className="text-sm mt-2" style={{ color: "var(--al-on-surface-variant)" }}>
                     Refunds typically appear within 5-10 business days.
                   </p>
                 </div>
               </>
             ) : (
               <>
-                <AlertCircle className="h-6 w-6 mt-0.5" style={{ color: "var(--color-warning)" }} aria-hidden="true" />
+                <AlertCircle className="h-6 w-6 mt-0.5" style={{ color: "var(--al-status-caution)" }} aria-hidden="true" />
                 <div>
                   <h3 className="font-semibold text-lg mb-1">
                     Appointment Cancelled
                   </h3>
-                  <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>
                     Your appointment has been cancelled. The deposit has been
                     retained per the cancellation policy (cancelled after
                     deadline).
@@ -562,7 +562,7 @@ export function ManageBookingView({
       {canCancel && (
         <div className="flex flex-col gap-4">
           {cancelError ? (
-            <p className="text-sm" style={{ color: "var(--color-error)" }} role="alert">{cancelError}</p>
+            <p className="text-sm" style={{ color: "var(--al-status-negative)" }} role="alert">{cancelError}</p>
           ) : null}
 
           <Button
@@ -575,7 +575,7 @@ export function ManageBookingView({
             Cancel appointment
           </Button>
 
-          <p className="text-xs text-center" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="text-xs text-center" style={{ color: "var(--al-on-surface-variant)" }}>
             By clicking &ldquo;Cancel appointment&rdquo;, you understand that{" "}
             {isPendingPayment
               ? "no payment has been taken"

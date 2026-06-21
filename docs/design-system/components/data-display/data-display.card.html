@@ -1,0 +1,56 @@
+<!-- @dsCard group="Components" viewport="700x360" name="Data — Sheet, SectionHeader, StatusPill" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; padding: 28px; background: var(--al-surface-container-low); font-family: var(--al-font); }
+  .label { font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #43474f; opacity: .55; margin: 0 0 12px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 22px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { Sheet, SectionHeader, StatusPill, Avatar } = window.AstroDesignSystem_424d7f;
+    function Demo() {
+      return (
+        <>
+          <div className="label">StatusPill</div>
+          <div className="row">
+            <StatusPill variant="positive">Top</StatusPill>
+            <StatusPill variant="neutral">Neutral</StatusPill>
+            <StatusPill variant="negative">Risk</StatusPill>
+            <span style={{width:1,height:20,background:'var(--al-hairline-strong)'}} />
+            <StatusPill variant="positive" tinted={false}>Settled</StatusPill>
+            <StatusPill variant="caution" tinted={false}>Unresolved</StatusPill>
+            <StatusPill variant="negative" tinted={false}>Voided</StatusPill>
+          </div>
+          <div className="label">Sheet + SectionHeader</div>
+          <Sheet eyebrow="The ledger" title="Recent appointments" lede="Settled, pending and voided outcomes from the last 7 days." padded={false}>
+            <div style={{borderTop:'1px solid var(--al-hairline)'}}>
+              {[["SM","Sarah Mitchell","Balayage refresh","top","positive","Settled"],
+                ["TR","Taylor Reed","Colour correction","risk","caution","Unresolved"]].map((r,i)=>(
+                <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 28px',borderTop:i?'1px solid var(--al-hairline)':'none'}}>
+                  <Avatar initials={r[0]} tier={r[3]} size={34} />
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:14,fontWeight:700,color:'#1a1c1b'}}>{r[1]}</div>
+                    <div style={{fontSize:13,color:'#43474f'}}>{r[2]}</div>
+                  </div>
+                  <StatusPill variant={r[4]} tinted={false}>{r[5]}</StatusPill>
+                </div>
+              ))}
+            </div>
+          </Sheet>
+        </>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+  </script>
+</body>
+</html>

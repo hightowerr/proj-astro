@@ -1,0 +1,21 @@
+<!-- @dsCard group="Spacing" viewport="700x160" name="Radius Ladder" subtitle="Sheets 24 · controls 10–12 · pills 9999 — no sharp corners" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 24px; background: var(--al-background); font-family: var(--al-font); display: flex; gap: 20px; align-items: flex-end; }
+  .item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .box { width: 84px; height: 64px; background: #fff; border: 1px solid var(--al-hairline-strong); }
+  .lab { font-family: var(--al-font-mono); font-size: 11px; color: #43474f; }
+</style>
+</head>
+<body>
+  <div class="item"><div class="box" style="border-radius:4px"></div><span class="lab">sm · 4</span></div>
+  <div class="item"><div class="box" style="border-radius:8px"></div><span class="lab">lg · 8</span></div>
+  <div class="item"><div class="box" style="border-radius:12px"></div><span class="lab">xl · 12</span></div>
+  <div class="item"><div class="box" style="border-radius:24px"></div><span class="lab">3xl · 24</span></div>
+  <div class="item"><div class="box" style="border-radius:9999px"></div><span class="lab">full</span></div>
+</body>
+</html>

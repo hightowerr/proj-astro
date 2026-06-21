@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #8 — Booking Components Forbidden Tokens</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 700; color: var(--navy); }
+  </style>
+</head>
+<body>
+  <span class="badge" style="background:#d4edda;color:#155724;">IMPLEMENTED &mdash; Wave 2 Slice 3 (2026-06-19)</span>
+  <h1>#8 &mdash; Booking &amp; Service Components Use Deep Ledger Tokens</h1>
+  <p class="meta">Components: <code>src/components/booking/</code>, <code>src/components/services/</code>, <code>src/components/manage/</code>, <code>src/components/conflicts/</code> &middot; Shared Components &middot; <strong>Wave 2</strong></p>
+  <p class="meta">Dependencies: <strong>#07</strong> (soft) &mdash; references #07's mapping table for consistency, not a code dependency</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>Multiple feature components reference forbidden Deep Ledger <code>--color-*</code> tokens:</p>
+    <ul>
+      <li><code>booking/booking-form.tsx</code> &mdash; uses <code>--color-surface-*</code>, <code>--color-brand</code>, <code>--color-text-*</code>, <code>--color-border-*</code></li>
+      <li><code>booking/service-selector.tsx</code> &mdash; uses <code>.service-card</code> class (defined with <code>--color-*</code> tokens), <code>--color-brand-border</code></li>
+      <li><code>services/event-type-list.tsx</code> &mdash; uses <code>--color-surface-raised</code>, <code>--color-border-default</code>, <code>--color-text-*</code></li>
+      <li><code>services/event-type-form.tsx</code> &mdash; uses <code>--color-*</code> tokens for form elements</li>
+      <li><code>manage/manage-booking-view.tsx</code> &mdash; uses <code>--color-surface-*</code>, <code>--color-brand</code>, <code>--color-text-*</code></li>
+      <li><code>conflicts/conflict-alert-banner.tsx</code> &mdash; uses <code>--color-*</code> tokens for the alert styling</li>
+    </ul>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Apply the standard token mapping to all six files. Use the same mapping table as Spec #7:</p>
+    <table>
+      <tr><th>Deep Ledger token</th><th>AL replacement</th></tr>
+      <tr><td><code>--color-border-default</code></td><td><code>--al-outline-variant</code></td></tr>
+      <tr><td><code>--color-border-medium</code></td><td><code>--al-outline-variant</code></td></tr>
+      <tr><td><code>--color-border-hairline</code></td><td><code>--al-ghost-border</code></td></tr>
+      <tr><td><code>--color-surface-raised</code></td><td><code>--al-surface-container-lowest</code></td></tr>
+      <tr><td><code>--color-surface-elevated</code></td><td><code>--al-surface-container</code></td></tr>
+      <tr><td><code>--color-surface-base</code></td><td><code>--al-background</code></td></tr>
+      <tr><td><code>--color-text-primary</code></td><td><code>--al-on-surface</code></td></tr>
+      <tr><td><code>--color-text-secondary</code></td><td><code>--al-on-surface-variant</code></td></tr>
+      <tr><td><code>--color-text-tertiary</code></td><td><code>--al-on-surface-variant</code></td></tr>
+      <tr><td><code>--color-brand</code></td><td><code>--al-primary</code></td></tr>
+      <tr><td><code>--color-brand-border</code></td><td><code>--al-hairline-strong</code> (hover) / <code>--al-hairline-rest</code> (rest) &mdash; AL uses neutral hairlines, not brand-tinted borders (precedent set by Wave 1 Spec #07)</td></tr>
+      <tr><td><code>--color-brand-hover</code></td><td><code>--al-primary-container</code></td></tr>
+      <tr><td><code>--color-brand-subtle</code></td><td><code>rgba(0, 30, 64, 0.08)</code></td></tr>
+    </table>
+    <p style="margin-top: 0.75rem;">For the <code>.service-card</code> CSS class usage in <code>service-selector.tsx</code>, switch to <code>.al-service-card</code> (already defined in globals.css ~line 646).</p>
+    <p style="margin-top: 0.75rem;"><strong>Note (post-Wave 1):</strong> The <code>--al-hairline</code> base token (0.20 opacity) is not defined in globals.css; use <code>--al-ghost-border</code> instead (same value). The <code>--color-brand-border</code> mapping was changed from brand-tinted to neutral hairlines per Wave 1 Spike A findings.</p>
+    <p class="file-ref">Files: 6 component files across <code>booking/</code>, <code>services/</code>, <code>manage/</code>, <code>conflicts/</code></p>
+  </section>
+</body>
+</html>

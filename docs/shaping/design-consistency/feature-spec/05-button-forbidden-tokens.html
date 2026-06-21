@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #5 — Button Forbidden Tokens</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 700; color: var(--navy); }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Forbidden Tokens in Shared Component</span>
+  <span class="badge" style="background:#d4edda;color:#155724;">IMPLEMENTED &mdash; Wave 1 Slice 2 (2026-06-19)</span>
+  <h1>#5 &mdash; Button Uses Deep Ledger Tokens</h1>
+  <p class="meta">File: <code>src/components/ui/button.tsx</code> &middot; Shared Component &middot; <strong>Wave 1</strong></p>
+  <p class="meta">Dependencies: <strong>None</strong> &mdash; uses existing <code>--al-*</code> tokens already in production</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>The <code>outline</code> variant of the Button component references forbidden Deep Ledger <code>--color-*</code> tokens. Since <code>Button</code> is used on every page, this creates a system-wide design system violation.</p>
+    <pre>/* Current outline variant */
+"border shadow-xs
+ [background:var(--color-surface-elevated)]
+ [border-color:var(--color-border-medium)]
+ [color:var(--color-text-primary)]
+ hover:[background:var(--color-surface-float)]
+ hover:[border-color:var(--color-border-strong)]"</pre>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Replace with Atelier Light equivalents:</p>
+    <table>
+      <tr><th>Deep Ledger token</th><th>AL replacement</th></tr>
+      <tr><td><code>--color-surface-elevated</code></td><td><code>--al-surface-container-lowest</code></td></tr>
+      <tr><td><code>--color-border-medium</code></td><td><code>--al-outline-variant</code></td></tr>
+      <tr><td><code>--color-text-primary</code></td><td><code>--al-on-surface</code></td></tr>
+      <tr><td><code>--color-surface-float</code></td><td><code>--al-surface-container</code></td></tr>
+      <tr><td><code>--color-border-strong</code></td><td><code>--al-outline</code></td></tr>
+    </table>
+    <pre>/* Fixed outline variant */
+"border shadow-xs
+ [background:var(--al-surface-container-lowest)]
+ [border-color:var(--al-outline-variant)]
+ [color:var(--al-on-surface)]
+ hover:[background:var(--al-surface-container)]
+ hover:[border-color:var(--al-outline)]"</pre>
+    <p>Also check all other variants in the file for any <code>--color-*</code> references and replace accordingly.</p>
+    <p class="file-ref">File: <code>src/components/ui/button.tsx</code></p>
+  </section>
+</body>
+</html>

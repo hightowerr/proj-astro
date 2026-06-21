@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #10 — Customers Page Inline Styles</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Inline-Styled Page</span>
+  <h1>#10 &mdash; Customers Page: Convert Inline Styles to Tailwind</h1>
+  <p class="meta">File: <code>src/app/app/customers/page.tsx</code> &middot; Page Conversion &middot; <strong>Wave 4</strong></p>
+  <p class="meta">Dependencies: <strong>#02</strong> (inline <code>fontFamily</code> removal assumes base font fix), <strong>#04</strong> (utility classes)</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>The customers list page uses ~13 inline <code>style={{}}</code> objects with hardcoded colors and a redundant <code>fontFamily</code> declaration. <strong>Note:</strong> the child component <code>src/components/customers/customers-editorial.tsx</code> contains ~88 additional inline styles and should be scoped into this migration or handled as a companion spec.</p>
+    <pre>/* Root container */
+style={{ padding: "32px 48px", display: "flex", flexDirection: "column",
+         gap: 24, fontFamily: "'Manrope', system-ui, sans-serif" }}
+
+/* Hardcoded hex colors */
+"#001e40", "#43474f"
+
+/* Inline font-family on individual elements */
+fontFamily: "'Manrope', system-ui, sans-serif"</pre>
+    <p>The hardcoded <code>fontFamily</code> strings are redundant since the base layer already sets Manrope (after Spec #2 is applied).</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <ul>
+      <li>Root wrapper &rarr; <code>className="al-page"</code></li>
+      <li>Remove all inline <code>fontFamily</code> declarations (redundant after base font fix)</li>
+      <li>Page title &rarr; <code>className="al-page-title"</code></li>
+      <li>Eyebrow labels &rarr; <code>className="al-eyebrow"</code></li>
+      <li>Description text &rarr; <code>className="al-lede"</code></li>
+      <li>Card containers &rarr; <code>className="al-card"</code></li>
+      <li>Buttons with inline gradient &rarr; <code>className="al-gradient-cta"</code> + Tailwind padding/radius</li>
+      <li>Buttons with inline border &rarr; Tailwind border classes with AL tokens</li>
+      <li>Hardcoded hex colors &rarr; AL text/bg utility classes</li>
+      <li>Inline padding/gap &rarr; Tailwind spacing classes</li>
+    </ul>
+    <p><strong>Target:</strong> Zero <code>style={{}}</code> props. All styling via Tailwind + AL classes.</p>
+    <p class="file-ref">File: <code>src/app/app/customers/page.tsx</code></p>
+  </section>
+</body>
+</html>

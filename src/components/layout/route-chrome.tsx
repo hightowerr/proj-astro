@@ -9,7 +9,7 @@ type RouteChromeProps = {
   children: ReactNode;
 };
 
-const APP_ROUTE_PREFIXES = ["/app"];
+const APP_ROUTE_PREFIXES = ["/app", "/book"];
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 export function RouteChrome({ children }: RouteChromeProps) {

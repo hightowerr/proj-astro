@@ -1,0 +1,94 @@
+<!-- @dsCard group="Astro App" viewport="1320x860" name="Astro App — Studio Management" subtitle="Interactive admin shell: dashboard, appointments, customers, reminders" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Astro App</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--al-surface-container-low); font-family: var(--al-font); }
+  #root { height: 100vh; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel" src="AppShell.jsx"></script>
+<script type="text/babel" src="Dashboard.jsx"></script>
+<script type="text/babel" src="Appointments.jsx"></script>
+<script type="text/babel" src="Customers.jsx"></script>
+<script type="text/babel" src="Reminders.jsx"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+  const DS = window.AstroDesignSystem_424d7f;
+
+  function Conflicts() {
+    return (
+      <>
+        <div>
+          <h1 style={{ margin: 0, fontFamily: "var(--al-font)", fontSize: 40, fontWeight: 800, letterSpacing: "-.025em", color: "var(--al-primary)" }}>Conflicts</h1>
+          <p style={{ margin: "8px 0 0", fontSize: 14, fontWeight: 500, color: "var(--al-on-surface-variant)" }}>Double-bookings and calendar clashes that need a decision.</p>
+        </div>
+        <div style={{ display: "flex", gap: 14, alignItems: "center", padding: "20px 24px", borderRadius: 16, background: "var(--al-status-negative-bg)", border: "1px solid rgba(168,41,74,.20)" }}>
+          <DS.Icon name="warning" size={24} fill color="var(--al-status-negative)" />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--al-status-negative)" }}>1 unresolved conflict</div>
+            <div style={{ fontSize: 13, color: "var(--al-on-surface-variant)" }}>Taylor Reed (2:00 PM) overlaps a Google Calendar event "Lunch — offsite".</div>
+          </div>
+          <DS.Button size="sm">Resolve</DS.Button>
+        </div>
+        <DS.Sheet eyebrow="The clash" title="Tue · Apr 28 · 2:00 PM" lede="Choose which booking keeps the slot. The other is offered to your waitlist.">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            {[["Astro booking","Taylor Reed · Colour correction","£185 deposit held","top"],["Calendar event","Lunch — offsite","From Google Calendar","neutral"]].map(([k,a,b],i)=>(
+              <div key={i} style={{ borderRadius: 16, background: "var(--al-surface-container-low)", padding: 18 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".2em", textTransform: "uppercase", color: "var(--al-on-surface-variant)", opacity: .55, marginBottom: 8 }}>{k}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--al-on-surface)" }}>{a}</div>
+                <div style={{ fontSize: 13, color: "var(--al-on-surface-variant)", marginTop: 4 }}>{b}</div>
+              </div>
+            ))}
+          </div>
+        </DS.Sheet>
+      </>
+    );
+  }
+
+  function EmptySettings({ title, sub, icon }) {
+    return (
+      <>
+        <div>
+          <h1 style={{ margin: 0, fontFamily: "var(--al-font)", fontSize: 40, fontWeight: 800, letterSpacing: "-.025em", color: "var(--al-primary)" }}>{title}</h1>
+          <p style={{ margin: "8px 0 0", fontSize: 14, fontWeight: 500, color: "var(--al-on-surface-variant)" }}>{sub}</p>
+        </div>
+        <DS.Sheet>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "48px 24px", textAlign: "center" }}>
+            <span style={{ width: 64, height: 64, borderRadius: 16, background: "var(--al-surface-container)", display: "grid", placeItems: "center" }}>
+              <DS.Icon name={icon} size={30} color="var(--al-on-surface-variant)" />
+            </span>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--al-primary)" }}>Configured in the live product</div>
+            <div style={{ fontSize: 13, color: "var(--al-on-surface-variant)", maxWidth: 360 }}>This settings surface mirrors the Atelier Light recipe — sheets, hairline rows, and navy toggles.</div>
+          </div>
+        </DS.Sheet>
+      </>
+    );
+  }
+
+  function App() {
+    const [route, setRoute] = React.useState("dashboard");
+    let screen;
+    if (route === "dashboard") screen = <window.Dashboard />;
+    else if (route === "appointments") screen = <window.Appointments />;
+    else if (route === "customers") screen = <window.Customers />;
+    else if (route === "reminders") screen = <window.Reminders />;
+    else if (route === "conflicts") screen = <Conflicts />;
+    else if (route === "availability") screen = <EmptySettings title="Availability" sub="Your weekly hours, buffers, and closed days." icon="schedule" />;
+    else screen = <EmptySettings title="Payment Policy" sub="Tier-based deposits and cancellation windows." icon="receipt_long" />;
+    return <window.AppShell active={route} onNavigate={setRoute}>{screen}</window.AppShell>;
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -63,9 +63,9 @@ function DialogContent({
           className
         )}
         style={{
-          background: "var(--color-surface-raised)",
-          border: "1px solid var(--color-border-default)",
-          boxShadow: "var(--shadow-lg)",
+          background: "var(--al-surface-container-lowest)",
+          border: "1px solid var(--al-outline-variant)",
+          boxShadow: "var(--al-shadow-menu)",
         }}
         {...props}
       >
@@ -74,7 +74,7 @@ function DialogContent({
           <DialogPrimitive.Close
             data-slot="dialog-close"
             className="absolute top-4 right-4 rounded-sm opacity-60 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-            style={{ color: "var(--color-text-tertiary)" }}
+            style={{ color: "var(--al-on-surface-variant)" }}
           >
             <XIcon />
             <span className="sr-only">Close</span>
@@ -129,7 +129,7 @@ function DialogDescription({
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn("text-sm", className)}
-      style={{ color: "var(--color-text-secondary)" }}
+      style={{ color: "var(--al-on-surface-variant)" }}
       {...props}
     />
   )

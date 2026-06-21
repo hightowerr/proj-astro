@@ -1,1 +1,0 @@
-The user has provided a text transcript of a roadmap strategy meeting. The goal is to process this transcript using the defined 'Agentic LNO Note Generation System' to produce a set of structured, interlinked Obsidian notes, including task lists and management reports, to clarify the basket roadmap and define priorities.

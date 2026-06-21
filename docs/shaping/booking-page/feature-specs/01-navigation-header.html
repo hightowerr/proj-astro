@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feature Spec: Navigation Header — Booking Page</title>
+  <style>
+    /* ── Atelier Light tokens ── */
+    :root {
+      --al-primary: #001e40;
+      --al-on-primary: #ffffff;
+      --al-background: #f9f9f7;
+      --al-surface-container-lowest: #ffffff;
+      --al-on-surface: #1a1c1b;
+      --al-on-surface-variant: #43474f;
+      --al-outline-variant: #c3c6d1;
+      --al-hairline: rgba(195, 198, 209, 0.20);
+      --al-gradient-cta: linear-gradient(135deg, #001e40, #003366);
+      --al-shadow-cta: 0px 14px 28px rgba(0, 30, 64, 0.20);
+      --al-font: 'Manrope', system-ui, -apple-system, sans-serif;
+      --al-radius-xl: 12px;
+      --al-radius-lg: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--al-font);
+      background: var(--al-background);
+      color: var(--al-on-surface);
+      padding: 40px;
+    }
+
+    .spec-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--al-on-surface-variant);
+      opacity: 0.55;
+      margin-bottom: 8px;
+    }
+    .spec-heading {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--al-primary);
+      margin-bottom: 8px;
+    }
+    .spec-desc {
+      font-size: 14px;
+      color: var(--al-on-surface-variant);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .spec-notes {
+      margin-top: 32px;
+      padding: 20px 24px;
+      background: var(--al-surface-container-lowest);
+      border-radius: 16px;
+      border: 1px solid var(--al-hairline);
+    }
+    .spec-notes h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--al-primary);
+      margin-bottom: 12px;
+    }
+    .spec-notes ul {
+      list-style: none;
+      padding: 0;
+    }
+    .spec-notes li {
+      font-size: 13px;
+      color: var(--al-on-surface-variant);
+      line-height: 1.6;
+      padding-left: 16px;
+      position: relative;
+    }
+    .spec-notes li::before {
+      content: "~";
+      position: absolute;
+      left: 0;
+      color: var(--al-outline-variant);
+    }
+
+    /* ── Component preview ── */
+    .preview {
+      background: var(--al-surface-container-lowest);
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(26, 28, 27, 0.04);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    /* ── Navigation ── */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: var(--al-surface-container-lowest);
+      border-bottom: 1px solid var(--al-hairline);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--al-primary);
+      border-radius: var(--al-radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--al-on-primary);
+      font-size: 18px;
+    }
+    .nav-brand-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--al-primary);
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--al-on-surface-variant);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      transition: background 0.15s ease;
+    }
+    .nav-links a:hover {
+      background: #eeeeec;
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .nav-actions a {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--al-on-surface-variant);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+    }
+    .nav-cta {
+      padding: 10px 20px !important;
+      border-radius: var(--al-radius-xl) !important;
+      background: var(--al-gradient-cta) !important;
+      color: var(--al-on-primary) !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.02em;
+      border: none;
+      cursor: pointer;
+      box-shadow: var(--al-shadow-cta);
+    }
+  </style>
+</head>
+<body>
+  <div class="spec-title">Feature Spec</div>
+  <h1 class="spec-heading">Navigation Header</h1>
+  <p class="spec-desc">
+    Top-level navigation bar for the public booking page. Contains brand mark,
+    marketing links, sign-in link, and primary CTA. This is the Astro marketing
+    nav — not the authenticated dashboard sidebar.
+  </p>
+
+  <div class="preview">
+    <nav class="nav">
+      <div class="nav-brand">
+        <div class="nav-brand-icon">&#xe3b0;</div>
+        <span class="nav-brand-name">Astro</span>
+      </div>
+      <div class="nav-links">
+        <a href="#">How it works</a>
+        <a href="#">Features</a>
+        <a href="#">Pricing</a>
+        <a href="#">FAQ</a>
+      </div>
+      <div class="nav-actions">
+        <a href="#">Sign in</a>
+        <button class="nav-cta">Start free trial</button>
+      </div>
+    </nav>
+  </div>
+
+  <div class="spec-notes">
+    <h3>Design notes</h3>
+    <ul>
+      <li>Brand mark: 32px navy square, radius 8px, Material Symbol "dashboard_customize" centered in white</li>
+      <li>Brand name: 18px, weight 800, 0.04em tracking, uppercase, navy</li>
+      <li>Nav links: 14px, weight 600, muted ink (#43474f), 10px radius hover bg (#eeeeec)</li>
+      <li>Sign in: plain text link, same style as nav links</li>
+      <li>CTA button: navy gradient (135deg #001e40 → #003366), white text, 13px weight 700, radius 12px, shadow 0 14px 28px rgba(0,30,64,.2)</li>
+      <li>Bottom hairline: 1px solid rgba(195,198,209, 0.20)</li>
+      <li>No sticky/fixed positioning — scrolls with page</li>
+      <li>Design change only — no new functionality</li>
+    </ul>
+  </div>
+</body>
+</html>

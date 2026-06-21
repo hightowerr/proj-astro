@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #7 — Primary Buttons Are Flat Navy, Not Gradient CTA</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --orange: #e67e22;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--moderate { background: #fff3e0; color: #bf5f00; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--orange); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .note { background: #f5f5f0; border-radius: 10px; padding: 1rem; margin-top: 0.75rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--moderate">Moderate — Token / Scale Violation</span>
+  <h1>#7 — Primary Buttons Are Flat Navy, Not Gradient CTA</h1>
+  <p class="meta">Component: <code>atelier-dashboard.tsx</code> &middot; "Connect Now" &amp; "Open Booking Page"</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>"Connect Now" and "Open Booking Page" use <code>bg-al-primary</code> (flat <code>#001e40</code>).</p>
+    <p>DS rule: every primary button uses the <strong>135deg navy gradient</strong> with the CTA shadow.</p>
+    <ul>
+      <li>Current shadow: <code>0px_8px_24px_rgba(0,30,64,0.28)</code></li>
+      <li>DS shadow: <code>0 14px 28px rgba(0,30,64,.2)</code> (<code>--al-shadow-cta</code>)</li>
+    </ul>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Apply the DS gradient and shadow tokens:</p>
+    <pre>/* Before */
+.btn-primary {
+  background: #001e40;          /* flat */
+  box-shadow: 0px 8px 24px rgba(0, 30, 64, 0.28);
+}
+
+/* After */
+.btn-primary {
+  background: var(--al-gradient-cta);  /* 135deg → #003366 */
+  box-shadow: var(--al-shadow-cta);    /* 0 14px 28px rgba(0,30,64,.2) */
+}</pre>
+    <div class="note">
+      <strong>Better approach:</strong> Use the DS <code>Button</code> component directly so gradient and shadow are applied automatically.
+    </div>
+  </section>
+</body>
+</html>

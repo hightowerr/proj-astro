@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #9 — Eyebrow Tracking Off-Standard</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --yellow: #c9a800;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--minor { background: #fff9c4; color: #7a6800; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--yellow); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--minor">Minor — Polish</span>
+  <h1>#9 — Eyebrow Tracking Off-Standard</h1>
+  <p class="meta">Component: <code>atelier-dashboard.tsx</code> &middot; Section Kickers</p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>Section kickers (eyebrow text) use inconsistent letter-spacing:</p>
+    <ul>
+      <li><code>tracking-[0.28em]</code></li>
+      <li><code>tracking-[0.22em]</code></li>
+    </ul>
+    <p>The DS eyebrow motif uses a fixed <code>.2em</code> (<code>--al-track-eyebrow</code>).</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>Normalize all eyebrows to <code>.2em</code>:</p>
+    <pre>/* Before */
+&lt;span className="tracking-[0.28em]"&gt;SECTION TITLE&lt;/span&gt;
+&lt;span className="tracking-[0.22em]"&gt;OTHER SECTION&lt;/span&gt;
+
+/* After */
+&lt;span style={{ letterSpacing: 'var(--al-track-eyebrow)' }}&gt;SECTION TITLE&lt;/span&gt;
+/* or */
+&lt;span className="tracking-[0.2em]"&gt;SECTION TITLE&lt;/span&gt;</pre>
+  </section>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #16 — Billing Page Typography &amp; Status Colors</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 700; color: var(--navy); }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Oversized Title + Non-AL Status Colors</span>
+  <h1>#16 &mdash; Billing Page: Typography &amp; Status Color Fix</h1>
+  <p class="meta">File: <code>src/app/app/settings/billing/page.tsx</code> &middot; Typography Alignment &middot; <strong>Wave 4</strong></p>
+  <p class="meta">Dependencies: <strong>#04</strong> &mdash; needs <code>.al-page-title</code></p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p><strong>Title is oversized:</strong> <code>text-[3.5rem] font-bold</code> renders at 56px / weight 700 instead of canonical 44px / 800.</p>
+    <p><strong>Status colors use raw Tailwind instead of AL tokens:</strong></p>
+    <table>
+      <tr><th>Current</th><th>Should be</th></tr>
+      <tr><td><code>bg-amber-50 text-amber-700</code></td><td><code>bg-[var(--al-status-caution-bg)] text-[var(--al-status-caution)]</code></td></tr>
+      <tr><td><code>bg-red-50 text-red-600</code></td><td><code>bg-[var(--al-status-negative-bg)] text-[var(--al-status-negative)]</code></td></tr>
+      <tr><td colspan="2"><em>"Collected" card already uses AL tokens (<code>bg-al-surface-lowest</code>, <code>text-al-primary</code>) &mdash; no change needed</em></td></tr>
+    </table>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <ul>
+      <li>Page title: <code>text-[3.5rem] font-bold</code> &rarr; <code>al-page-title</code></li>
+      <li>Replace all summary card status colors with AL status tokens (see table above)</li>
+      <li>Replace <code>font-bold</code> with <code>font-extrabold</code> where weight 800 is intended</li>
+      <li>Align padding to canonical <code>py-8 px-12</code></li>
+    </ul>
+    <p class="file-ref">File: <code>src/app/app/settings/billing/page.tsx</code></p>
+  </section>
+</body>
+</html>

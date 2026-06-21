@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #13 — Payment Policy Page Inline Styles</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--major { background: #ffdad6; color: #93000a; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <span class="badge badge--major">Major &mdash; Inline-Styled Page</span>
+  <h1>#13 &mdash; Payment Policy Page: Convert Inline Styles to Tailwind</h1>
+  <p class="meta">File: <code>src/app/app/settings/payment-policy/page.tsx</code> &middot; Page Conversion &middot; <strong>Wave 4</strong></p>
+  <p class="meta">Dependencies: <strong>#04</strong> &mdash; needs <code>.al-page</code>, <code>.al-eyebrow</code>, <code>.al-page-title</code>, <code>.al-section-title</code>, <code>.al-card</code></p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>The payment policy settings page uses ~35 inline <code>style={{}}</code> objects, including a complex <code>TiersExplainerCard</code> component with extensive inline styling:</p>
+    <pre>/* Page wrapper */
+style={{ minHeight: '100vh', background: 'var(--al-surface)',
+         fontFamily: 'var(--al-font)' }}
+
+/* Content container */
+style={{ maxWidth: 1080, margin: '0 auto',
+         padding: '32px 48px' }}
+
+/* TiersExplainerCard — 3-column grid entirely inline */
+style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}
+
+/* Hardcoded hex colors mixed with CSS variables */
+"#001e40", "#43474f"
+background: 'linear-gradient(135deg, #001e40, #003366)'
+
+/* Material Symbols with inline fontVariationSettings */
+style={{ fontFamily: 'Material Symbols Outlined',
+         fontVariationSettings: "'FILL' 0, 'wght' 400" }}</pre>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <ul>
+      <li>Page wrapper &rarr; <code>className="al-page"</code></li>
+      <li>Content container &rarr; <code>className="max-w-5xl mx-auto"</code> (1024px, close to 1080px)</li>
+      <li>Breadcrumb &rarr; <code>className="al-eyebrow"</code></li>
+      <li>Page title &rarr; <code>className="al-page-title"</code></li>
+      <li>Section titles &rarr; <code>className="al-section-title"</code></li>
+      <li>Card containers &rarr; <code>className="al-card p-6"</code></li>
+      <li>TiersExplainerCard grid &rarr; <code>className="grid grid-cols-3 gap-[18px]"</code></li>
+      <li>Tier badge colors &rarr; AL status tokens</li>
+      <li>CTA gradient button &rarr; <code>al-gradient-cta</code> + Tailwind classes</li>
+      <li>Material Symbols icons &rarr; <code>className="material-symbols-outlined"</code> (class handles <code>font-variation-settings</code>). <strong>Note:</strong> inline styles also set custom <code>fontSize</code> values (13px, 14px, 15px) that differ from the class default (20px). Add Tailwind size overrides (e.g., <code>text-[15px]</code>) when removing inline styles, or icon sizes will revert to 20px.</li>
+      <li>Hardcoded hex &rarr; AL utility classes</li>
+    </ul>
+    <p><strong>Target:</strong> Zero <code>style={{}}</code> props.</p>
+    <p class="file-ref">File: <code>src/app/app/settings/payment-policy/page.tsx</code></p>
+  </section>
+</body>
+</html>

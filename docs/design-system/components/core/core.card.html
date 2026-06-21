@@ -1,0 +1,63 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Core — Button, Badge, Avatar, Icon" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; padding: 28px; background: var(--al-background); font-family: var(--al-font); }
+  .group { margin-bottom: 26px; }
+  .label { font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #43474f; opacity: .55; margin-bottom: 12px; }
+  .row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { Button, Badge, Avatar, Icon } = window.AstroDesignSystem_424d7f;
+    function Demo() {
+      return (
+        <>
+          <div className="group">
+            <div className="label">Button</div>
+            <div className="row">
+              <Button>Save policy</Button>
+              <Button variant="secondary" icon="add">New service</Button>
+              <Button variant="ghost">Cancel</Button>
+              <Button size="sm">Small</Button>
+              <Button disabled>Saving…</Button>
+            </div>
+          </div>
+          <div className="group">
+            <div className="label">Badge</div>
+            <div className="row">
+              <Badge variant="curator">Balayage</Badge>
+              <Badge variant="secondary">Fade</Badge>
+              <Badge variant="muted">12</Badge>
+              <Badge variant="primary">Pro</Badge>
+              <Badge variant="outline">Draft</Badge>
+            </div>
+          </div>
+          <div className="group" style={{marginBottom:0}}>
+            <div className="label">Avatar · Icon</div>
+            <div className="row">
+              <Avatar initials="SM" tier="top" />
+              <Avatar initials="JK" tier="neutral" />
+              <Avatar initials="TR" tier="risk" />
+              <span style={{width:1,height:32,background:'var(--al-hairline-strong)'}} />
+              <Icon name="calendar_month" size={28} color="var(--al-primary)" />
+              <Icon name="notifications" size={28} fill color="var(--al-primary)" />
+              <Icon name="warning" size={28} color="var(--al-status-negative)" />
+            </div>
+          </div>
+        </>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+  </script>
+</body>
+</html>

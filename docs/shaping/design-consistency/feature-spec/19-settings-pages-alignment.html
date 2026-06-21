@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spec #19 — Settings Pages Alignment</title>
+  <style>
+    :root {
+      --navy: #001e40;
+      --red: #d32f2f;
+      --surface: #fafaf8;
+      --text: #1a1c1b;
+      --muted: #6b6b6b;
+      --border: rgba(195, 198, 209, 0.2);
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: var(--text); background: var(--surface); padding: 2rem; max-width: 860px; margin: 0 auto; line-height: 1.6; }
+    .badge { display: inline-block; padding: 4px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .badge--minor { background: #d5e3ff; color: #001e40; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.5rem; }
+    .meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; }
+    section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--navy); }
+    .problem { border-left: 4px solid var(--red); }
+    .fix { border-left: 4px solid #0e7a55; }
+    code { background: #f0f0ee; padding: 2px 6px; border-radius: 6px; font-size: 0.85em; font-family: 'JetBrains Mono', monospace; }
+    pre { background: #f0f0ee; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.75rem; line-height: 1.5; }
+    ul, ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .file-ref { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 700; color: var(--navy); }
+  </style>
+</head>
+<body>
+  <span class="badge badge--minor">Minor &mdash; Typography Alignment</span>
+  <h1>#19 &mdash; Availability, Reminders &amp; Detail Pages Alignment</h1>
+  <p class="meta">Multiple files &middot; Typography Alignment &middot; <strong>Wave 4</strong></p>
+  <p class="meta">Dependencies: <strong>#04</strong> &mdash; needs <code>.al-page-title</code>, <code>.al-section-title</code>, <code>.al-lede</code></p>
+
+  <section class="problem">
+    <h2>Problem</h2>
+    <p>Several pages already use Tailwind classes correctly but have minor typography mismatches with the canonical design:</p>
+    <table>
+      <tr><th>Page</th><th>Current title</th><th>Container</th></tr>
+      <tr><td><code>settings/availability/page.tsx</code></td><td><code>text-3xl font-semibold</code> (30px/600)</td><td><code>container mx-auto px-4 py-10</code></td></tr>
+      <tr><td><code>settings/reminders/page.tsx</code></td><td><code>text-lg font-semibold</code> for sections</td><td><code>container mx-auto px-4 py-10</code></td></tr>
+      <tr><td><code>appointments/[id]/page.tsx</code></td><td><code>text-3xl font-semibold</code></td><td><code>container mx-auto px-4 py-10</code></td></tr>
+      <tr><td><code>customers/[id]/page.tsx</code></td><td><code>text-3xl font-semibold</code></td><td><code>container mx-auto px-4 py-10</code></td></tr>
+      <tr><td><code>slot-openings/[id]/page.tsx</code></td><td><code>text-3xl font-semibold</code></td><td><code>container mx-auto px-4 py-10</code></td></tr>
+      <tr><td><code>chat/page.tsx</code> (path: <code>src/app/chat/</code>, not <code>src/app/app/</code>)</td><td><code>text-2xl font-bold</code></td><td><code>container mx-auto px-4 py-8</code> (loading states use <code>py-12</code>)</td></tr>
+    </table>
+    <p>All page titles should be <code>al-page-title</code> (44px/800). Container padding should be <code>py-8 px-12</code> to match <code>--al-main-pad-*</code>.</p>
+  </section>
+
+  <section class="fix">
+    <h2>Fix</h2>
+    <p>For each page:</p>
+    <ul>
+      <li>Page title class &rarr; <code>al-page-title</code></li>
+      <li>Subtitle / section head class &rarr; <code>al-section-title</code> or <code>al-lede</code> as appropriate</li>
+      <li>Container padding: <code>px-4 py-10</code> &rarr; <code>px-12 py-8</code></li>
+      <li>Replace <code>text-muted-foreground</code> with <code>text-al-on-surface-variant</code> for consistency</li>
+    </ul>
+    <p>These are small changes per file but collectively establish a consistent feel across all detail/settings pages.</p>
+    <p class="file-ref">Files: <code>src/app/app/settings/availability/page.tsx</code>, <code>settings/reminders/page.tsx</code>, <code>appointments/[id]/page.tsx</code>, <code>customers/[id]/page.tsx</code>, <code>slot-openings/[id]/page.tsx</code>, <code>src/app/chat/page.tsx</code></p>
+  </section>
+</body>
+</html>
