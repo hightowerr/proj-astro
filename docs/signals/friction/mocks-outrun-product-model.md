@@ -1,0 +1,5 @@
+- Date: 2026-06-17
+- Spec: Conflicts Screen (pre-wave, design review)
+- Description: Design mocks for the conflicts dashboard proposed features (bulk resolution, rescheduling, staff assignment, named conflict categories, analytics cards) that had no backend support. Building UI for non-existent capabilities would create a dishonest user experience. This happened twice — the v1 mock was reviewed, rejected as too ambitious, and a v2 was produced that still had 5 areas of data model mismatch. The discipline of reviewing mocks against the actual data model prevented wasted implementation.
+- Root cause: SPEC
+- Suggested fix: Before shaping any screen redesign, run a "data model truthfulness check" — for each UI element in the mock, confirm the underlying data exists in the schema. If it doesn't, the element is aspirational and must be flagged as out-of-scope or shaped as its own backend+frontend feature. This is the "trim to what the system can truthfully support now" principle from both conflicts screen reviews.

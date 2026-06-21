@@ -1,0 +1,5 @@
+- Pattern name: Single-File Sweep
+- Problem it solves: When all token violations are concentrated in one large component file, splitting into multiple slices per file creates unnecessary overhead and context-switching. Each slice would need to re-read the same file and navigate to different sections.
+- Solution: When violations are concentrated in one file (e.g., atelier-dashboard.tsx had 12 hardcoded hex values), use a single sweep slice that resolves everything in one pass. This was chosen as "Option A" for the home screen DS conformance and completed faster than the multi-slice alternative would have. Best for: files with 10+ violations that are all the same type of fix (token substitution). Not suitable for: mixed fix types or files requiring structural changes.
+- First used in: Home Screen DS Conformance — Spec #11 (hex-to-token)
+- Reusable? YES

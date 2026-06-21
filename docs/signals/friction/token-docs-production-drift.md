@@ -1,0 +1,5 @@
+- Date: 2026-06-19
+- Spec: Design Consistency Waves 1 and 2
+- Description: Tokens defined in docs/design-system/tokens/*.css were not present in production globals.css. This caused false "solved" entries in current-issues.md (3 tokens marked as added but missing: --al-track-eyebrow, --al-display-lg, --al-radius-3xl) and blocked specs that assumed tokens existed. Wave 1 discovered --al-font-mono was defined in design system files but never ported to production — design system examples referencing var(--al-font-mono) silently fell through to browser default monospace. Wave 2 Spike C found 2 status border tokens needed creation despite following an established pattern.
+- Root cause: CODEBASE
+- Suggested fix: Before any wave that references AL tokens, run a verification spike: diff docs/design-system/tokens/*.css against globals.css :root block. Any token in the design system but not in production is a gap that must be added in the Foundation slice. Consider a lint rule or script that flags this drift automatically.

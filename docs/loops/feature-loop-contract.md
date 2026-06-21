@@ -19,6 +19,7 @@ drift-audited with zero unresolved conflicts, and retrospective logged.
 |------|------|-------|----------|-------|
 | prior | 1 | COMPLETE | - | Specs #01, #03, #05, #07 |
 | prior | 2 | COMPLETE | - | Specs #02, #06, #08 |
+| 2026-06-21 | 1-2 | RETRO (backfill) | - | Seeded 13 signals: 5 patterns, 5 friction, 3 drift. Ratio 3/0 evolution/shortcut |
 
 ## References
 - Architecture: docs/context/architecture-context.md

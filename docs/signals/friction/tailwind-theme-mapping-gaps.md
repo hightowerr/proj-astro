@@ -1,0 +1,5 @@
+- Date: 2026-06-19
+- Spec: Design Consistency Waves 1-2
+- Description: Some --al-* tokens have no corresponding --color-al-* entry in the @theme inline block, so Tailwind utility classes like bg-al-background silently produce no CSS output. This is a silent failure mode — the class appears in the markup, the build succeeds, but the style is not applied. Developers cannot distinguish "token not mapped" from "token has a transparent value" without inspecting computed styles.
+- Root cause: CODEBASE
+- Suggested fix: Either add all used AL color tokens to @theme inline as --color-al-* entries, or enforce a convention that non-color AL tokens always use the arbitrary-value syntax (e.g., bg-[var(--al-background)]) and never the native utility syntax. The current mixed approach creates a guessing game about which tokens have Tailwind mappings and which don't.

@@ -1,0 +1,5 @@
+- Date: 2026-06-19
+- Spec: Design Consistency Waves 1-2
+- Description: The Deep Ledger @theme inline block (lines 3-160 of globals.css) contains the full legacy token set and cannot be removed because unremediated components still reference --color-* tokens. Every wave is a partial migration living on top of the old system. This creates confusion about which token system is "correct," adds dead-code weight to every page load, and means new developers must understand both systems to make changes. Wave 1's Spike C explicitly deferred removal. Wave 2 accumulated 4 more deferred items.
+- Root cause: CODEBASE
+- Suggested fix: Track --color-* token usage count across the codebase after each wave. When usage reaches zero for a token, remove it from @theme inline. When the entire block reaches zero references, remove it entirely. A grep-based count after each wave would show progress and make the "when can we remove it" decision data-driven rather than speculative.

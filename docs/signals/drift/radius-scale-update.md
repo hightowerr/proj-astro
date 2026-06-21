@@ -1,0 +1,5 @@
+- Date: 2026-06-18
+- Spec: Home Screen DS Conformance — Slice 3 (Card surface & elevation)
+- What diverged: code-standards.md originally specified rounded-2xl for cards. During home screen DS conformance, radius was bumped to rounded-3xl to match the design system's actual token values. The code-standards doc was updated to reflect rounded-3xl.
+- Classification: EVOLUTION
+- Why: The design system tokens defined a larger radius than the code standards documented. The implementation correctly followed the design system (source of truth for visual design) over the code standards doc (which was out of date). The code standards were then updated to match.

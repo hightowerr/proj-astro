@@ -1,0 +1,5 @@
+- Pattern name: Foundation-First Slicing
+- Problem it solves: Component migration slices that need tokens which don't exist yet, creating hidden ordering dependencies that only surface when implementation fails.
+- Solution: Always create a "Foundation" slice as Slice 1 that adds all new tokens and infrastructure to globals.css before any component slices begin. Component slices depend on Foundation; they can run in parallel with each other but never before Foundation completes. This was the pattern in both waves: Wave 1 Slice 1 added 49 tokens + fonts before Button (Slice 2) and Dashboard (Slice 3). Wave 2 Slice 1 added 2 border tokens + font normalization before Dialog (Slice 2) and Booking (Slice 3).
+- First used in: Design Consistency Wave 1
+- Reusable? YES

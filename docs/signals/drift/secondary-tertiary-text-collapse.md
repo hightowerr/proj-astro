@@ -1,0 +1,5 @@
+- Date: 2026-06-20
+- Spec: Design Consistency Wave 2 — Spec #06 (Dialog)
+- What diverged: Deep Ledger had separate tokens for --color-text-secondary and --color-text-tertiary (two distinct text hierarchy levels). Both map to the same AL token: --al-on-surface-variant. This collapses two semantic levels into one, reducing the text hierarchy from 4 levels (primary, secondary, tertiary, disabled) to 3 (on-surface, on-surface-variant, disabled).
+- Classification: EVOLUTION
+- Why: The AL design system intentionally does not distinguish between secondary and tertiary text. Both serve the same visual purpose — de-emphasized supporting text. The spike flagged this as a design consideration but confirmed it was intentional per the AL system. The collapse simplifies the token vocabulary without visual regression because the Deep Ledger secondary and tertiary values were already visually similar.

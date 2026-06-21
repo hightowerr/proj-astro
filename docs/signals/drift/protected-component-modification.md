@@ -1,0 +1,5 @@
+- Date: 2026-06-19
+- Spec: Design Consistency Waves 1-2 — Specs #05 (Button) and #06 (Dialog)
+- What diverged: code-standards.md and ai-workflow-rules.md both state that shadcn/ui files in components/ui/* should not be modified "unless a task explicitly requires it." Wave 1 modified button.tsx (Slice 2) and Wave 2 modified dialog.tsx (Slice 2) — both are shadcn/ui components. The specs explicitly targeted these files for token migration, satisfying the "explicitly requires it" escape clause.
+- Classification: EVOLUTION
+- Why: The design consistency specs were deliberately scoped to include these protected components because they contained forbidden Deep Ledger tokens. The "unless explicitly required" clause in the code standards was designed for exactly this scenario. No structural changes were made — only token substitutions in inline styles. The protection rule worked as intended (prevented casual modification while allowing deliberate, spec-driven changes).

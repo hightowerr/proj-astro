@@ -1,0 +1,5 @@
+- Date: 2026-06-20
+- Spec: Design Consistency Wave 2 — Spec #08 (Booking Components)
+- Description: Renaming .service-card to .al-service-card in the component JSX broke the hover animation because the CSS rule in globals.css still targeted .service-card:hover .service-card-arrow. The arrow hover animation silently stopped working. This is a classic partial-rename failure where the component class is updated but CSS selectors referencing the old class name are missed.
+- Root cause: AGENT
+- Suggested fix: When renaming any CSS class, grep globals.css (and any other stylesheets) for ALL selectors that reference the old class name — not just the class itself but compound selectors, pseudo-selectors, and child combinators. Add this to the implementation checklist: "After class rename, grep for old-class-name in all .css files."

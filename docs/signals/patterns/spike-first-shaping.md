@@ -1,0 +1,5 @@
+- Pattern name: Spike-First Shaping
+- Problem it solves: Implementation plans that assume tokens exist, mappings are complete, or blast radius is small — only to discover mid-implementation that assumptions were wrong, causing scope creep or blocked work.
+- Solution: Before writing any slice plan, run one spike per unknown. Spikes verify: (1) token existence in production globals.css (not just design-system docs), (2) exact file/line locations of all references being changed, (3) complete mapping tables with zero gaps. Shape is not confirmed until all spikes resolve. Wave 1 ran 3 spikes (unmapped tokens, font blast radius, Tailwind theme mapping). Wave 2 ran 3 spikes (font rule consumers, dialog tokens, booking component scan). Every spike eliminated a potential mid-implementation surprise.
+- First used in: Design Consistency Wave 1
+- Reusable? YES

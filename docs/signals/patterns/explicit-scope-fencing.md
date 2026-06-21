@@ -1,0 +1,5 @@
+- Pattern name: Explicit Scope Fencing
+- Problem it solves: Scope creep during token migration — every component touched reveals more violations (hardcoded hex, rgba values, dark-theme Tailwind classes, Stripe theme objects) that tempt the implementer to "fix while we're here."
+- Solution: When a violation is discovered that falls outside the current spec, immediately log it in docs/context/current-issues.md with: (1) exact file and line number, (2) what the violation is, (3) why it's out of scope (e.g., "not a --color-* token violation" or "requires Stripe API changes"). Do not fix it. Do not expand the slice. The current-issues.md file becomes the backlog for future specs. Wave 2 logged 4 explicit out-of-scope items this way: Stripe Elements theme, dark success block, rgba hairlines, rgba warning border.
+- First used in: Home Screen DS Conformance (Spec #11)
+- Reusable? YES

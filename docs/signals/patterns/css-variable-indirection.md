@@ -1,0 +1,5 @@
+- Pattern name: CSS Variable Indirection
+- Problem it solves: Fear that changing font loading or token definitions will break dozens of downstream components, making font/token changes feel high-risk.
+- Solution: When CSS custom properties are the indirection layer, changing the definition propagates automatically to all consumers. Wave 1's font swap (removing 3 fonts, adding JetBrains Mono) affected 31 usages across 12 components — but required code changes in only 3 files because all consumers read through CSS variables (--font-mono, --font-display, --font-body). The spike confirmed zero direct font-name references in components. This makes font/token definition changes low-risk as long as the variable names stay stable. Always spike to confirm no direct references exist before assuming indirection holds.
+- First used in: Design Consistency Wave 1 — Spike B (font blast radius)
+- Reusable? YES
