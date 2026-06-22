@@ -6,13 +6,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Design Consistency Wave 2 — Specs #02, #06, #08 implemented and verified.
+Design Consistency Wave 3 — Spec #04 (AL Utility Classes) implemented and verified.
 
 ---
 
 ## Current Goal
 
-Resolve remaining booking page specs and continue DS conformance across other screens.
+Continue DS conformance across remaining screens (specs #09-#20) and complete booking page reskin (specs #08-#09).
 
 ---
 
@@ -44,6 +44,12 @@ Resolve remaining booking page specs and continue DS conformance across other sc
   - Slice 1: Foundation — normalized `@layer base` font rules and utility classes from `--font-body`/`--font-display`/`--font-mono` to `--al-font`/`--al-font-mono`. Added 2 new tokens (`--al-status-negative-border`, `--al-status-caution-border`).
   - Slice 2: Dialog — replaced 5 forbidden Deep Ledger tokens in `dialog.tsx` inline styles with AL equivalents. Zero `--color-` references remain.
   - Slice 3: Booking Components — migrated 6 component files (`conflict-alert-banner`, `service-selector`, `event-type-form`, `event-type-list`, `booking-form`, `manage-booking-view`) from Deep Ledger `--color-*` tokens to AL tokens. Class swap `service-card` → `al-service-card`. Zero `--color-*` references remain except booking-form.tsx dark success block (out of scope, tracked in current-issues.md).
+
+---
+
+- Design Consistency Wave 3 (Spec #04) — implemented and verified (0 TS errors):
+  - Slice 1: Token pre-reqs — added 3 missing tokens to `:root` (`--al-display-lg: 3.5rem`, `--al-track-eyebrow: 0.2em`, `--al-radius-3xl: 24px`). Resolved current-issues.md item #13.
+  - Slice 2: Utility classes — appended 8 canonical AL utility classes to globals.css (`.al-page`, `.al-page-title`, `.al-section-title`, `.al-eyebrow`, `.al-lede`, `.al-card`, `.al-num`, `.al-mono`). Purely additive — no component migration yet.
 
 ---
 

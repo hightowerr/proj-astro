@@ -377,6 +377,7 @@
   --al-font-mono:       var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
   /* Typography scale */
+  --al-display-lg:   3.5rem;
   --al-display-md:   2.75rem;
   --al-display-sm:   2.25rem;
   --al-headline-lg:  2rem;
@@ -405,6 +406,7 @@
   --al-track-pill:    0.16em;
   --al-track-display: -0.025em;
   --al-track-tight:   -0.01em;
+  --al-track-eyebrow: 0.2em;
 
   /* Spacing */
   --al-sp-1:  4px;
@@ -449,6 +451,7 @@
   --al-radius-lg:   8px;
   --al-radius-xl:   12px;
   --al-radius-2xl:  16px;
+  --al-radius-3xl:  24px;
   --al-radius-full: 9999px;
 }
 
@@ -720,4 +723,77 @@
 }
 .al-toggle-track[data-checked="true"] .al-toggle-thumb {
   transform: translateX(1.25rem);
+}
+
+/* ── Page structure ─────────────────────────────────── */
+
+/* Standard app page wrapper */
+.al-page {
+  font-family: var(--al-font);
+  background: var(--al-background);
+  min-height: 100vh;
+  padding: var(--al-main-pad-y) var(--al-main-pad-x);
+  display: flex;
+  flex-direction: column;
+  gap: var(--al-sp-6);
+}
+
+/* Page title — canonical 44px / 800 */
+.al-page-title {
+  font-size: var(--al-display-md);
+  font-weight: var(--al-w-extra);
+  letter-spacing: var(--al-track-display);
+  color: var(--al-primary);
+  line-height: 1.0;
+}
+
+/* Section title — 24px / 800 */
+.al-section-title {
+  font-size: var(--al-headline-md);
+  font-weight: var(--al-w-extra);
+  letter-spacing: -0.02em;
+  color: var(--al-primary);
+  line-height: 1.1;
+}
+
+/* ── Typography helpers ─────────────────────────────── */
+
+/* Eyebrow motif — the signature element */
+.al-eyebrow {
+  font-family: var(--al-font);
+  font-size: var(--al-label-sm);
+  font-weight: var(--al-w-extra);
+  letter-spacing: var(--al-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--al-on-surface-variant);
+  opacity: 0.55;
+}
+
+/* Body lede / description text */
+.al-lede {
+  font-size: var(--al-title-sm);
+  color: var(--al-on-surface-variant);
+  line-height: 1.55;
+  max-width: 62ch;
+}
+
+/* ── Surface & numerics ─────────────────────────────── */
+
+/* Card container — the single elevation recipe */
+.al-card {
+  background: var(--al-surface-container-lowest);
+  border-radius: var(--al-radius-3xl);
+  box-shadow: var(--al-shadow-float);
+  overflow: hidden;
+}
+
+/* Tabular numerics utility */
+.al-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Monospace numerics (time, money, counts) */
+.al-mono {
+  font-family: var(--al-font-mono);
+  font-variant-numeric: tabular-nums;
 }
