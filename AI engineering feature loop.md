@@ -192,8 +192,17 @@ Read these feature specs: [docs/shaping/<feature>/specs/]
 
 ## Workflow (follow in order)
 
+### 0. Invoke the shaping skill
+Run `/shaping` to activate the structured shaping methodology.
+All shaping work in this phase MUST follow the `/shaping` skill's methodology:
+- Requirements as numbered set (R0, R1, R2...)
+- Shapes as lettered alternatives (A, B, C...)
+- Fit checks as R × S decision matrices
+- Breadboarding via `/breadboarding` skill
+- Multi-level document consistency (Big Picture → Shaping doc → Slices doc → Slice plans)
+
 ### 1. Shape
-- Analyze all specs TOGETHER (not one-at-a-time)
+- Use `/shaping` to populate R from specs (analyze all specs TOGETHER, not one-at-a-time), sketch shapes, run fit checks
 - Map requirements against docs/context/architecture-context.md — identify conflicts, technical debts, patterns that drifted in prior waves (check docs/signals/drift/)
 - Save shaping document to docs/shaping/<feature>/shape/<feature>-shape.md
 
@@ -206,7 +215,7 @@ Read these feature specs: [docs/shaping/<feature>/specs/]
 ### 3. Breadboard
 - Evaluate shape options against [speed / risk / simplicity]
 - Get user confirmation of recommended shape
-- Breadboard the preferred shape
+- Use `/breadboarding` (invoked through `/shaping`) to detail the selected shape into concrete affordances and wiring
 
 ### 4. Dependency graph + phased waves
 - For each spec, extract explicit dependencies (Prerequisites, Depends on, Requires)
@@ -220,8 +229,9 @@ Read these feature specs: [docs/shaping/<feature>/specs/]
 - Output as markdown table per wave + critical path
 
 ### 5. Slice & plan
+- Use `/shaping`'s slicing methodology — vertical slices with demo-able UI
 - Create slicing document: docs/shaping/<feature>/shape/<feature>-slices.md
-- Create individual implementation plans, one per slice, in the wave folder
+- Create individual implementation plans, one per slice, per the skill's document hierarchy (Slices doc → Slice plans)
 - Each plan MUST include:
   - Acceptance criteria (what "done" looks like — specific, verifiable)
   - Files to create/modify (predicted)

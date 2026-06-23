@@ -31,30 +31,30 @@ function BillingSummaryCards({ stats, currency }: { stats: BillingStats; currenc
         </p>
       </article>
 
-      <article className="relative overflow-hidden rounded-2xl bg-amber-50 p-6 group hover:bg-amber-50/80 transition-colors duration-300">
+      <article className="relative overflow-hidden rounded-2xl bg-[var(--al-status-caution-bg)] p-6 group hover:brightness-95 transition-colors duration-300">
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-          <span className="material-symbols-outlined text-6xl text-amber-700">
+          <span className="material-symbols-outlined text-6xl text-[var(--al-status-caution)]">
             hourglass_top
           </span>
         </div>
-        <h3 className="text-xs font-medium uppercase tracking-wider text-amber-700 mb-2">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--al-status-caution)] mb-2">
           Pending Deposits
         </h3>
-        <p className="text-4xl font-extrabold tabular-nums text-amber-800">
+        <p className="text-4xl font-extrabold tabular-nums text-[var(--al-status-caution)]">
           {formatCurrency(stats.pendingCents, currency)}
         </p>
       </article>
 
-      <article className="relative overflow-hidden rounded-2xl bg-red-50 p-6 border border-red-100 group hover:bg-red-50/80 transition-colors duration-300">
+      <article className="relative overflow-hidden rounded-2xl bg-[var(--al-status-negative-bg)] p-6 border border-[var(--al-status-negative-border)] group hover:brightness-95 transition-colors duration-300">
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-          <span className="material-symbols-outlined text-6xl text-red-600">
+          <span className="material-symbols-outlined text-6xl text-[var(--al-status-negative)]">
             undo
           </span>
         </div>
-        <h3 className="text-xs font-medium uppercase tracking-wider text-red-600 mb-2">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--al-status-negative)] mb-2">
           Refunds Issued (this month)
         </h3>
-        <p className="text-4xl font-extrabold tabular-nums text-red-700">
+        <p className="text-4xl font-extrabold tabular-nums text-[var(--al-status-negative)]">
           {formatCurrency(stats.refundedCents, currency)}
         </p>
       </article>
@@ -109,9 +109,9 @@ export default async function BillingPage() {
 
   return (
     <div className="min-h-screen bg-al-surface-low">
-      <div className="px-12 pb-24 max-w-7xl mx-auto space-y-16 py-10">
+      <div className="px-12 pb-24 max-w-7xl mx-auto space-y-16 py-8">
         <section className="space-y-4">
-          <h2 className="text-[3.5rem] font-bold text-al-primary tracking-tighter leading-tight font-manrope">
+          <h2 className="al-page-title">
             Billing & Payments
           </h2>
           <p className="text-al-on-surface-variant text-lg max-w-2xl leading-relaxed">

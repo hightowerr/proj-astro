@@ -1,0 +1,6 @@
+- Date: 2026-06-22
+- Spec: Design Consistency Wave 5, Spec #20
+- Classification: EVOLUTION
+- Description: Spec #20 listed dead tokens to remove but didn't account for the booking-form.tsx success block (lines 880-942) which still used 6 Deep Ledger Tailwind classes (bg-bg-dark-secondary/70, text-primary-light, bg-bg-dark, text-white x3) plus 3 text-text-light-muted class refs. These were discovered during pre-implementation audit and Phase 3 verification respectively. The spec was written before Wave 4 fully mapped the Tailwind-class form of Deep Ledger token consumption (e.g. `text-text-light-muted` references `--color-text-light-muted` via Tailwind's theme integration). All 9 refs were migrated to AL equivalents.
+- Root cause: Spec scoped to CSS custom property references (`var(--color-*)`) but missed Tailwind utility class references that consume the same tokens via `@theme inline` mapping.
+- Lesson: Future cleanup specs should audit both `var(--token)` inline style refs AND Tailwind class refs (e.g. `bg-token-name`, `text-token-name`) since `@theme inline` tokens generate both.

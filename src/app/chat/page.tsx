@@ -45,7 +45,7 @@ const Blockquote: React.FC<React.BlockquoteHTMLAttributes<HTMLElement>> = (
   props
 ) => (
   <blockquote
-    className="mb-3 border-l-2 border-border pl-3 text-muted-foreground"
+    className="mb-3 border-l-2 border-border pl-3 text-al-on-surface-variant"
     {...props}
   />
 );
@@ -171,7 +171,7 @@ function CopyButton({ text }: { text: string }) {
       {copied ? (
         <Check className="h-3.5 w-3.5 text-green-500" />
       ) : (
-        <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+        <Copy className="h-3.5 w-3.5 text-al-on-surface-variant" />
       )}
     </button>
   );
@@ -181,7 +181,7 @@ function ThinkingIndicator() {
   return (
     <div className="flex items-center gap-2 p-3 rounded-lg bg-muted max-w-[80%]">
       <Loader2 className="h-4 w-4 animate-spin" />
-      <span className="text-sm text-muted-foreground">AI is thinking...</span>
+      <span className="text-sm text-al-on-surface-variant">AI is thinking...</span>
     </div>
   );
 }
@@ -228,12 +228,12 @@ export default function ChatPage() {
   };
 
   if (isPending) {
-    return <div className="container mx-auto px-4 py-12">Loading...</div>;
+    return <div className="container mx-auto px-12 py-8">Loading...</div>;
   }
 
   if (!session) {
     return (
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-12 py-8">
         <div className="max-w-3xl mx-auto">
           <UserProfile />
         </div>
@@ -244,12 +244,12 @@ export default function ChatPage() {
   const isStreaming = status === "streaming";
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-12 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6 pb-4 border-b">
-          <h1 className="text-2xl font-bold">AI Chat</h1>
+          <h1 className="al-page-title">AI Chat</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-al-on-surface-variant">
               Welcome, {session.user.name}!
             </span>
             {messages.length > 0 && (
@@ -270,7 +270,7 @@ export default function ChatPage() {
 
         <div className="min-h-[50vh] overflow-y-auto space-y-4 mb-4">
           {messages.length === 0 && (
-            <div className="text-center text-muted-foreground py-12">
+            <div className="text-center text-al-on-surface-variant py-12">
               Start a conversation with AI
             </div>
           )}

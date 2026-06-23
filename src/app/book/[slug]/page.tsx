@@ -9,6 +9,28 @@ import { getShopBySlug } from "@/lib/queries/shops";
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+function BookingHeader({
+  shopName,
+  subtitle,
+}: {
+  shopName: string;
+  subtitle?: string;
+}) {
+  return (
+    <div className="pt-12 px-16">
+      <div className="al-eyebrow mb-3 opacity-55">Book an appointment</div>
+      <h1 className="text-[2rem] font-extrabold tracking-tight text-al-primary mb-2">
+        Book with {shopName}
+      </h1>
+      {subtitle && (
+        <p className="text-base font-normal text-al-on-surface-variant">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default async function BookingPage({
   params,
   searchParams,
@@ -42,22 +64,12 @@ export default async function BookingPage({
     }
 
     return (
-      <div style={{ background: 'var(--al-background)', minHeight: '100vh' }}>
-        <div style={{ padding: '48px 64px 0' }}>
-          <div style={{
-            fontSize: '11px', fontWeight: 800, letterSpacing: '0.2em',
-            textTransform: 'uppercase' as const, color: 'var(--al-on-surface-variant)',
-            opacity: 0.55, marginBottom: '12px',
-          }}>Book an appointment</div>
-          <h1 style={{
-            fontSize: '32px', fontWeight: 800, letterSpacing: '-0.02em',
-            color: 'var(--al-primary)', marginBottom: '8px',
-          }}>Book with {shop.name}</h1>
-          <p style={{ fontSize: '16px', fontWeight: 400, color: 'var(--al-on-surface-variant)' }}>
-            {eventType.name} {'\u00b7'} {eventType.durationMinutes} minutes
-          </p>
-        </div>
-        <div style={{ padding: '24px 64px 48px', maxWidth: '624px' }}>
+      <div className="bg-al-surface min-h-screen">
+        <BookingHeader
+          shopName={shop.name}
+          subtitle={`${eventType.name} \u00b7 ${eventType.durationMinutes} minutes`}
+        />
+        <div className="px-16 pb-12 pt-6 max-w-[624px]">
           <BookingForm
             shopSlug={shop.slug}
             shopName={shop.name}
@@ -84,22 +96,12 @@ export default async function BookingPage({
     const only = eventTypes[0]!;
 
     return (
-      <div style={{ background: 'var(--al-background)', minHeight: '100vh' }}>
-        <div style={{ padding: '48px 64px 0' }}>
-          <div style={{
-            fontSize: '11px', fontWeight: 800, letterSpacing: '0.2em',
-            textTransform: 'uppercase' as const, color: 'var(--al-on-surface-variant)',
-            opacity: 0.55, marginBottom: '12px',
-          }}>Book an appointment</div>
-          <h1 style={{
-            fontSize: '32px', fontWeight: 800, letterSpacing: '-0.02em',
-            color: 'var(--al-primary)', marginBottom: '8px',
-          }}>Book with {shop.name}</h1>
-          <p style={{ fontSize: '16px', fontWeight: 400, color: 'var(--al-on-surface-variant)' }}>
-            {only.name} {'\u00b7'} {only.durationMinutes} minutes
-          </p>
-        </div>
-        <div style={{ padding: '24px 64px 48px', maxWidth: '624px' }}>
+      <div className="bg-al-surface min-h-screen">
+        <BookingHeader
+          shopName={shop.name}
+          subtitle={`${only.name} \u00b7 ${only.durationMinutes} minutes`}
+        />
+        <div className="px-16 pb-12 pt-6 max-w-[624px]">
           <BookingForm
             shopSlug={shop.slug}
             shopName={shop.name}
@@ -119,39 +121,17 @@ export default async function BookingPage({
 
   if (eventTypes.length === 0) {
     return (
-      <div style={{ background: 'var(--al-background)', minHeight: '100vh' }}>
-        <div style={{ padding: '48px 64px 0' }}>
-          <div style={{
-            fontSize: '11px', fontWeight: 800, letterSpacing: '0.2em',
-            textTransform: 'uppercase' as const, color: 'var(--al-on-surface-variant)',
-            opacity: 0.55, marginBottom: '12px',
-          }}>Book an appointment</div>
-          <h1 style={{
-            fontSize: '32px', fontWeight: 800, letterSpacing: '-0.02em',
-            color: 'var(--al-primary)', marginBottom: '8px',
-          }}>Book with {shop.name}</h1>
-        </div>
-        <div style={{ padding: '24px 64px 48px', maxWidth: '624px' }}>
-          <div
-            style={{
-              borderRadius: '16px',
-              border: '1px solid rgba(195,198,209,0.20)',
-              background: 'var(--al-surface-container-lowest)',
-              padding: '32px',
-              textAlign: 'center' as const,
-            }}
-          >
-            <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--al-on-surface)', marginBottom: '4px' }}>No services available</p>
-            <p style={{ fontSize: '14px', color: 'var(--al-on-surface-variant)', marginBottom: '16px' }}>
+      <div className="bg-al-surface min-h-screen">
+        <BookingHeader shopName={shop.name} />
+        <div className="px-16 pb-12 pt-6 max-w-[624px]">
+          <div className="rounded-2xl border border-al-outline-variant/20 bg-al-surface-lowest p-8 text-center">
+            <p className="text-sm font-medium text-al-on-surface mb-1">No services available</p>
+            <p className="text-sm text-al-on-surface-variant mb-4">
               This shop hasn&apos;t added any bookable services yet.
             </p>
             <a
               href="/app/settings/services"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '4px',
-                fontSize: '14px', fontWeight: 500, color: 'var(--al-primary)',
-                textDecoration: 'underline', textUnderlineOffset: '4px',
-              }}
+              className="inline-flex items-center gap-1 text-sm font-medium text-al-primary underline underline-offset-4"
             >
               Add a service &rarr;
             </a>
@@ -162,22 +142,12 @@ export default async function BookingPage({
   }
 
   return (
-    <div style={{ background: 'var(--al-background)', minHeight: '100vh' }}>
-      <div style={{ padding: '48px 64px 0' }}>
-        <div style={{
-          fontSize: '11px', fontWeight: 800, letterSpacing: '0.2em',
-          textTransform: 'uppercase' as const, color: 'var(--al-on-surface-variant)',
-          opacity: 0.55, marginBottom: '12px',
-        }}>Book an appointment</div>
-        <h1 style={{
-          fontSize: '32px', fontWeight: 800, letterSpacing: '-0.02em',
-          color: 'var(--al-primary)', marginBottom: '8px',
-        }}>Book with {shop.name}</h1>
-        <p style={{ fontSize: '16px', fontWeight: 400, color: 'var(--al-on-surface-variant)' }}>
-          Pick a service, then choose a time that works for you.
-        </p>
-      </div>
-      <div style={{ padding: '24px 64px 48px', maxWidth: '624px' }}>
+    <div className="bg-al-surface min-h-screen">
+      <BookingHeader
+        shopName={shop.name}
+        subtitle="Pick a service, then choose a time that works for you."
+      />
+      <div className="px-16 pb-12 pt-6 max-w-[624px]">
         <ServiceSelector
           eventTypes={eventTypes}
           shopSlug={shop.slug}

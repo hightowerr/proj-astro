@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Calendar, User, Shield, ArrowLeft, Lock, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +24,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/lib/auth-client";
+
+// Material Symbols helper (replaces Lucide icons for AL consistency)
+function MsIcon({ name, className = "" }: { name: string; className?: string }) {
+  return <span className={`material-symbols-outlined ${className}`} aria-hidden="true">{name}</span>;
+}
 
 export default function ProfilePage() {
   const { data: session, isPending } = useSession();
@@ -64,7 +68,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
+    <div className="al-page max-w-4xl mx-auto">
       <div className="flex items-center gap-4 mb-8">
         <Button
           variant="ghost"
@@ -72,15 +76,15 @@ export default function ProfilePage() {
           onClick={() => router.back()}
           className="flex items-center gap-2"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <MsIcon name="arrow_back" className="text-base" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold">Your Profile</h1>
+        <h1 className="al-page-title">Your Profile</h1>
       </div>
 
       <div className="grid gap-6">
         {/* Profile Overview Card */}
-        <Card>
+        <Card className="al-card">
           <CardHeader>
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
@@ -95,22 +99,22 @@ export default function ProfilePage() {
               </Avatar>
               <div className="space-y-2">
                 <h2 className="text-2xl font-semibold">{user.name}</h2>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-al-on-surface-variant">
+                  <MsIcon name="mail" className="text-base" />
                   <span>{user.email}</span>
                   {user.emailVerified && (
                     <Badge
                       variant="outline"
-                      className="text-green-600 border-green-600"
+                      className="text-[var(--al-status-positive)] border-[var(--al-status-positive)]"
                     >
-                      <Shield className="h-3 w-3 mr-1" />
+                      <MsIcon name="shield" className="text-xs mr-1" />
                       Verified
                     </Badge>
                   )}
                 </div>
                 {createdDate && (
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Calendar className="h-4 w-4" />
+                  <div className="flex items-center gap-2 text-al-on-surface-variant text-sm">
+                    <MsIcon name="calendar_month" className="text-base" />
                     <span>Member since {createdDate}</span>
                   </div>
                 )}
@@ -120,7 +124,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Account Information */}
-        <Card>
+        <Card className="al-card">
           <CardHeader>
             <CardTitle>Account Information</CardTitle>
             <CardDescription>Your account details and settings</CardDescription>
@@ -128,7 +132,7 @@ export default function ProfilePage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
+                <label className="text-sm font-medium text-al-on-surface-variant">
                   Full Name
                 </label>
                 <div className="p-3 border rounded-md bg-muted/10">
@@ -136,7 +140,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
+                <label className="text-sm font-medium text-al-on-surface-variant">
                   Email Address
                 </label>
                 <div className="p-3 border rounded-md bg-muted/10 flex items-center justify-between">
@@ -144,7 +148,7 @@ export default function ProfilePage() {
                   {user.emailVerified && (
                     <Badge
                       variant="outline"
-                      className="text-green-600 border-green-600"
+                      className="text-[var(--al-status-positive)] border-[var(--al-status-positive)]"
                     >
                       Verified
                     </Badge>
@@ -161,7 +165,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1">
                     <p className="font-medium">Email Verification</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-al-on-surface-variant">
                       Email address verification status
                     </p>
                   </div>
@@ -172,7 +176,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1">
                     <p className="font-medium">Account Type</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-al-on-surface-variant">
                       Your account access level
                     </p>
                   </div>
@@ -184,7 +188,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Account Activity */}
-        <Card>
+        <Card className="al-card">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
             <CardDescription>
@@ -195,15 +199,15 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div className="h-2 w-2 bg-[var(--al-status-positive)] rounded-full"></div>
                   <div>
                     <p className="font-medium">Current Session</p>
-                    <p className="text-sm text-muted-foreground">Active now</p>
+                    <p className="text-sm text-al-on-surface-variant">Active now</p>
                   </div>
                 </div>
                 <Badge
                   variant="outline"
-                  className="text-green-600 border-green-600"
+                  className="text-[var(--al-status-positive)] border-[var(--al-status-positive)]"
                 >
                   Active
                 </Badge>
@@ -213,7 +217,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Quick Actions */}
-        <Card>
+        <Card className="al-card">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>
@@ -227,10 +231,10 @@ export default function ProfilePage() {
                 className="justify-start h-auto p-4"
                 onClick={() => setEditProfileOpen(true)}
               >
-                <User className="h-4 w-4 mr-2" />
+                <MsIcon name="account_circle" className="text-base mr-2" />
                 <div className="text-left">
                   <div className="font-medium">Edit Profile</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-al-on-surface-variant">
                     Update your information
                   </div>
                 </div>
@@ -240,10 +244,10 @@ export default function ProfilePage() {
                 className="justify-start h-auto p-4"
                 onClick={() => setSecurityOpen(true)}
               >
-                <Shield className="h-4 w-4 mr-2" />
+                <MsIcon name="shield" className="text-base mr-2" />
                 <div className="text-left">
                   <div className="font-medium">Security Settings</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-al-on-surface-variant">
                     Manage security options
                   </div>
                 </div>
@@ -253,10 +257,10 @@ export default function ProfilePage() {
                 className="justify-start h-auto p-4"
                 onClick={() => setEmailPrefsOpen(true)}
               >
-                <Mail className="h-4 w-4 mr-2" />
+                <MsIcon name="mail" className="text-base mr-2" />
                 <div className="text-left">
                   <div className="font-medium">Email Preferences</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-al-on-surface-variant">
                     Configure notifications
                   </div>
                 </div>
@@ -294,7 +298,7 @@ export default function ProfilePage() {
                 disabled
                 className="bg-muted"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-al-on-surface-variant">
                 Email cannot be changed for OAuth accounts
               </p>
             </div>
@@ -324,10 +328,10 @@ export default function ProfilePage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                <Lock className="h-5 w-5 text-muted-foreground" />
+                <MsIcon name="lock" className="text-xl text-al-on-surface-variant" />
                 <div>
                   <p className="font-medium">Password</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-al-on-surface-variant">
                     {user.email?.includes("@gmail")
                       ? "Managed by Google"
                       : "Set a password for your account"}
@@ -341,10 +345,10 @@ export default function ProfilePage() {
 
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                <Smartphone className="h-5 w-5 text-muted-foreground" />
+                <MsIcon name="smartphone" className="text-xl text-al-on-surface-variant" />
                 <div>
                   <p className="font-medium">Two-Factor Authentication</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-al-on-surface-variant">
                     Add an extra layer of security
                   </p>
                 </div>
@@ -356,10 +360,10 @@ export default function ProfilePage() {
 
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-muted-foreground" />
+                <MsIcon name="shield" className="text-xl text-al-on-surface-variant" />
                 <div>
                   <p className="font-medium">Active Sessions</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-al-on-surface-variant">
                     Manage devices logged into your account
                   </p>
                 </div>
@@ -388,7 +392,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
                 <p className="font-medium">Marketing Emails</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-al-on-surface-variant">
                   Product updates and announcements
                 </p>
               </div>
@@ -397,7 +401,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
                 <p className="font-medium">Security Alerts</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-al-on-surface-variant">
                   Important security notifications
                 </p>
               </div>

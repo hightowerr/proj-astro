@@ -20,9 +20,9 @@ export default async function ReminderSettingsPage() {
 
   if (!shop) {
     return (
-      <div className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-semibold">Reminders</h1>
-        <p className="text-muted-foreground text-sm">
+      <div className="container mx-auto px-12 py-8">
+        <h1 className="al-page-title">Reminders</h1>
+        <p className="al-lede">
           Create your shop to configure reminder settings.
         </p>
       </div>
@@ -50,10 +50,10 @@ export default async function ReminderSettingsPage() {
   );
 
   return (
-    <div className="container mx-auto space-y-8 px-4 py-10">
+    <div className="container mx-auto space-y-8 px-12 py-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold">Reminders</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="al-page-title">Reminders</h1>
+        <p className="al-lede">
           Configure when automated reminders send before appointments.
         </p>
       </header>
@@ -61,11 +61,8 @@ export default async function ReminderSettingsPage() {
         <ReminderTimingsForm initialTimings={initialTimings} />
       </div>
       <div className="rounded-lg border p-6">
-        <h2 className="text-lg font-semibold mb-1">Email reminder template</h2>
-        <p
-          className="text-sm mb-6"
-          style={{ color: "var(--al-on-surface-variant)" }}
-        >
+        <h2 className="al-section-title mb-1">Email reminder template</h2>
+        <p className="text-sm text-al-on-surface-variant mb-6">
           Customize the email sent to customers before their appointment.
           Variables in <code>{"{{double braces}}"}</code> are replaced with real
           data at send time.
@@ -77,11 +74,8 @@ export default async function ReminderSettingsPage() {
         />
       </div>
       <div className="rounded-lg border p-6">
-        <h2 className="text-lg font-semibold mb-1">SMS reminder template</h2>
-        <p
-          className="text-sm mb-6"
-          style={{ color: "var(--al-on-surface-variant)" }}
-        >
+        <h2 className="al-section-title mb-1">SMS reminder template</h2>
+        <p className="text-sm text-al-on-surface-variant mb-6">
           Customize the SMS sent to high-risk customers before their appointment.
           Variables in <code>{"{{double braces}}"}</code> are replaced with real
           data at send time.

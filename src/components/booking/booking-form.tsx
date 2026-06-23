@@ -879,34 +879,34 @@ export function BookingForm({
 
   if (success) {
     return (
-      <div className="space-y-5 rounded-2xl border border-white/10 bg-bg-dark-secondary/70 p-6 shadow-sm">
+      <div className="space-y-5 rounded-2xl border border-al-outline-variant bg-al-surface-container-lowest p-6 shadow-sm">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase text-primary-light">
+          <p className="text-xs font-semibold uppercase text-al-primary">
             Booking confirmed
           </p>
-          <h2 className="text-balance text-2xl font-semibold text-white">
+          <h2 className="text-balance text-2xl font-semibold text-al-on-surface">
             You&apos;re booked with {shopName}
           </h2>
-          <p className="text-pretty text-sm text-text-light-muted">
+          <p className="text-pretty text-sm text-al-on-surface-variant">
             We&apos;ve reserved your slot at {shopName}.
           </p>
           {selectedSlot ? (
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-al-on-surface">
               {timeFormatter.format(new Date(selectedSlot))} ({timezone})
             </p>
           ) : null}
           {selectedEventTypeName ? (
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-al-on-surface">
               {selectedEventTypeName} - {effectiveDurationMinutes} min
             </p>
           ) : null}
         </div>
 
         {manageToken ? (
-          <div className="space-y-4 rounded-xl border border-white/10 bg-bg-dark p-4">
+          <div className="space-y-4 rounded-xl border border-al-outline-variant bg-al-surface-container-low p-4">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-white">Manage your booking</h3>
-              <p className="text-pretty text-sm text-text-light-muted">
+              <h3 className="text-sm font-semibold text-al-on-surface">Manage your booking</h3>
+              <p className="text-pretty text-sm text-al-on-surface-variant">
                 Use this link to view details or cancel your appointment.
               </p>
             </div>
@@ -918,8 +918,8 @@ export function BookingForm({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  background: "var(--color-brand)",
-                  color: "var(--color-surface-void)",
+                  background: "var(--al-primary)",
+                  color: "var(--al-on-primary)",
                   borderRadius: "var(--radius-lg)",
                   padding: "0.5rem 1rem",
                   fontSize: "0.875rem",
@@ -929,14 +929,14 @@ export function BookingForm({
               >
                 Manage booking
               </a>
-              <button type="button" onClick={handleBookAgain} style={{ flex: 1, background: "transparent", border: "1px solid var(--color-brand-border)", color: "var(--color-brand)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Book again</button>
+              <button type="button" onClick={handleBookAgain} style={{ flex: 1, background: "transparent", border: "1px solid var(--al-outline-variant)", color: "var(--al-primary)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Book again</button>
             </div>
-            <p className="text-xs text-text-light-muted">
+            <p className="text-xs text-al-on-surface-variant">
               Save this link if you may need to change or cancel later.
             </p>
           </div>
         ) : (
-          <button type="button" onClick={handleBookAgain} style={{ background: "transparent", border: "1px solid var(--color-brand-border)", color: "var(--color-brand)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Book again</button>
+          <button type="button" onClick={handleBookAgain} style={{ background: "transparent", border: "1px solid var(--al-outline-variant)", color: "var(--al-primary)", borderRadius: "var(--radius-lg)", padding: "0.5rem 1rem", fontSize: "0.875rem", cursor: "pointer" }}>Book again</button>
         )}
       </div>
     );

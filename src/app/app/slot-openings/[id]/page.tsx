@@ -17,9 +17,9 @@ export default async function SlotOpeningDetailPage({
 
   if (!shop) {
     return (
-      <div className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-semibold">Slot Opening</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="container mx-auto px-12 py-8">
+        <h1 className="al-page-title">Slot Opening</h1>
+        <p className="al-lede">
           Create your shop to view slot recovery details.
         </p>
       </div>
@@ -90,36 +90,36 @@ export default async function SlotOpeningDetailPage({
   });
 
   return (
-    <div className="container mx-auto px-4 py-10 space-y-8">
+    <div className="container mx-auto px-12 py-8 space-y-8">
       <div className="space-y-2">
         <Link
           href="/app/appointments"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+          className="text-sm text-al-on-surface-variant underline-offset-4 hover:underline"
         >
           Back to appointments
         </Link>
-        <h1 className="text-3xl font-semibold">Slot Opening</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="al-page-title">Slot Opening</h1>
+        <p className="al-lede">
           Recovery timeline for this cancelled slot.
         </p>
       </div>
 
       <div className="rounded-lg border p-4 space-y-2">
-        <h2 className="text-sm font-medium text-muted-foreground">Details</h2>
+        <h2 className="text-sm font-medium text-al-on-surface-variant">Details</h2>
         <p className="text-lg font-semibold">
           {formatter.format(new Date(slotRow.startsAt))}
         </p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-al-on-surface-variant">
           Ends {formatter.format(new Date(slotRow.endsAt))} ({timezone})
         </p>
         <p className="text-sm">
           Status: <SlotStatusBadge status={slotRow.status} />
         </p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-al-on-surface-variant">
           Opened {formatter.format(new Date(slotRow.createdAt))}
         </p>
         {slotRow.eventTypeName ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-al-on-surface-variant">
             Service: <span className="text-foreground">{slotRow.eventTypeName}</span>
           </p>
         ) : null}
@@ -128,7 +128,7 @@ export default async function SlotOpeningDetailPage({
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Recovered Bookings</h2>
         {recoveredBookings.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No recovered bookings yet.</p>
+          <p className="text-sm text-al-on-surface-variant">No recovered bookings yet.</p>
         ) : (
           <div className="overflow-hidden rounded-lg border">
             <table className="w-full text-sm">
@@ -153,7 +153,7 @@ export default async function SlotOpeningDetailPage({
                     </td>
                     <td className="px-4 py-3 capitalize">{booking.status}</td>
                     <td className="px-4 py-3 capitalize">{booking.paymentStatus}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-al-on-surface-variant">
                       {formatter.format(new Date(booking.createdAt))}
                     </td>
                   </tr>
@@ -167,7 +167,7 @@ export default async function SlotOpeningDetailPage({
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Offer History</h2>
         {offers.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No offers sent yet.</p>
+          <p className="text-sm text-al-on-surface-variant">No offers sent yet.</p>
         ) : (
           <div className="overflow-hidden rounded-lg border">
             <table className="w-full text-sm">
@@ -184,17 +184,17 @@ export default async function SlotOpeningDetailPage({
                   <tr key={offer.id} className="border-t">
                     <td className="px-4 py-3">
                       <div className="font-medium">{offer.customerName}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-al-on-surface-variant">
                         {offer.customerPhone}
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <OfferStatusBadge status={offer.status} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-al-on-surface-variant">
                       {formatter.format(new Date(offer.sentAt))}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-al-on-surface-variant">
                       {formatter.format(new Date(offer.expiresAt))}
                     </td>
                   </tr>
@@ -212,7 +212,7 @@ function SlotStatusBadge({ status }: { status: "open" | "filled" | "expired" }) 
   const classes = {
     open: "bg-blue-100 text-blue-800",
     filled: "bg-green-100 text-green-800",
-    expired: "bg-muted text-muted-foreground",
+    expired: "bg-muted text-al-on-surface-variant",
   };
 
   return (
@@ -232,7 +232,7 @@ function OfferStatusBadge({
   const classes = {
     sent: "bg-blue-100 text-blue-800",
     accepted: "bg-green-100 text-green-800",
-    expired: "bg-muted text-muted-foreground",
+    expired: "bg-muted text-al-on-surface-variant",
     declined: "bg-red-100 text-red-800",
   };
 

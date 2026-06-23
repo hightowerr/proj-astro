@@ -16,9 +16,9 @@ export default async function CustomerPaymentHistoryPage({
 
   if (!shop) {
     return (
-      <div className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-semibold">Customer</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="container mx-auto px-12 py-8">
+        <h1 className="al-page-title">Customer</h1>
+        <p className="al-lede">
           Create your shop to view customer history.
         </p>
       </div>
@@ -72,16 +72,16 @@ export default async function CustomerPaymentHistoryPage({
   };
 
   return (
-    <div className="container mx-auto px-4 py-10 space-y-6">
+    <div className="container mx-auto px-12 py-8 space-y-6">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold">{customer.fullName}</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="al-page-title">{customer.fullName}</h1>
+        <p className="al-lede">
           {customer.email ?? customer.phone}
         </p>
       </header>
 
       {history.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-al-on-surface-variant">
           No bookings yet for this customer.
         </p>
       ) : (
@@ -105,14 +105,14 @@ export default async function CustomerPaymentHistoryPage({
                     <div className="font-medium capitalize">
                       {entry.paymentStatus}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-al-on-surface-variant">
                       {entry.paymentProviderStatus ?? "—"}
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     {formatCurrency(entry.amountCents, entry.currency)}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 text-al-on-surface-variant">
                     {formatter.format(new Date(entry.createdAt))}
                   </td>
                 </tr>

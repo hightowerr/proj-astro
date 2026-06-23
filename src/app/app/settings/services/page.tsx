@@ -14,10 +14,10 @@ export default async function ServicesPage() {
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-extrabold text-al-primary font-manrope">
+          <h1 className="al-page-title">
             Services
           </h1>
-          <p className="mt-2 text-sm text-on-surface-variant">
+          <p className="mt-2 al-lede">
             Create your shop to manage services.
           </p>
         </div>
@@ -57,7 +57,7 @@ export default async function ServicesPage() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-12">
         <header className="mb-12 max-w-full">
-          <div className="flex items-center gap-2 text-on-surface-variant text-[10px] font-extrabold uppercase tracking-[0.2em] mb-6 opacity-60">
+          <div className="al-eyebrow mb-6">
             <span>Settings</span>
             <span
               aria-hidden="true"
@@ -65,16 +65,12 @@ export default async function ServicesPage() {
             >
               chevron_right
             </span>
-            <span style={{ color: "var(--al-primary)", opacity: 1 }}>Service Catalog</span>
+            <span className="text-al-primary opacity-100">Service Catalog</span>
           </div>
-          <h1
-            className="text-5xl md:text-7xl font-extrabold tracking-tighter mb-4 leading-[0.9] text-al-primary font-manrope"
-          >
+          <h1 className="al-page-title mb-4">
             Services Management
           </h1>
-          <p
-            className="text-on-surface-variant text-lg font-medium max-w-2xl leading-relaxed"
-          >
+          <p className="al-lede max-w-2xl">
             Define your craft. Configure service durations, buffers, and bespoke deposit
             requirements.
           </p>

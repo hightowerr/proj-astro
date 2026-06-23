@@ -22,34 +22,19 @@ export default async function CalendarSettingsPage() {
   );
 
   return (
-    <div
-      className="min-h-screen font-manrope"
-      style={{ background: "var(--al-background)" }}
-    >
+    <div className="min-h-screen font-manrope bg-al-surface">
       <main className="mx-auto max-w-screen-xl px-6 md:px-12 py-12 md:py-16">
         {/* Breadcrumb */}
-        <p
-          className="text-sm font-medium mb-4"
-          style={{ color: "var(--al-on-surface-variant)" }}
-        >
+        <p className="al-eyebrow mb-4">
           Settings / Calendar
         </p>
 
         {/* Header */}
-        <header
-          className="mb-12"
-          style={{ animation: "fade-up 0.4s ease-out both" }}
-        >
-          <h1
-            className="font-manrope text-4xl md:text-5xl font-extrabold tracking-tight mb-4"
-            style={{ color: "var(--al-primary)" }}
-          >
+        <header className="mb-12 animate-fade-up">
+          <h1 className="al-page-title mb-4">
             Calendar Settings
           </h1>
-          <p
-            className="text-lg font-light max-w-2xl"
-            style={{ color: "var(--al-on-surface-variant)" }}
-          >
+          <p className="al-lede max-w-2xl">
             Manage how your studio connects to external calendars and define
             your default booking behavior.
           </p>

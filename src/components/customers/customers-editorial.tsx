@@ -31,32 +31,37 @@ type CustomersEditorialProps = {
 // Constants
 // ---------------------------------------------------------------------------
 
-const FONT = "'Manrope', system-ui, sans-serif";
-
+/**
+ * Tier visual mapping using AL design-system tokens.
+ * Colors reference CSS custom properties so they stay in sync with the theme.
+ * `avBg` uses gradients for top/risk tiers — these remain as inline styles
+ * because Tailwind cannot generate gradient utility classes from arbitrary
+ * multi-stop values at runtime.
+ */
 const TIERS = {
   top: {
     label: "Top",
-    bg: "rgba(14,122,85,0.10)",
-    fg: "#0e7a55",
-    dot: "#0e7a55",
+    bg: "var(--al-status-positive-bg)",
+    fg: "var(--al-status-positive)",
+    dot: "var(--al-status-positive)",
     avBg: "linear-gradient(135deg,#d3ead7,#a9d4b3)",
     avFg: "#0e4a31",
   },
   neutral: {
     label: "Neutral",
-    bg: "#eeeeec",
-    fg: "#43474f",
-    dot: "#737780",
-    avBg: "#eeeeec",
-    avFg: "#43474f",
+    bg: "var(--al-surface-container)",
+    fg: "var(--al-on-surface-variant)",
+    dot: "var(--al-outline)",
+    avBg: "var(--al-surface-container)",
+    avFg: "var(--al-on-surface-variant)",
   },
   risk: {
     label: "Risk",
-    bg: "rgba(168,41,74,0.10)",
-    fg: "#a8294a",
-    dot: "#a8294a",
-    avBg: "linear-gradient(135deg,#fdd8cb,#e2bfb3)",
-    avFg: "#572411",
+    bg: "var(--al-status-negative-bg)",
+    fg: "var(--al-status-negative)",
+    dot: "var(--al-status-negative)",
+    avBg: "linear-gradient(135deg, var(--al-secondary-container), var(--al-secondary-fixed-dim))",
+    avFg: "var(--al-tertiary-container)",
   },
 } as const;
 
@@ -67,6 +72,12 @@ type TierFilter = "all" | TierKey;
 // Sub-components
 // ---------------------------------------------------------------------------
 
+/**
+ * Material Symbols icon wrapper.
+ * The base `.material-symbols-outlined` class (defined in globals.css)
+ * already sets font-variation-settings, display, and alignment.
+ * We only override `FILL` when requested and size via Tailwind text-size.
+ */
 function Icon({
   name,
   size = 16,
@@ -76,16 +87,19 @@ function Icon({
   size?: number;
   fill?: boolean;
 }) {
+  // Map icon sizes to static Tailwind classes (dynamic template literals break JIT)
+  const sizeClass: Record<number, string> = {
+    14: "text-[14px]",
+    16: "text-[16px]",
+    20: "text-xl",
+    24: "text-2xl",
+    28: "text-[28px]",
+  };
+
   return (
     <span
-      className="material-symbols-outlined"
-      style={{
-        fontSize: size,
-        fontVariationSettings: `'FILL' ${fill ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
-        lineHeight: 1,
-        display: "inline-flex",
-        alignItems: "center",
-      }}
+      className={`material-symbols-outlined ${sizeClass[size] ?? "text-base"} ${fill ? "[font-variation-settings:'FILL'_1,'wght'_400,'GRAD'_0,'opsz'_24]" : ""}`}
+      aria-hidden="true"
     >
       {name}
     </span>
@@ -104,18 +118,13 @@ function Avatar({
   const t = TIERS[tier];
   return (
     <div
+      className="grid shrink-0 place-items-center rounded-full font-extrabold tracking-[.04em]"
       style={{
         width: size,
         height: size,
-        borderRadius: 9999,
         background: t.avBg,
         color: t.avFg,
-        display: "grid",
-        placeItems: "center",
         fontSize: Math.round(size * 0.32),
-        fontWeight: 800,
-        letterSpacing: ".04em",
-        flexShrink: 0,
       }}
     >
       {initials}
@@ -131,32 +140,16 @@ function TierPill({
   size?: "sm" | "md";
 }) {
   const t = TIERS[tier];
-  const pad = size === "sm" ? "3px 9px" : "4px 10px";
-  const fs = size === "sm" ? 9 : 10;
+  const padClass = size === "sm" ? "px-[9px] py-[3px]" : "px-[10px] py-1";
+  const fsClass = size === "sm" ? "text-[9px]" : "text-[10px]";
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: pad,
-        borderRadius: 9999,
-        fontSize: fs,
-        fontWeight: 800,
-        letterSpacing: ".18em",
-        textTransform: "uppercase" as const,
-        background: t.bg,
-        color: t.fg,
-      }}
+      className={`inline-flex items-center gap-1.5 rounded-full font-extrabold uppercase tracking-[.18em] ${padClass} ${fsClass}`}
+      style={{ background: t.bg, color: t.fg }}
     >
       <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: 9999,
-          background: t.dot,
-          flexShrink: 0,
-        }}
+        className="size-1.5 shrink-0 rounded-full"
+        style={{ background: t.dot }}
       />
       {t.label}
     </span>
@@ -172,67 +165,29 @@ function ScoreCell({
 }) {
   if (score == null) {
     return (
-      <span
-        style={{
-          fontSize: 14,
-          fontWeight: 700,
-          color: "#43474f",
-          opacity: 0.5,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
+      <span className="al-num text-sm font-bold text-al-on-surface-variant opacity-50">
         —
       </span>
     );
   }
-  const dot = tier ? TIERS[tier].dot : "#737780";
+  const dot = tier ? TIERS[tier].dot : "var(--al-outline)";
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column" as const,
-        gap: 6,
-        alignItems: "flex-start",
-      }}
-    >
+    <div className="flex flex-col items-start gap-1.5">
       <div
-        style={{
-          fontSize: 28,
-          fontWeight: 800,
-          letterSpacing: "-.03em",
-          color: tier ? TIERS[tier].fg : "#43474f",
-          fontVariantNumeric: "tabular-nums",
-          lineHeight: 1,
-        }}
+        className="al-num text-[28px] font-extrabold leading-none tracking-[-0.03em]"
+        style={{ color: tier ? TIERS[tier].fg : "var(--al-on-surface-variant)" }}
       >
         {score}
-        <span
-          style={{
-            fontSize: 13,
-            color: "#43474f",
-            opacity: 0.55,
-            fontWeight: 700,
-            marginLeft: 3,
-          }}
-        >
+        <span className="ml-[3px] text-[13px] font-bold text-al-on-surface-variant opacity-55">
           /100
         </span>
       </div>
-      <div
-        style={{
-          width: 90,
-          height: 4,
-          background: "#eeeeec",
-          borderRadius: 9999,
-          overflow: "hidden",
-        }}
-      >
+      <div className="h-1 w-[90px] overflow-hidden rounded-full bg-al-surface-container">
         <div
+          className="h-full rounded-full"
           style={{
             width: `${score}%`,
-            height: "100%",
             background: dot,
-            borderRadius: 9999,
           }}
         />
       </div>
@@ -259,30 +214,16 @@ function LegendItem({
 }) {
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        opacity: dim ? 0.55 : 1,
-      }}
+      className={`inline-flex items-center gap-[5px] ${dim ? "opacity-55" : ""}`}
     >
       <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: 9999,
-          background: color,
-          display: "inline-block",
-          flexShrink: 0,
-        }}
+        className="inline-block size-1.5 shrink-0 rounded-full"
+        style={{ background: color }}
       />
       {label}{" "}
       <strong
-        style={{
-          color: valueColor ?? "#001e40",
-          fontWeight: 800,
-          fontVariantNumeric: "tabular-nums",
-        }}
+        className="al-num font-extrabold"
+        style={{ color: valueColor ?? "var(--al-primary)" }}
       >
         {value}
       </strong>
@@ -307,50 +248,35 @@ function ReliabilitySegmented({
   const pct = (n: number) => `${(n / t) * 100}%`;
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column" as const,
-        gap: 8,
-        minWidth: 0,
-      }}
-    >
+    <div className="flex min-w-0 flex-col gap-2">
       {/* Segmented bar */}
-      <div
-        style={{
-          display: "flex",
-          height: 8,
-          borderRadius: 9999,
-          overflow: "hidden",
-          background: "#eeeeec",
-        }}
-      >
+      <div className="flex h-2 overflow-hidden rounded-full bg-al-surface-container">
         {onTime > 0 && (
           <div
+            className="transition-[width] duration-[250ms]"
             style={{
               width: pct(onTime),
-              background: "#0e7a55",
-              transition: "width .25s",
+              background: "var(--al-status-positive)",
             }}
             title={`On time \u00b7 ${onTime}`}
           />
         )}
         {late > 0 && (
           <div
+            className="transition-[width] duration-[250ms]"
             style={{
               width: pct(late),
-              background: "#c97a2a",
-              transition: "width .25s",
+              background: "var(--al-status-caution)",
             }}
             title={`Late \u00b7 ${late}`}
           />
         )}
         {noShow > 0 && (
           <div
+            className="transition-[width] duration-[250ms]"
             style={{
               width: pct(noShow),
-              background: "#a8294a",
-              transition: "width .25s",
+              background: "var(--al-status-negative)",
             }}
             title={`No-show \u00b7 ${noShow}`}
           />
@@ -358,25 +284,31 @@ function ReliabilitySegmented({
       </div>
 
       {/* Legend */}
-      <div
-        style={{
-          display: "flex",
-          gap: 14,
-          fontSize: 11,
-          color: "#43474f",
-          fontWeight: 600,
-          fontVariantNumeric: "tabular-nums",
-          flexWrap: "wrap" as const,
-        }}
-      >
-        <LegendItem color="#0e7a55" label="On time" value={onTime} />
-        <LegendItem color="#c97a2a" label="Late" value={late} />
-        <LegendItem color="#a8294a" label="No-show" value={noShow} />
+      <div className="al-num flex flex-wrap gap-3.5 text-[11px] font-semibold text-al-on-surface-variant">
         <LegendItem
-          color="#737780"
+          color="var(--al-status-positive)"
+          label="On time"
+          value={onTime}
+        />
+        <LegendItem
+          color="var(--al-status-caution)"
+          label="Late"
+          value={late}
+        />
+        <LegendItem
+          color="var(--al-status-negative)"
+          label="No-show"
+          value={noShow}
+        />
+        <LegendItem
+          color="var(--al-outline)"
           label="Voids 90d"
           value={voids90d}
-          valueColor={voids90d >= 2 ? "#a8294a" : "#001e40"}
+          valueColor={
+            voids90d >= 2
+              ? "var(--al-status-negative)"
+              : "var(--al-primary)"
+          }
           dim={voids90d === 0}
         />
       </div>
@@ -400,48 +332,15 @@ function SummaryCell({
   color?: string;
 }) {
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column" as const,
-        minWidth: 0,
-      }}
-    >
+    <div className="flex min-w-0 flex-1 flex-col">
+      <div className="al-eyebrow">{label}</div>
       <div
-        style={{
-          fontSize: 10,
-          fontWeight: 800,
-          letterSpacing: ".2em",
-          textTransform: "uppercase" as const,
-          color: "#43474f",
-          opacity: 0.6,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: 34,
-          fontWeight: 800,
-          letterSpacing: "-.03em",
-          color: color ?? "#001e40",
-          fontVariantNumeric: "tabular-nums",
-          lineHeight: 1,
-          marginTop: 6,
-        }}
+        className="al-num mt-1.5 text-[34px] font-extrabold leading-none tracking-[-0.03em]"
+        style={{ color: color ?? "var(--al-primary)" }}
       >
         {value}
       </div>
-      <div
-        style={{
-          fontSize: 11,
-          color: "#43474f",
-          opacity: 0.65,
-          fontWeight: 600,
-          marginTop: 8,
-        }}
-      >
+      <div className="mt-2 text-[11px] font-semibold text-al-on-surface-variant opacity-65">
         {foot}
       </div>
     </div>
@@ -450,14 +349,7 @@ function SummaryCell({
 
 function SummaryDivider() {
   return (
-    <div
-      style={{
-        width: 1,
-        alignSelf: "stretch",
-        background: "rgba(195,198,209,.30)",
-        margin: "0 24px",
-      }}
-    />
+    <div className="mx-6 w-px self-stretch bg-[var(--al-hairline-rest)]" />
   );
 }
 
@@ -472,37 +364,32 @@ function SummaryStrip({
   const risk = customers.filter((c) => c.tier === "risk").length;
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: "24px 28px",
-        display: "flex",
-        alignItems: "stretch",
-        boxShadow: "0px 20px 40px rgba(26,28,27,0.04)",
-      }}
-    >
+    <div className="al-card flex items-stretch rounded-[20px] px-7 py-6">
       <SummaryCell label="Customers" value={total} foot="In registry" />
       <SummaryDivider />
       <SummaryCell
         label="Top tier"
         value={tops}
         foot={`${total ? Math.round((tops / total) * 100) : 0}% of base`}
-        color="#0e7a55"
+        color="var(--al-status-positive)"
       />
       <SummaryDivider />
       <SummaryCell
         label="Neutral"
         value={neutral}
         foot="Moderate history"
-        color="#43474f"
+        color="var(--al-on-surface-variant)"
       />
       <SummaryDivider />
       <SummaryCell
         label="Risk"
         value={risk}
         foot={risk ? "Need attention" : "None flagged"}
-        color={risk ? "#a8294a" : "#43474f"}
+        color={
+          risk
+            ? "var(--al-status-negative)"
+            : "var(--al-on-surface-variant)"
+        }
       />
     </div>
   );
@@ -536,17 +423,8 @@ function FilterStrip({
   ];
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap" as const,
-        gap: 12,
-        padding: "0 0 14px",
-      }}
-    >
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" as const }}>
+    <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5">
+      <div className="flex flex-wrap gap-1">
         {opts.map((o) => {
           const isActive = active === o.key;
           return (
@@ -554,26 +432,15 @@ function FilterStrip({
               key={o.key}
               type="button"
               onClick={() => onChange(o.key)}
-              style={{
-                padding: "8px 14px",
-                borderRadius: 9999,
-                border: 0,
-                background: isActive ? "#001e40" : "transparent",
-                fontFamily: FONT,
-                fontSize: 12,
-                fontWeight: 700,
-                color: isActive ? "#fff" : "#43474f",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-              }}
+              className={`inline-flex cursor-pointer items-center rounded-full border-0 px-3.5 py-2 text-xs font-bold ${
+                isActive
+                  ? "bg-al-primary text-white"
+                  : "bg-transparent text-al-on-surface-variant"
+              }`}
             >
               {o.label}
               <span
-                style={{
-                  marginLeft: 6,
-                  opacity: isActive ? 0.85 : 0.55,
-                }}
+                className={`ml-1.5 ${isActive ? "opacity-85" : "opacity-55"}`}
               >
                 &middot; {counts[o.key]}
               </span>
@@ -581,17 +448,7 @@ function FilterStrip({
           );
         })}
       </div>
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          fontSize: 11,
-          fontWeight: 700,
-          color: "#43474f",
-          opacity: 0.7,
-        }}
-      >
+      <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-al-on-surface-variant opacity-70">
         <Icon name="autorenew" size={14} />
         Recomputed nightly
       </div>
@@ -626,125 +483,43 @@ function TiersExplainer() {
   ];
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 24,
-        padding: "28px 28px 24px",
-        boxShadow: "0px 20px 40px rgba(26,28,27,0.04)",
-      }}
-    >
+    <div className="al-card rounded-3xl px-7 pb-6 pt-7">
       {/* Head */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          gap: 14,
-          marginBottom: 20,
-        }}
-      >
+      <div className="mb-5 flex items-end justify-between gap-3.5">
         <div>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: ".2em",
-              textTransform: "uppercase" as const,
-              color: "#43474f",
-              opacity: 0.55,
-            }}
-          >
-            Reference
-          </div>
-          <div
-            style={{
-              fontSize: 22,
-              fontWeight: 800,
-              letterSpacing: "-.02em",
-              color: "#001e40",
-              marginTop: 4,
-            }}
-          >
+          <div className="al-eyebrow">Reference</div>
+          <div className="mt-1 text-[22px] font-extrabold tracking-[-0.02em] text-al-primary">
             Understanding tiers
           </div>
         </div>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#43474f",
-            opacity: 0.7,
-          }}
-        >
+        <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-al-on-surface-variant opacity-70">
           <Icon name="schedule" size={14} />
           Recomputed nightly &middot; Last 180 days
         </div>
       </div>
 
       {/* 3-column grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: 18,
-        }}
-      >
+      <div className="grid grid-cols-3 gap-[18px]">
         {rows.map((r) => {
           const t = TIERS[r.tier];
           return (
             <div
               key={r.tier}
-              style={{
-                background: "#f9f9f7",
-                borderRadius: 16,
-                padding: "18px 20px 16px",
-                border: "1px solid rgba(195,198,209,.20)",
-              }}
+              className="rounded-2xl border border-[var(--al-ghost-border)] bg-al-surface px-5 pb-4 pt-[18px]"
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  marginBottom: 10,
-                }}
-              >
+              <div className="mb-2.5 flex items-center gap-3">
                 <TierPill tier={r.tier} />
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 800,
-                    color: "#001e40",
-                    letterSpacing: "-.015em",
-                  }}
-                >
+                <div className="text-sm font-extrabold tracking-[-0.015em] text-al-primary">
                   {r.title}
                 </div>
               </div>
               <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: t.fg,
-                  lineHeight: 1.4,
-                  paddingBottom: 8,
-                  borderBottom: "1px solid rgba(195,198,209,.25)",
-                }}
+                className="border-b border-[var(--al-hairline-rest)] pb-2 text-xs font-bold leading-[1.4]"
+                style={{ color: t.fg }}
               >
                 {r.rule}
               </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "#43474f",
-                  lineHeight: 1.55,
-                  marginTop: 8,
-                }}
-              >
+              <div className="mt-2 text-xs leading-[1.55] text-al-on-surface-variant">
                 {r.note}
               </div>
             </div>
@@ -753,17 +528,7 @@ function TiersExplainer() {
       </div>
 
       {/* Footer */}
-      <div
-        style={{
-          marginTop: 18,
-          fontSize: 12,
-          color: "#43474f",
-          opacity: 0.75,
-          paddingTop: 14,
-          borderTop: "1px solid rgba(195,198,209,.25)",
-          fontStyle: "italic",
-        }}
-      >
+      <div className="mt-[18px] border-t border-[var(--al-hairline-rest)] pt-3.5 text-xs italic text-al-on-surface-variant opacity-75">
         Scores are recomputed nightly using booking outcomes from the last 180
         days.
       </div>
@@ -777,162 +542,31 @@ function TiersExplainer() {
 
 function EmptyCustomers() {
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 24,
-        padding: "72px 32px 56px",
-        textAlign: "center" as const,
-        boxShadow: "0px 20px 40px rgba(26,28,27,0.04)",
-      }}
-    >
+    <div className="al-card rounded-3xl px-8 pb-14 pt-[72px] text-center">
       {/* Stacked card illustration */}
-      <div
-        style={{
-          width: 240,
-          height: 140,
-          margin: "0 auto 22px",
-          position: "relative",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-end",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            width: 130,
-            height: 128,
-            borderRadius: 14,
-            padding: "14px 16px",
-            border: "1px solid rgba(195,198,209,.30)",
-            background: "#eeeeec",
-            transform: "translate(-22px, 6px) rotate(-7deg)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            width: 130,
-            height: 128,
-            borderRadius: 14,
-            padding: "14px 16px",
-            border: "1px solid rgba(195,198,209,.30)",
-            background: "#fff",
-            boxShadow: "0 8px 18px rgba(26,28,27,.06)",
-            transform: "translate(0, 0) rotate(0deg)",
-          }}
-        >
-          <div
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 9999,
-              background: "linear-gradient(135deg,#fdd8cb,#e2bfb3)",
-            }}
-          />
-          <div
-            style={{
-              width: 48,
-              height: 6,
-              borderRadius: 9999,
-              background: "#e2e3e1",
-              marginTop: 10,
-            }}
-          />
-          <div
-            style={{
-              width: 32,
-              height: 6,
-              borderRadius: 9999,
-              background: "#eeeeec",
-              marginTop: 6,
-            }}
-          />
+      <div className="relative mx-auto mb-[22px] flex h-[140px] w-60 items-end justify-center">
+        <div className="absolute h-[128px] w-[130px] -translate-x-[22px] translate-y-[6px] -rotate-[7deg] rounded-[14px] border border-[var(--al-hairline-rest)] bg-al-surface-container p-3.5 px-4" />
+        <div className="absolute flex h-[128px] w-[130px] flex-col rounded-[14px] border border-[var(--al-hairline-rest)] bg-white p-3.5 px-4 shadow-[0_8px_18px_rgba(26,28,27,.06)]">
+          <div className="size-[30px] rounded-full bg-[linear-gradient(135deg,var(--al-secondary-container),var(--al-secondary-fixed-dim))]" />
+          <div className="mt-2.5 h-1.5 w-12 rounded-full bg-al-surface-highest" />
+          <div className="mt-1.5 h-1.5 w-8 rounded-full bg-al-surface-container" />
         </div>
-        <div
-          style={{
-            position: "absolute",
-            width: 130,
-            height: 128,
-            borderRadius: 14,
-            padding: "14px 16px",
-            border: "1px solid rgba(195,198,209,.30)",
-            background: "#eeeeec",
-            transform: "translate(22px, 6px) rotate(7deg)",
-          }}
-        />
+        <div className="absolute h-[128px] w-[130px] translate-x-[22px] translate-y-[6px] rotate-[7deg] rounded-[14px] border border-[var(--al-hairline-rest)] bg-al-surface-container p-3.5 px-4" />
       </div>
 
-      <div
-        style={{
-          fontSize: 24,
-          fontWeight: 800,
-          color: "#001e40",
-          letterSpacing: "-.02em",
-        }}
-      >
+      <div className="text-2xl font-extrabold tracking-[-0.02em] text-al-primary">
         No customers yet
       </div>
-      <div
-        style={{
-          fontSize: 14,
-          color: "#43474f",
-          marginTop: 10,
-          maxWidth: 480,
-          marginLeft: "auto",
-          marginRight: "auto",
-          lineHeight: 1.55,
-        }}
-      >
+      <div className="mx-auto mt-2.5 max-w-[480px] text-sm leading-[1.55] text-al-on-surface-variant">
         Customers appear here once they book through your link. Each entry is
         computed automatically from booking history &mdash; you don&apos;t add
         them manually.
       </div>
 
-      <div
-        style={{
-          margin: "24px auto 0",
-          maxWidth: 440,
-          background: "#f4f4f2",
-          borderRadius: 14,
-          padding: "14px 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column" as const,
-            gap: 4,
-            minWidth: 0,
-            flex: 1,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: ".2em",
-              textTransform: "uppercase" as const,
-              color: "#43474f",
-              opacity: 0.6,
-            }}
-          >
-            Booking link
-          </div>
-          <div
-            style={{
-              fontSize: 14,
-              color: "#001e40",
-              fontWeight: 700,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap" as const,
-            }}
-          >
+      <div className="mx-auto mt-6 flex max-w-[440px] items-center gap-3.5 rounded-[14px] bg-al-surface-low px-4 py-3.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="al-eyebrow">Booking link</div>
+          <div className="truncate text-sm font-bold text-al-primary">
             Share your booking link to get started
           </div>
         </div>
@@ -957,9 +591,7 @@ export function CustomersEditorial({ customers }: CustomersEditorialProps) {
   const emptyFilterState = filtered.length === 0 && customers.length > 0;
 
   return (
-    <div
-      style={{ display: "flex", flexDirection: "column" as const, gap: 24 }}
-    >
+    <div className="flex flex-col gap-6">
       {/* Summary strip */}
       {customers.length > 0 && <SummaryStrip customers={customers} />}
 
@@ -975,136 +607,40 @@ export function CustomersEditorial({ customers }: CustomersEditorialProps) {
           />
 
           {/* Editorial sheet */}
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 24,
-              overflow: "hidden",
-              boxShadow: "0px 20px 40px rgba(26,28,27,0.04)",
-            }}
-          >
+          <div className="al-card overflow-hidden rounded-3xl">
             {/* Sheet head */}
-            <div
-              style={{
-                padding: "18px 22px 6px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap" as const,
-                gap: 10,
-                borderBottom: "1px solid rgba(195,198,209,.20)",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "baseline",
-                  gap: 14,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    letterSpacing: ".2em",
-                    textTransform: "uppercase" as const,
-                    color: "#43474f",
-                    opacity: 0.55,
-                  }}
-                >
-                  Registry
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: "#43474f",
-                    fontWeight: 600,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
+            <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[var(--al-ghost-border)] px-[22px] pb-1.5 pt-[18px]">
+              <div className="flex items-baseline gap-3.5">
+                <div className="al-eyebrow">Registry</div>
+                <div className="al-num text-[13px] font-semibold text-al-on-surface-variant">
                   {filtered.length} of {customers.length} customer
                   {customers.length === 1 ? "" : "s"}
                 </div>
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "#43474f",
-                  opacity: 0.6,
-                  fontWeight: 700,
-                  letterSpacing: ".04em",
-                }}
-              >
+              <div className="text-[11px] font-bold tracking-[.04em] text-al-on-surface-variant opacity-60">
                 Ordered by score &darr;
               </div>
             </div>
 
             {/* Column hint */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 18,
-                padding: "10px 22px",
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: ".2em",
-                textTransform: "uppercase" as const,
-                color: "#43474f",
-                opacity: 0.55,
-                background: "#f9f9f7",
-                borderBottom: "1px solid rgba(195,198,209,.20)",
-              }}
-            >
-              <div style={{ flex: "1.7 1 0", minWidth: 0 }}>Customer</div>
-              <div style={{ flex: "1 1 0", minWidth: 0 }}>Score</div>
-              <div style={{ flex: "2.4 1 0", minWidth: 0 }}>
+            <div className="al-eyebrow flex items-center gap-[18px] border-b border-[var(--al-ghost-border)] bg-al-surface px-[22px] py-2.5">
+              <div className="min-w-0 flex-[1.7_1_0]">Customer</div>
+              <div className="min-w-0 flex-[1_1_0]">Score</div>
+              <div className="min-w-0 flex-[2.4_1_0]">
                 Reliability &middot; last 180 days
               </div>
-              <div
-                style={{
-                  flex: "0 0 100px",
-                  textAlign: "right" as const,
-                }}
-              >
-                Updated
-              </div>
-              <div
-                style={{
-                  flex: "0 0 84px",
-                  textAlign: "right" as const,
-                }}
-              >
-                Details
-              </div>
+              <div className="flex-[0_0_100px] text-right">Updated</div>
+              <div className="flex-[0_0_84px] text-right">Details</div>
             </div>
 
             {/* Empty filter state */}
             {emptyFilterState ? (
-              <div
-                style={{
-                  padding: "56px 24px",
-                  textAlign: "center" as const,
-                }}
-              >
+              <div className="px-6 py-14 text-center">
                 <Icon name="filter_alt_off" size={28} />
-                <div
-                  style={{
-                    marginTop: 10,
-                    color: "#001e40",
-                    fontWeight: 800,
-                    fontSize: 14,
-                  }}
-                >
+                <div className="mt-2.5 text-sm font-extrabold text-al-primary">
                   No customers in this tier
                 </div>
-                <div
-                  style={{
-                    marginTop: 4,
-                    color: "#43474f",
-                    fontSize: 12,
-                  }}
-                >
+                <div className="mt-1 text-xs text-al-on-surface-variant">
                   Try &quot;All customers&quot; to see the full registry.
                 </div>
               </div>
@@ -1115,87 +651,30 @@ export function CustomersEditorial({ customers }: CustomersEditorialProps) {
                 return (
                   <div
                     key={c.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 18,
-                      padding: "18px 22px",
-                      borderTop:
-                        i > 0
-                          ? "1px solid rgba(195,198,209,.20)"
-                          : undefined,
-                      background: isHovered ? "#f9f9f7" : "transparent",
-                      transition: "background .12s",
-                    }}
+                    className={`flex items-center gap-[18px] px-[22px] py-[18px] transition-colors duration-[120ms] ${
+                      i > 0 ? "border-t border-[var(--al-ghost-border)]" : ""
+                    } ${isHovered ? "bg-al-surface" : "bg-transparent"}`}
                     onMouseEnter={() => setHoverRow(c.id)}
                     onMouseLeave={() => setHoverRow(null)}
                   >
                     {/* Customer cell */}
-                    <div
-                      style={{
-                        flex: "1.7 1 0",
-                        minWidth: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 14,
-                      }}
-                    >
+                    <div className="flex min-w-0 flex-[1.7_1_0] items-center gap-3.5">
                       <Avatar initials={c.initials} tier={tier} size={42} />
-                      <div style={{ minWidth: 0 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            flexWrap: "wrap" as const,
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 15,
-                              fontWeight: 800,
-                              color: "#1a1c1b",
-                              letterSpacing: "-.015em",
-                            }}
-                          >
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <div className="text-[15px] font-extrabold tracking-[-0.015em] text-al-on-surface">
                             {c.fullName}
                           </div>
                           <TierPill tier={tier} size="sm" />
                         </div>
-                        <div
-                          style={{
-                            marginTop: 3,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 6,
-                            minWidth: 0,
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: "#43474f",
-                              opacity: 0.6,
-                              flexShrink: 0,
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
+                        <div className="mt-[3px] inline-flex min-w-0 items-center gap-1.5">
+                          <span className="inline-flex shrink-0 items-center text-al-on-surface-variant opacity-60">
                             <Icon
                               name={c.email ? "mail" : "phone"}
                               size={14}
                             />
                           </span>
-                          <span
-                            style={{
-                              fontSize: 13,
-                              color: "#43474f",
-                              fontWeight: 500,
-                              whiteSpace: "nowrap" as const,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              fontVariantNumeric: "tabular-nums",
-                            }}
-                          >
+                          <span className="al-num truncate text-[13px] font-medium text-al-on-surface-variant">
                             {c.email || c.phone}
                           </span>
                         </div>
@@ -1203,7 +682,7 @@ export function CustomersEditorial({ customers }: CustomersEditorialProps) {
                     </div>
 
                     {/* Score cell */}
-                    <div style={{ flex: "1 1 0", minWidth: 0 }}>
+                    <div className="min-w-0 flex-[1_1_0]">
                       <ScoreCell
                         score={c.score}
                         tier={c.tier as TierKey | null}
@@ -1211,7 +690,7 @@ export function CustomersEditorial({ customers }: CustomersEditorialProps) {
                     </div>
 
                     {/* Reliability cell */}
-                    <div style={{ flex: "2.4 1 0", minWidth: 0 }}>
+                    <div className="min-w-0 flex-[2.4_1_0]">
                       <ReliabilitySegmented
                         onTime={c.onTime}
                         late={c.late}
@@ -1222,72 +701,28 @@ export function CustomersEditorial({ customers }: CustomersEditorialProps) {
                     </div>
 
                     {/* Updated cell */}
-                    <div
-                      style={{
-                        flex: "0 0 100px",
-                        textAlign: "right" as const,
-                      }}
-                    >
+                    <div className="flex-[0_0_100px] text-right">
                       {c.formattedUpdated ? (
                         <>
-                          <div
-                            style={{
-                              fontSize: 13,
-                              color: "#1a1c1b",
-                              fontWeight: 700,
-                              fontVariantNumeric: "tabular-nums",
-                            }}
-                          >
+                          <div className="al-num text-[13px] font-bold text-al-on-surface">
                             {c.formattedUpdated}
                           </div>
-                          <div
-                            style={{
-                              fontSize: 11,
-                              color: "#43474f",
-                              opacity: 0.65,
-                              fontWeight: 600,
-                              marginTop: 2,
-                            }}
-                          >
+                          <div className="mt-0.5 text-[11px] font-semibold text-al-on-surface-variant opacity-65">
                             2026
                           </div>
                         </>
                       ) : (
-                        <span
-                          style={{
-                            fontSize: 13,
-                            color: "#43474f",
-                            opacity: 0.5,
-                          }}
-                        >
+                        <span className="text-[13px] text-al-on-surface-variant opacity-50">
                           —
                         </span>
                       )}
                     </div>
 
                     {/* Details cell */}
-                    <div
-                      style={{
-                        flex: "0 0 84px",
-                        display: "flex",
-                        justifyContent: "flex-end",
-                      }}
-                    >
+                    <div className="flex flex-[0_0_84px] justify-end">
                       <Link
                         href={`/app/customers/${c.id}`}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: "#001e40",
-                          textDecoration: "none",
-                          padding: "8px 12px",
-                          borderRadius: 9999,
-                          border: "1px solid rgba(195,198,209,.4)",
-                          background: "#fff",
-                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-[var(--al-hairline-strong)] bg-white px-3 py-2 text-[13px] font-bold text-al-primary no-underline"
                       >
                         View
                         <Icon name="arrow_forward" size={14} />

@@ -28,9 +28,9 @@ export default async function AvailabilitySettingsPage() {
 
   if (!shop) {
     return (
-      <div className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-semibold">Availability settings</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="container mx-auto px-12 py-8">
+        <h1 className="al-page-title">Availability settings</h1>
+        <p className="al-lede">
           Create your shop to configure slot availability.
         </p>
       </div>
@@ -49,10 +49,10 @@ export default async function AvailabilitySettingsPage() {
   const hoursByDay = new Map(existingHours.map((row) => [row.dayOfWeek, row]));
 
   return (
-    <div className="container mx-auto space-y-8 px-4 py-10">
+    <div className="container mx-auto space-y-8 px-12 py-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold">Availability settings</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="al-page-title">Availability settings</h1>
+        <p className="al-lede">
           Configure working hours and slot duration used on your booking page.
         </p>
       </header>

@@ -6,13 +6,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Design Consistency Wave 3 — Spec #04 (AL Utility Classes) implemented and verified.
+Design Consistency Wave 5 — Spec #20 (dead token cleanup). Implementation complete — awaiting verification (Phase 3).
 
 ---
 
 ## Current Goal
 
-Continue DS conformance across remaining screens (specs #09-#20) and complete booking page reskin (specs #08-#09).
+Wave 5 verification (Phase 3), then booking page reskin (specs #08-#09).
 
 ---
 
@@ -53,6 +53,37 @@ Continue DS conformance across remaining screens (specs #09-#20) and complete bo
 
 ---
 
+- Design Consistency Wave 4 (Specs #09-#19) — Slices 1-7 implemented (0 TS errors):
+  - Slice 1: Light typography pages (#14 Dashboard, #15 Services, #16 Billing, #17 Calendar) — page titles → `al-page-title`, subtitles → `al-lede`, breadcrumbs → `al-eyebrow`, amber/red Tailwind → AL status tokens, inline styles removed from calendar page. Padding aligned to canonical py-8/px-12.
+  - Slice 2: Settings & detail pages (#19) — 6 files (availability, reminders, appointments/[id], customers/[id], slot-openings/[id], chat) — titles → `al-page-title`, padding → px-12 py-8, `text-muted-foreground` → `text-al-on-surface-variant`, section headings → `al-section-title`, inline styles removed from reminders page.
+  - Slice 3: Profile page (#18) — Lucide icons (Mail, Calendar, User, Shield, ArrowLeft, Lock, Smartphone) → Material Symbols Outlined via file-local `MsIcon` helper. Title → `al-page-title`, container → `al-page`, cards → `al-card`, hardcoded green → AL status tokens, `text-muted-foreground` → `text-al-on-surface-variant`.
+  - Slice 4: Booking page (#12) — Extracted `BookingHeader` component to eliminate 4x header duplication. All 27 inline styles → Tailwind classes. Preserved intentional wider padding (64px/px-16) for public-facing page. Empty-state card converted to Tailwind.
+  - Slice 5: Appointments page (#09) — 57→1 inline styles (1 remaining is dynamic status pill). 41 hardcoded hex → 0. Root → `al-page`, eyebrows → `al-eyebrow`, title → `al-page-title`, sections → `al-section-title`, cards → `al-card`, stats → `al-mono`. RECOVERY_STATUS hex tuples → AL token references.
+  - Slice 6: Customers + Conflicts pages (#10, #11) — Both page.tsx files fully converted. Inline Icon components removed, replaced with direct `material-symbols-outlined` spans. Buttons converted to Tailwind + gradient classes. Zero inline styles remain.
+  - Slice 7: Payment Policy page (#13) — 35→2 inline styles (2 remaining are dynamic tier badge colors). TiersExplainerCard converted: grid → Tailwind grid, hex → AL tokens, Material Symbols inline → class-based. TIER_DEFINITIONS hex tuples → AL token references.
+
+---
+
+- Design Consistency Wave 4 Slice 8 (companion components):
+  - customers-editorial.tsx: 88→12 inline styles (12 remaining are dynamic runtime values: tier colors, score bar widths, data-driven gradients). 82→2 hardcoded hex (bespoke avatar gradient stops with no AL token equivalent). FONT constant removed. 88 className attributes added.
+  - conflicts-ledger.tsx: 67→4 inline styles (4 remaining are dynamic: severity badge colors, severity rail indicators). 54→0 hardcoded hex. FONT_FAMILY constant removed. AL utility classes leveraged: al-card, al-section-title, al-eyebrow, al-lede, al-num.
+
+---
+
+- Design Consistency Wave 5 (Spec #20) — Dead token cleanup. 2 slices COMPLETE (0 TS errors):
+  - Slice 1: Component migrations — booking-form.tsx (4 --color-* → AL, 3 text-text-light-muted → AL), event-type-list.tsx (.status-pill → Tailwind inline classes), service-selector.tsx (.service-card-arrow hover fix).
+  - Slice 2: Dead code removal — removed 48 dead Deep Ledger tokens, .dark {} block (33 lines), 15 dead utility classes (surface-*, card-glass, glow-brand, skeleton, tier-dot-*, status-pill, service-card, focus-brand, font-display/body/mono). globals.css reduced by ~215 lines. 14 tokens retained with DEFERRED comment for landing page redesign.
+  - Verification fix: booking-form.tsx success block had 6 Deep Ledger Tailwind classes (bg-bg-dark-secondary/70, text-primary-light, bg-bg-dark, text-white x3) — all migrated to AL tokens. Removed --color-surface-void (zero consumers).
+
+---
+
+- ESM compliance fix: moved `MsIcon` declaration in `src/app/profile/page.tsx` from between import statements to after all imports. 0 TS errors, 0 lint errors.
+- Cancel modal a11y audit: confirmed `manage-booking-view.tsx` dialog already has `role="dialog"`, `aria-modal`, Escape handling, and focus trapping via `@radix-ui/react-dialog`. No changes needed — logged as false positive in current-issues.md.
+- Icon fix in `customers-editorial.tsx`: replaced dynamic `text-[${size}px]` template literal with static size map (Tailwind JIT safe), added `aria-hidden="true"` to all icon spans. 0 TS errors, 0 lint errors.
+- Icon a11y fix in `profile/page.tsx`: added `aria-hidden="true"` to `MsIcon` span so screen readers won't announce raw glyph names. 0 TS errors, 0 lint errors.
+
+---
+
 ## In Progress
 
 None.
@@ -61,6 +92,7 @@ None.
 
 ## Next Up
 
+- Wave 5 verification (Phase 3) — separate agent, fresh session
 - Remaining booking page specs: confirm-booking-CTA (08), footer (09)
 
 ---
