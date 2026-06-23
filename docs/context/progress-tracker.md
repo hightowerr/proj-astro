@@ -6,7 +6,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Design Consistency Wave 5 — Spec #20 (dead token cleanup). COMPLETE. Awaiting verification (Phase 3).
+Design Consistency Wave 5 — Spec #20 (dead token cleanup). Implementation complete — awaiting verification (Phase 3).
 
 ---
 
@@ -74,6 +74,13 @@ Wave 5 verification (Phase 3), then booking page reskin (specs #08-#09).
   - Slice 1: Component migrations — booking-form.tsx (4 --color-* → AL, 3 text-text-light-muted → AL), event-type-list.tsx (.status-pill → Tailwind inline classes), service-selector.tsx (.service-card-arrow hover fix).
   - Slice 2: Dead code removal — removed 48 dead Deep Ledger tokens, .dark {} block (33 lines), 15 dead utility classes (surface-*, card-glass, glow-brand, skeleton, tier-dot-*, status-pill, service-card, focus-brand, font-display/body/mono). globals.css reduced by ~215 lines. 14 tokens retained with DEFERRED comment for landing page redesign.
   - Verification fix: booking-form.tsx success block had 6 Deep Ledger Tailwind classes (bg-bg-dark-secondary/70, text-primary-light, bg-bg-dark, text-white x3) — all migrated to AL tokens. Removed --color-surface-void (zero consumers).
+
+---
+
+- ESM compliance fix: moved `MsIcon` declaration in `src/app/profile/page.tsx` from between import statements to after all imports. 0 TS errors, 0 lint errors.
+- Cancel modal a11y audit: confirmed `manage-booking-view.tsx` dialog already has `role="dialog"`, `aria-modal`, Escape handling, and focus trapping via `@radix-ui/react-dialog`. No changes needed — logged as false positive in current-issues.md.
+- Icon fix in `customers-editorial.tsx`: replaced dynamic `text-[${size}px]` template literal with static size map (Tailwind JIT safe), added `aria-hidden="true"` to all icon spans. 0 TS errors, 0 lint errors.
+- Icon a11y fix in `profile/page.tsx`: added `aria-hidden="true"` to `MsIcon` span so screen readers won't announce raw glyph names. 0 TS errors, 0 lint errors.
 
 ---
 

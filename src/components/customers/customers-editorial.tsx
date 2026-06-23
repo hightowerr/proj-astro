@@ -87,21 +87,19 @@ function Icon({
   size?: number;
   fill?: boolean;
 }) {
-  // Map common icon sizes to Tailwind text-size classes
-  const sizeClass =
-    size <= 14
-      ? "text-[14px]"
-      : size <= 16
-        ? "text-[16px]"
-        : size <= 20
-          ? "text-xl"
-          : size <= 24
-            ? "text-2xl"
-            : `text-[${size}px]`;
+  // Map icon sizes to static Tailwind classes (dynamic template literals break JIT)
+  const sizeClass: Record<number, string> = {
+    14: "text-[14px]",
+    16: "text-[16px]",
+    20: "text-xl",
+    24: "text-2xl",
+    28: "text-[28px]",
+  };
 
   return (
     <span
-      className={`material-symbols-outlined ${sizeClass} ${fill ? "[font-variation-settings:'FILL'_1,'wght'_400,'GRAD'_0,'opsz'_24]" : ""}`}
+      className={`material-symbols-outlined ${sizeClass[size] ?? "text-base"} ${fill ? "[font-variation-settings:'FILL'_1,'wght'_400,'GRAD'_0,'opsz'_24]" : ""}`}
+      aria-hidden="true"
     >
       {name}
     </span>

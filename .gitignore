@@ -58,3 +58,9 @@ nul
 .mcp.json
 
 *:Zone.Identifier
+
+.claude/worktrees/*
+.claude/worktrees/agent-a295667d
+.claude/worktrees/agent-a54a0a2b
+.claude/worktrees/agent-a49a9a5e
+.claude/worktrees/agent-a0ff3ed3
