@@ -29,9 +29,9 @@ export default async function AppointmentDetailPage({
 
   if (!shop) {
     return (
-      <div className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-semibold">Appointment</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="container mx-auto px-12 py-8">
+        <h1 className="al-page-title">Appointment</h1>
+        <p className="al-lede">
           Create your shop to view appointment details.
         </p>
       </div>
@@ -109,27 +109,27 @@ export default async function AppointmentDetailPage({
   });
 
   return (
-    <div className="container mx-auto px-4 py-10 space-y-8">
+    <div className="container mx-auto px-12 py-8 space-y-8">
       <div className="flex flex-col gap-2">
         <Link
           href="/app/appointments"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+          className="text-sm text-al-on-surface-variant underline-offset-4 hover:underline"
         >
           Back to appointments
         </Link>
-        <h1 className="text-3xl font-semibold">Appointment</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="al-page-title">Appointment</h1>
+        <p className="al-lede">
           {appointment.customerName}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-lg border p-4 space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">Details</h2>
+          <h2 className="text-sm font-medium text-al-on-surface-variant">Details</h2>
           <p className="text-lg font-semibold">
             {formatter.format(new Date(appointment.startsAt))}
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-al-on-surface-variant">
             Ends {formatter.format(new Date(appointment.endsAt))} ({timezone})
           </p>
           <p className="text-sm">
@@ -143,7 +143,7 @@ export default async function AppointmentDetailPage({
         </div>
 
         <div className="rounded-lg border p-4 space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">Payment</h2>
+          <h2 className="text-sm font-medium text-al-on-surface-variant">Payment</h2>
           <p className="text-lg font-semibold">
             {formatCurrency(appointment.amountCents, appointment.currency)}
           </p>
@@ -151,14 +151,14 @@ export default async function AppointmentDetailPage({
             Payment status:{" "}
             <span className="capitalize">{appointment.paymentStatus}</span>
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-al-on-surface-variant">
             {appointment.paymentRequired ? "Payment required" : "No charge"}
           </p>
           <p className="text-sm">
             Outcome:{" "}
             <span className="capitalize">{appointment.financialOutcome}</span>
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-al-on-surface-variant">
             Resolved at:{" "}
             {appointment.resolvedAt
               ? formatter.format(new Date(appointment.resolvedAt))
@@ -168,9 +168,9 @@ export default async function AppointmentDetailPage({
       </div>
 
       <div className="rounded-lg border p-4 space-y-2">
-        <h2 className="text-sm font-medium text-muted-foreground">Customer</h2>
+        <h2 className="text-sm font-medium text-al-on-surface-variant">Customer</h2>
         <p className="text-base font-medium">{appointment.customerName}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-al-on-surface-variant">
           {appointment.customerEmail ?? appointment.customerPhone}
         </p>
       </div>
@@ -184,7 +184,7 @@ export default async function AppointmentDetailPage({
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Messages</h2>
         {messages.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-al-on-surface-variant">
             No messages logged for this appointment.
           </p>
         ) : (
@@ -207,23 +207,23 @@ export default async function AppointmentDetailPage({
                       <div className="font-medium capitalize">
                         {message.purpose.split("_").join(" ")}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-al-on-surface-variant">
                         {formatter.format(new Date(message.createdAt))}
                       </div>
                     </td>
                     <td className="px-4 py-3 capitalize">{message.status}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-al-on-surface-variant">
                       {message.sentAt
                         ? formatter.format(new Date(message.sentAt))
                         : "—"}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-al-on-surface-variant">
                       {message.providerMessageId ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-al-on-surface-variant">
                       {message.templateKey} v{message.templateVersion}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-al-on-surface-variant">
                       {message.bodyHash}
                     </td>
                   </tr>
@@ -240,7 +240,7 @@ export default async function AppointmentDetailPage({
           <div className="space-y-3">
             {messages.map((message) => (
               <div key={`${message.id}-body`} className="rounded-lg border p-4">
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-al-on-surface-variant">
                   {message.templateKey} v{message.templateVersion} •{" "}
                   {message.status}
                 </div>

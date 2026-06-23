@@ -32,15 +32,13 @@ export default async function PaymentPolicyPage() {
 
   if (!shop) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--al-surface)', fontFamily: 'var(--al-font)' }}>
-        <div style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 48px' }}>
-          <h1 style={{ fontSize: 44, fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--al-primary)', lineHeight: 1.0, margin: '0 0 10px' }}>
-            Payment policy
-          </h1>
-          <p style={{ fontSize: 14, color: 'var(--al-on-surface-variant)', lineHeight: 1.55, margin: 0 }}>
-            Create your shop to configure payment policies.
-          </p>
-        </div>
+      <div className="al-page max-w-5xl mx-auto">
+        <h1 className="al-page-title">
+          Payment policy
+        </h1>
+        <p className="al-lede">
+          Create your shop to configure payment policies.
+        </p>
       </div>
     );
   }
@@ -116,48 +114,43 @@ export default async function PaymentPolicyPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--al-surface)', fontFamily: 'var(--al-font)' }}>
-      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '32px 48px' }}>
+    <div className="al-page">
+      <div className="max-w-5xl mx-auto flex flex-col gap-6 w-full">
 
         {/* Breadcrumb topbar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--al-on-surface-variant)', opacity: 0.65 }}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="al-eyebrow flex items-center gap-2.5 opacity-65">
             <span>Studio</span>
-            <span style={{ opacity: 0.4 }}>/</span>
+            <span className="opacity-40">/</span>
             <span>Settings</span>
-            <span style={{ opacity: 0.4 }}>/</span>
-            <span style={{ color: 'var(--al-primary)' }}>Payment Policy</span>
+            <span className="opacity-40">/</span>
+            <span className="text-al-primary opacity-100">Payment Policy</span>
           </div>
           <button
             type="button"
-            style={{
-              padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(195,198,209,.4)',
-              background: '#fff', fontFamily: 'var(--al-font)', fontWeight: 600, fontSize: 13,
-              color: 'var(--al-on-surface-variant)', display: 'inline-flex', alignItems: 'center',
-              gap: 6, cursor: 'pointer',
-            }}
+            className="px-3.5 py-2.5 rounded-[10px] border border-al-outline-variant/40 bg-white font-semibold text-[13px] text-al-on-surface-variant inline-flex items-center gap-1.5 cursor-pointer font-[inherit]"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 15, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>history</span>
+            <span className="material-symbols-outlined text-[15px]">history</span>
             Audit log
           </button>
         </div>
 
         {/* Page header */}
-        <div style={{ marginBottom: 36 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--al-on-surface-variant)', opacity: 0.55, marginBottom: 8 }}>
+        <div className="mb-3">
+          <div className="al-eyebrow opacity-55 mb-2">
             Settings &middot; /app/settings/payment-policy
           </div>
-          <h1 style={{ fontSize: 44, fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--al-primary)', lineHeight: 1.0, margin: '0 0 10px' }}>
+          <h1 className="al-page-title mb-2.5">
             Payment policy
           </h1>
-          <p style={{ fontSize: 14, color: 'var(--al-on-surface-variant)', maxWidth: '62ch', lineHeight: 1.55, margin: 0 }}>
+          <p className="al-lede max-w-[62ch]">
             Control whether bookings require a deposit or full prepayment.
             Two sections, each saves independently — base policy first, tier-based overrides below.
           </p>
         </div>
 
         {/* Form sections */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="flex flex-col gap-6">
           <PaymentPolicyForm
             action={updatePolicy}
             initial={{
@@ -199,9 +192,9 @@ const TIER_DEFINITIONS = [
   {
     key: 'top',
     label: 'Top',
-    bg: 'rgba(14,122,85,0.10)',
-    fg: '#0e7a55',
-    dot: '#0e7a55',
+    bg: 'var(--al-status-positive-bg)',
+    fg: 'var(--al-status-positive)',
+    dot: 'var(--al-status-positive)',
     title: 'Top tier',
     rule: 'Score \u2265 80 and no voids in 90 days',
     note: 'Reliable customers \u2014 bookings rarely require follow-up.',
@@ -209,9 +202,9 @@ const TIER_DEFINITIONS = [
   {
     key: 'neutral',
     label: 'Neutral',
-    bg: '#eeeeec',
-    fg: '#43474f',
-    dot: '#737780',
+    bg: 'var(--al-surface-container)',
+    fg: 'var(--al-on-surface-variant)',
+    dot: 'var(--al-on-surface-variant)',
     title: 'Neutral tier',
     rule: 'Default tier for customers with moderate history',
     note: 'Mixed record; not enough signal to push to either edge.',
@@ -219,9 +212,9 @@ const TIER_DEFINITIONS = [
   {
     key: 'risk',
     label: 'Risk',
-    bg: 'rgba(168,41,74,0.10)',
-    fg: '#a8294a',
-    dot: '#a8294a',
+    bg: 'var(--al-status-negative-bg)',
+    fg: 'var(--al-status-negative)',
+    dot: 'var(--al-status-negative)',
     title: 'Risk tier',
     rule: 'Score < 40 or two or more voids in 90 days',
     note: 'Consider requiring a deposit before confirming bookings.',
@@ -230,66 +223,47 @@ const TIER_DEFINITIONS = [
 
 function TiersExplainerCard() {
   return (
-    <div style={{
-      background: '#fff', borderRadius: 24, padding: '28px 28px 24px',
-      boxShadow: '0 20px 40px rgba(26,28,27,0.04)',
-    }}>
+    <div className="al-card p-7">
       {/* Header */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
-        gap: 16, flexWrap: 'wrap' as const,
-        paddingBottom: 18, borderBottom: '1px solid rgba(195,198,209,.20)', marginBottom: 20,
-      }}>
+      <div className="flex justify-between items-end gap-4 flex-wrap pb-[18px] border-b border-al-outline-variant/20 mb-5">
         <div>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#43474f', opacity: 0.55 }}>Reference</div>
-          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', color: '#001e40', marginTop: 4 }}>How tiers work</div>
+          <div className="al-eyebrow opacity-55">Reference</div>
+          <div className="al-section-title mt-1">How tiers work</div>
         </div>
-        <Link href="/app/customers" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          fontSize: 12, fontWeight: 700, color: '#001e40', textDecoration: 'none',
-          padding: '8px 12px', borderRadius: 9999,
-          background: 'rgba(0,30,64,0.05)', border: '1px solid rgba(0,30,64,0.15)',
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 15, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>groups</span>
+        <Link
+          href="/app/customers"
+          className="inline-flex items-center gap-2 text-xs font-bold text-al-primary no-underline px-3 py-2 rounded-full bg-al-primary/5 border border-al-primary/15"
+        >
+          <span className="material-symbols-outlined text-[15px]">groups</span>
           See live distribution on the Customers page
-          <span className="material-symbols-outlined" style={{ fontSize: 14, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>arrow_outward</span>
+          <span className="material-symbols-outlined text-sm">arrow_outward</span>
         </Link>
       </div>
 
       {/* 3-column grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+      <div className="grid grid-cols-3 gap-[18px]">
         {TIER_DEFINITIONS.map((t) => (
-          <div key={t.key} style={{
-            padding: '18px 18px', background: '#f9f9f7',
-            border: '1px solid rgba(195,198,209,.30)', borderRadius: 14,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+          <div key={t.key} className="p-[18px] bg-al-surface border border-al-outline-variant/30 rounded-[14px]">
+            <div className="flex items-center gap-3 mb-2.5">
               {/* Tier badge */}
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '4px 11px', borderRadius: 9999,
-                background: t.bg, color: t.fg,
-                fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' as const, lineHeight: 1,
-              }}>
-                <span style={{ width: 6, height: 6, borderRadius: 9999, background: t.dot }} />
+              <span
+                className="inline-flex items-center gap-1.5 px-[11px] py-1 rounded-full text-[10px] font-extrabold tracking-[0.18em] uppercase leading-none"
+                style={{ background: t.bg, color: t.fg }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: t.dot }} />
                 {t.label}
               </span>
-              <span style={{ fontSize: 14, fontWeight: 800, color: '#001e40', letterSpacing: '-0.015em' }}>{t.title}</span>
+              <span className="text-sm font-extrabold text-al-primary tracking-tight">{t.title}</span>
             </div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#43474f', lineHeight: 1.5, marginBottom: 6 }}>{t.rule}</div>
-            <div style={{ fontSize: 12, color: '#43474f', opacity: 0.78, lineHeight: 1.5 }}>{t.note}</div>
+            <div className="text-xs font-bold text-al-on-surface-variant leading-relaxed mb-1.5">{t.rule}</div>
+            <div className="text-xs text-al-on-surface-variant opacity-[0.78] leading-relaxed">{t.note}</div>
           </div>
         ))}
       </div>
 
       {/* Footer */}
-      <div style={{
-        marginTop: 18, paddingTop: 14,
-        borderTop: '1px solid rgba(195,198,209,.20)',
-        fontSize: 11, color: '#43474f', opacity: 0.75,
-        display: 'inline-flex', alignItems: 'center', gap: 8,
-      }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>schedule</span>
+      <div className="mt-[18px] pt-3.5 border-t border-al-outline-variant/20 text-[11px] text-al-on-surface-variant opacity-75 inline-flex items-center gap-2">
+        <span className="material-symbols-outlined text-[13px]">schedule</span>
         Tier assignments are recomputed nightly from booking outcomes over the last 180 days.
       </div>
     </div>

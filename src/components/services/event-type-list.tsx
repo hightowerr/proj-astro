@@ -53,7 +53,7 @@ function StatusPill({
 
   return (
     <span
-      className="status-pill"
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.04em]"
       style={styles[variant]}
     >
       {label}

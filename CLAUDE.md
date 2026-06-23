@@ -37,6 +37,7 @@ SHAPE → IMPLEMENT → VERIFY → DRIFT AUDIT → RETRO.
 - Log friction to `docs/signals/friction/` when implementation hits unexpected walls. Log spec deviations — never silently accept shortcuts.
 - Classify spec drift as EVOLUTION or SHORTCUT in Phase 4. If shortcuts > 50% of divergences, flag it — the system is drifting.
 - Append a structured entry to `docs/loops/work-log.md` when your session ends: what you picked up, what you did, what you couldn't resolve.
+- Phase 1 (SHAPE) MUST invoke the `/shaping` skill. All shaping work follows its methodology — R/S notation, fit checks, breadboarding, multi-level document consistency.
 
 ---
 

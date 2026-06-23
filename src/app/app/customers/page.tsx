@@ -39,21 +39,6 @@ function fmtUpdated(d: Date): string {
   }).format(d);
 }
 
-const Icon = ({ name }: { name: string }) => (
-  <span
-    className="material-symbols-outlined"
-    style={{
-      fontSize: 16,
-      fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-      lineHeight: 1,
-      display: "inline-flex",
-      alignItems: "center",
-    }}
-  >
-    {name}
-  </span>
-);
-
 // --- page -------------------------------------------------------------------
 
 export default async function CustomersPage() {
@@ -62,9 +47,9 @@ export default async function CustomersPage() {
 
   if (!shop) {
     return (
-      <div style={{ fontFamily: "'Manrope', system-ui, sans-serif", padding: "40px 48px" }}>
-        <div style={{ fontSize: 44, fontWeight: 800, color: "#001e40" }}>Customers</div>
-        <p style={{ color: "#43474f", marginTop: 8 }}>
+      <div className="al-page">
+        <div className="al-page-title">Customers</div>
+        <p className="al-lede">
           Create your shop to start managing customers.
         </p>
       </div>
@@ -96,102 +81,35 @@ export default async function CustomersPage() {
   });
 
   return (
-    <div
-      style={{
-        padding: "32px 48px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 24,
-        fontFamily: "'Manrope', system-ui, sans-serif",
-      }}
-    >
+    <div className="al-page">
       {/* Page header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          gap: 24,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: ".2em",
-              textTransform: "uppercase",
-              color: "#43474f",
-              opacity: 0.55,
-            }}
-          >
+      <div className="flex justify-between items-end gap-6 flex-wrap">
+        <div className="flex flex-col gap-1.5">
+          <div className="al-eyebrow opacity-55">
             Reliability registry
           </div>
-          <div
-            style={{
-              fontSize: 44,
-              fontWeight: 800,
-              letterSpacing: "-.025em",
-              color: "#001e40",
-              lineHeight: 1.0,
-            }}
-          >
+          <div className="al-page-title">
             Customers
           </div>
-          <div
-            style={{
-              fontSize: 14,
-              color: "#43474f",
-              maxWidth: "62ch",
-              lineHeight: 1.55,
-            }}
-          >
+          <div className="al-lede max-w-[62ch]">
             Reliability scores and tier assignments for every customer who has booked through
             your link. All data is computed from booking history.
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="flex gap-2.5">
           <button
             type="button"
-            style={{
-              border: "1px solid rgba(195,198,209,.4)",
-              background: "transparent",
-              padding: "10px 14px",
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 600,
-              color: "#43474f",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontFamily: "inherit",
-            }}
+            className="border border-al-outline-variant/40 bg-transparent px-3.5 py-2.5 rounded-[10px] text-[13px] font-semibold text-al-on-surface-variant cursor-pointer inline-flex items-center gap-1.5 font-[inherit]"
           >
-            <Icon name="download" />
+            <span className="material-symbols-outlined text-base leading-none inline-flex items-center">download</span>
             Export CSV
           </button>
           <button
             type="button"
-            style={{
-              border: "none",
-              background: "linear-gradient(135deg, #001e40, #003366)",
-              color: "#fff",
-              padding: "13px 20px",
-              borderRadius: 12,
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 14px 28px rgba(0,30,64,.2)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              fontFamily: "inherit",
-            }}
+            className="border-none bg-gradient-to-br from-[var(--al-primary)] to-[#003366] text-white px-5 py-[13px] rounded-xl text-[13px] font-bold cursor-pointer shadow-[0_14px_28px_rgba(0,30,64,.2)] inline-flex items-center gap-2 font-[inherit]"
           >
-            <Icon name="ios_share" />
+            <span className="material-symbols-outlined text-base leading-none inline-flex items-center">ios_share</span>
             Share booking link
           </button>
         </div>

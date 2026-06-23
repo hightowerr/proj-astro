@@ -84,23 +84,6 @@ function fmtOverlap(
   return `${overlapMins}m of ${aptMins}m`;
 }
 
-// --- icon -------------------------------------------------------------------
-
-const Icon = ({ name }: { name: string }) => (
-  <span
-    className="material-symbols-outlined"
-    style={{
-      fontSize: 16,
-      fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-      lineHeight: 1,
-      display: "inline-flex",
-      alignItems: "center",
-    }}
-  >
-    {name}
-  </span>
-);
-
 // --- page -------------------------------------------------------------------
 
 export default async function ConflictsPage() {
@@ -109,18 +92,9 @@ export default async function ConflictsPage() {
 
   if (!shop) {
     return (
-      <div
-        style={{
-          fontFamily: "'Manrope', system-ui, sans-serif",
-          padding: "40px 48px",
-          background: "var(--al-background)",
-          minHeight: "100vh",
-        }}
-      >
-        <div style={{ fontSize: 40, fontWeight: 800, color: "#001e40" }}>
-          Calendar Conflicts
-        </div>
-        <p style={{ color: "#43474f", marginTop: 8 }}>
+      <div className="al-page">
+        <div className="al-page-title">Calendar Conflicts</div>
+        <p className="al-lede">
           Create your shop to manage calendar conflicts.
         </p>
       </div>
@@ -161,121 +135,44 @@ export default async function ConflictsPage() {
   }));
 
   return (
-    <div
-      style={{
-        padding: "32px 48px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 24,
-        fontFamily: "'Manrope', system-ui, sans-serif",
-      }}
-    >
+    <div className="al-page">
       {/* Back link */}
       <Link
         href="/app/appointments"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          fontSize: 12,
-          fontWeight: 700,
-          color: "#43474f",
-          textDecoration: "none",
-          width: "fit-content",
-          letterSpacing: ".02em",
-        }}
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-al-on-surface-variant no-underline w-fit tracking-wide"
       >
-        <Icon name="arrow_back" />
+        <span className="material-symbols-outlined text-base leading-none inline-flex items-center">arrow_back</span>
         Back to appointments
       </Link>
 
       {/* Page header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          gap: 24,
-          flexWrap: "wrap" as const,
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: ".2em",
-              textTransform: "uppercase",
-              color: "#43474f",
-              opacity: 0.55,
-            }}
-          >
+      <div className="flex justify-between items-end gap-6 flex-wrap">
+        <div className="flex flex-col gap-1.5">
+          <div className="al-eyebrow opacity-55">
             Calendar sync {"\u00B7"} Google Calendar
           </div>
-          <div
-            style={{
-              fontSize: 40,
-              fontWeight: 800,
-              letterSpacing: "-.025em",
-              color: "#001e40",
-              lineHeight: 1.05,
-            }}
-          >
+          <div className="al-page-title">
             Calendar conflicts
           </div>
-          <div
-            style={{
-              fontSize: 14,
-              color: "#43474f",
-              maxWidth: "58ch",
-              lineHeight: 1.55,
-            }}
-          >
+          <div className="al-lede max-w-[58ch]">
             Resolve overlaps between booked appointments and Google Calendar
             events {"\u2014"} keep, cancel, or reschedule to clear the schedule.
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="flex gap-2.5">
           <button
             type="button"
-            style={{
-              border: "1px solid rgba(195,198,209,.4)",
-              background: "transparent",
-              padding: "10px 14px",
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 600,
-              color: "#43474f",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontFamily: "inherit",
-            }}
+            className="border border-al-outline-variant/40 bg-transparent px-3.5 py-2.5 rounded-[10px] text-[13px] font-semibold text-al-on-surface-variant cursor-pointer inline-flex items-center gap-1.5 font-[inherit]"
           >
-            <Icon name="settings" />
+            <span className="material-symbols-outlined text-base leading-none inline-flex items-center">settings</span>
             Sync settings
           </button>
           <button
             type="button"
-            style={{
-              border: "none",
-              background: "linear-gradient(135deg, #001e40, #003366)",
-              color: "#fff",
-              padding: "13px 20px",
-              borderRadius: 12,
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 14px 28px rgba(0,30,64,.2)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontFamily: "inherit",
-            }}
+            className="border-none bg-gradient-to-br from-[var(--al-primary)] to-[#003366] text-white px-5 py-[13px] rounded-xl text-[13px] font-bold cursor-pointer shadow-[0_14px_28px_rgba(0,30,64,.2)] inline-flex items-center gap-1.5 font-[inherit]"
           >
-            <Icon name="sync" />
+            <span className="material-symbols-outlined text-base leading-none inline-flex items-center">sync</span>
             Sync now
           </button>
         </div>

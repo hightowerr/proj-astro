@@ -69,8 +69,8 @@ export default async function DashboardPage({
   const pageHeader = (
     <section className="space-y-4">
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold text-al-primary">Dashboard</h1>
-        <p className="text-sm text-al-on-surface-variant">
+        <h1 className="al-page-title">Dashboard</h1>
+        <p className="al-lede">
           Monitor high-risk appointments and upcoming reliability trends for {shop.name}.
         </p>
       </div>
@@ -84,7 +84,7 @@ export default async function DashboardPage({
 
     return (
       <div className="min-h-screen bg-al-surface-low">
-        <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-10">
+        <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-8">
           {pageHeader}
           <DailyLogFeed items={logItems} />
         </div>
@@ -108,7 +108,7 @@ export default async function DashboardPage({
 
   return (
     <div className="min-h-screen bg-al-surface-low">
-      <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-10">
+      <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-8">
         {pageHeader}
 
         <SummaryCards

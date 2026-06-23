@@ -37,11 +37,36 @@ type ConflictsLedgerProps = {
 
 type SeverityFilter = "all" | "high_group" | "medium_group" | "low_group";
 
+/**
+ * Severity visual config using AL design tokens.
+ * Dynamic background/foreground values are applied via inline style
+ * because they are data-driven (mapped per severity level).
+ */
 const SEVERITY_CONFIG = {
-  full: { bg: "rgba(168,41,74,0.10)", fg: "#a8294a", label: "High", note: "Full overlap" },
-  high: { bg: "rgba(168,41,74,0.10)", fg: "#a8294a", label: "High", note: "High overlap" },
-  partial: { bg: "rgba(201,122,42,0.10)", fg: "#c97a2a", label: "Medium", note: "Partial overlap" },
-  all_day: { bg: "#eeeeec", fg: "#43474f", label: "Low", note: "All-day event" },
+  full: {
+    bg: "var(--al-status-negative-bg)",
+    fg: "var(--al-status-negative)",
+    label: "High",
+    note: "Full overlap",
+  },
+  high: {
+    bg: "var(--al-status-negative-bg)",
+    fg: "var(--al-status-negative)",
+    label: "High",
+    note: "High overlap",
+  },
+  partial: {
+    bg: "var(--al-status-caution-bg)",
+    fg: "var(--al-status-caution)",
+    label: "Medium",
+    note: "Partial overlap",
+  },
+  all_day: {
+    bg: "var(--al-surface-container)",
+    fg: "var(--al-on-surface-variant)",
+    label: "Low",
+    note: "All-day event",
+  },
 } as const;
 
 const FILTER_OPTIONS: { key: SeverityFilter; label: string }[] = [
@@ -54,18 +79,13 @@ const FILTER_OPTIONS: { key: SeverityFilter; label: string }[] = [
 const toGroup = (s: SerializedConflict["severity"]): Exclude<SeverityFilter, "all"> =>
   s === "full" || s === "high" ? "high_group" : s === "partial" ? "medium_group" : "low_group";
 
-const FONT_FAMILY = "'Manrope', system-ui, sans-serif";
-
 function Icon({ name, size = 16, fill }: { name: string; size?: number; fill?: boolean }) {
   return (
     <span
-      className="material-symbols-outlined"
+      className="material-symbols-outlined inline-flex items-center leading-none"
       style={{
         fontSize: size,
         fontVariationSettings: `'FILL' ${fill ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' 24`,
-        lineHeight: 1,
-        display: "inline-flex",
-        alignItems: "center",
       }}
     >
       {name}
@@ -77,28 +97,12 @@ function SeverityBadge({ severity }: { severity: SerializedConflict["severity"] 
   const s = SEVERITY_CONFIG[severity];
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "4px 10px",
-        borderRadius: 9999,
-        fontSize: 10,
-        fontWeight: 800,
-        letterSpacing: ".18em",
-        textTransform: "uppercase",
-        background: s.bg,
-        color: s.fg,
-      }}
+      className="al-eyebrow inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 opacity-100"
+      style={{ background: s.bg, color: s.fg }}
     >
       <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: 9999,
-          background: s.fg,
-          flexShrink: 0,
-        }}
+        className="size-1.5 shrink-0 rounded-full"
+        style={{ background: s.fg }}
       />
       {s.label}
     </span>
@@ -171,73 +175,22 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
     }
   };
 
+  /* ── Empty state ──────────────────────────────────────────── */
   if (visible.length === 0) {
     return (
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 24,
-          padding: "80px 32px",
-          textAlign: "center",
-          boxShadow: "0px 20px 40px rgba(26,28,27,0.04)",
-        }}
-      >
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 20,
-            background: "rgba(14,122,85,0.08)",
-            display: "inline-grid",
-            placeItems: "center",
-            marginBottom: 18,
-          }}
-        >
+      <div className="al-card px-8 py-20 text-center">
+        <div className="mb-[18px] inline-grid size-16 place-items-center rounded-[20px] bg-[var(--al-status-positive-bg)]">
           <Icon name="check_circle" size={32} fill />
         </div>
-        <div
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            color: "#001e40",
-            letterSpacing: "-.02em",
-          }}
-        >
-          No conflicts found
-        </div>
-        <div
-          style={{
-            fontSize: 14,
-            color: "#43474f",
-            marginTop: 8,
-            maxWidth: 420,
-            marginLeft: "auto",
-            marginRight: "auto",
-            lineHeight: 1.55,
-          }}
-        >
+        <div className="al-section-title">No conflicts found</div>
+        <div className="al-lede mx-auto mt-2 max-w-[420px]">
           Your appointments and Google Calendar events are in sync. We check every 15 minutes
           &mdash; you&apos;ll see anything new here.
         </div>
-        <div style={{ display: "inline-flex", gap: 10, marginTop: 22 }}>
+        <div className="mt-[22px] inline-flex gap-2.5">
           <Link
             href="/app/appointments"
-            style={{
-              padding: "12px 20px",
-              border: 0,
-              borderRadius: 12,
-              background: "linear-gradient(135deg,#001e40,#003366)",
-              color: "#fff",
-              fontFamily: FONT_FAMILY,
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              boxShadow: "0 14px 28px rgba(0,30,64,.2)",
-              textDecoration: "none",
-            }}
+            className="inline-flex items-center gap-2 rounded-xl bg-[image:var(--al-gradient-cta)] px-5 py-3 text-[13px] font-bold text-al-on-primary shadow-[0_14px_28px_rgba(0,30,64,.2)] no-underline"
           >
             <Icon name="event_note" />
             Back to appointments
@@ -247,77 +200,26 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
     );
   }
 
+  /* ── Main ledger ──────────────────────────────────────────── */
   return (
     <>
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 24,
-          overflow: "hidden",
-          boxShadow: "0px 20px 40px rgba(26,28,27,0.04)",
-        }}
-      >
+      <div className="al-card">
         {/* Sheet head */}
-        <div
-          style={{
-            padding: "24px 28px 8px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 6,
-            background: "#f9f9f7",
-            borderBottom: "1px solid rgba(195,198,209,.20)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: ".2em",
-                textTransform: "uppercase",
-                color: "#43474f",
-                opacity: 0.55,
-              }}
-            >
-              Resolution queue
-            </span>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: "#43474f",
-                opacity: 0.7,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
+        <div className="flex flex-col gap-1.5 border-b border-[var(--al-ghost-border)] bg-al-surface px-7 pb-2 pt-6">
+          <div className="flex items-center justify-between">
+            <span className="al-eyebrow">Resolution queue</span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-al-on-surface-variant opacity-70">
               <Icon name="sync" size={13} />
               Synced &middot; 2 min ago
             </span>
           </div>
-          <div
-            style={{
-              fontSize: 24,
-              fontWeight: 800,
-              letterSpacing: "-.02em",
-              color: "#001e40",
-              marginTop: 4,
-            }}
-          >
+          <div className="al-section-title mt-1">
             {visible.length} {visible.length === 1 ? "conflict" : "conflicts"} to resolve
           </div>
         </div>
 
         {/* Filter pills */}
-        <div
-          style={{
-            padding: "12px 28px",
-            borderBottom: "1px solid rgba(195,198,209,.20)",
-            display: "flex",
-            gap: 4,
-          }}
-        >
+        <div className="flex gap-1 border-b border-[var(--al-ghost-border)] px-7 py-3">
           {FILTER_OPTIONS.map((opt) => {
             const isActive = severityFilter === opt.key;
             return (
@@ -325,17 +227,11 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
                 key={opt.key}
                 type="button"
                 onClick={() => setSeverityFilter(opt.key)}
-                style={{
-                  padding: "8px 14px",
-                  borderRadius: 9999,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  fontFamily: FONT_FAMILY,
-                  border: 0,
-                  cursor: "pointer",
-                  background: isActive ? "#001e40" : "transparent",
-                  color: isActive ? "#fff" : "#43474f",
-                }}
+                className={`cursor-pointer rounded-full border-0 px-3.5 py-2 text-xs font-bold ${
+                  isActive
+                    ? "bg-al-primary text-al-on-primary"
+                    : "bg-transparent text-al-on-surface-variant"
+                }`}
               >
                 {opt.label} ({filterCounts[opt.key]})
               </button>
@@ -344,28 +240,14 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
         </div>
 
         {/* Column headers */}
-        <div
-          style={{
-            padding: "14px 28px",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: ".2em",
-            textTransform: "uppercase",
-            color: "#43474f",
-            opacity: 0.6,
-            background: "#f4f4f2",
-          }}
-        >
-          <div style={{ flex: "0 0 6px" }} />
-          <div style={{ flex: "0 0 110px" }}>Severity</div>
-          <div style={{ flex: "1.1 1 0", minWidth: 0 }}>Appointment</div>
-          <div style={{ flex: "1.1 1 0", minWidth: 0 }}>Calendar event</div>
-          <div style={{ flex: "0 0 100px" }}>Overlap</div>
-          <div style={{ flex: "0 0 116px" }}>Detected</div>
-          <div style={{ flex: "0 0 280px", textAlign: "right" }}>Actions</div>
+        <div className="al-eyebrow flex items-center gap-3.5 bg-al-surface-container px-7 py-3.5 opacity-60">
+          <div className="shrink-0 basis-1.5" />
+          <div className="shrink-0 basis-[110px]">Severity</div>
+          <div className="min-w-0 shrink grow-[1.1] basis-0">Appointment</div>
+          <div className="min-w-0 shrink grow-[1.1] basis-0">Calendar event</div>
+          <div className="shrink-0 basis-[100px]">Overlap</div>
+          <div className="shrink-0 basis-[116px]">Detected</div>
+          <div className="shrink-0 basis-[280px] text-right">Actions</div>
         </div>
 
         {/* Rows */}
@@ -378,159 +260,77 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
           return (
             <div
               key={c.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 14,
-                padding: "22px 28px",
-                transition: "background .12s",
-                background: isHovered ? "#f9f9f7" : "transparent",
-                borderTop: idx !== 0 ? "1px solid rgba(195,198,209,.20)" : undefined,
-              }}
+              className={`flex items-center gap-3.5 px-7 py-[22px] transition-colors duration-[120ms] ${
+                isHovered ? "bg-al-surface" : "bg-transparent"
+              } ${idx !== 0 ? "border-t border-[var(--al-ghost-border)]" : ""}`}
               onMouseEnter={() => setHoverRow(c.id)}
               onMouseLeave={() => setHoverRow(null)}
             >
-              {/* Severity rail */}
+              {/* Severity rail — dynamic color from data, requires inline style */}
               <div
+                className="-my-px -ml-7 shrink-0 basis-1.5 self-stretch rounded-r-[3px]"
                 style={{
-                  flex: "0 0 6px",
-                  alignSelf: "stretch",
                   background: sev.fg,
-                  marginLeft: -28,
-                  marginTop: -1,
-                  marginBottom: -1,
-                  borderRadius: "0 3px 3px 0",
                   opacity: c.severity === "all_day" ? 0.45 : 0.85,
                 }}
               />
 
               {/* Severity badge */}
-              <div style={{ flex: "0 0 110px" }}>
+              <div className="shrink-0 basis-[110px]">
                 <SeverityBadge severity={c.severity} />
               </div>
 
               {/* Appointment */}
-              <div style={{ flex: "1.1 1 0", minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: "#1a1c1b",
-                    letterSpacing: "-.01em",
-                  }}
-                >
+              <div className="min-w-0 shrink grow-[1.1] basis-0">
+                <div className="text-sm font-bold tracking-tight text-al-on-surface">
                   {c.customerName}
                 </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "#43474f",
-                    fontVariantNumeric: "tabular-nums",
-                    marginTop: 2,
-                  }}
-                >
+                <div className="al-num mt-0.5 text-xs text-al-on-surface-variant">
                   {c.formattedAptTime} &middot; {c.formattedAptDay}
                 </div>
               </div>
 
               {/* Calendar event */}
-              <div style={{ flex: "1.1 1 0", minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: "#1a1c1b",
-                    letterSpacing: "-.01em",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 2,
-                      background: "#c97a2a",
-                      transform: "rotate(45deg)",
-                      flexShrink: 0,
-                    }}
-                  />
+              <div className="min-w-0 shrink grow-[1.1] basis-0">
+                <div className="flex items-center gap-2 text-sm font-bold tracking-tight text-al-on-surface">
+                  <span className="size-2 shrink-0 rotate-45 rounded-sm bg-[var(--al-status-caution)]" />
                   {c.eventSummary ?? "Untitled event"}
                 </div>
-                <div style={{ fontSize: 12, marginTop: 2 }}>
-                  <span style={{ color: "#001e40", fontWeight: 800 }}>{c.formattedEventTime}</span>
-                  <span style={{ color: "#43474f", opacity: 0.7 }}> &middot; Google Calendar</span>
+                <div className="mt-0.5 text-xs">
+                  <span className="font-extrabold text-al-primary">{c.formattedEventTime}</span>
+                  <span className="text-al-on-surface-variant opacity-70">
+                    {" "}
+                    &middot; Google Calendar
+                  </span>
                 </div>
               </div>
 
               {/* Overlap */}
-              <div style={{ flex: "0 0 100px" }}>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 800,
-                    color: "#a8294a",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
+              <div className="shrink-0 basis-[100px]">
+                <div className="al-num text-[13px] font-extrabold text-[var(--al-status-negative)]">
                   {overlapParts[0]}
                 </div>
                 {overlapParts[1] && (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: "#43474f",
-                      opacity: 0.65,
-                      fontWeight: 600,
-                    }}
-                  >
+                  <div className="text-[11px] font-semibold text-al-on-surface-variant opacity-65">
                     of {overlapParts[1]}
                   </div>
                 )}
               </div>
 
               {/* Detected */}
-              <div
-                style={{
-                  flex: "0 0 116px",
-                  fontSize: 12,
-                  color: "#1a1c1b",
-                  fontVariantNumeric: "tabular-nums",
-                  fontWeight: 600,
-                }}
-              >
+              <div className="al-num shrink-0 basis-[116px] text-xs font-semibold text-al-on-surface">
                 {c.formattedDetected}
               </div>
 
               {/* Actions */}
-              <div
-                style={{
-                  flex: "0 0 280px",
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: 8,
-                }}
-              >
+              <div className="flex shrink-0 basis-[280px] justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => handleKeep(c)}
                   disabled={isDisabled}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 10,
-                    border: "1px solid rgba(195,198,209,.5)",
-                    background: "#fff",
-                    fontFamily: FONT_FAMILY,
-                    fontWeight: 700,
-                    fontSize: 12,
-                    color: "#001e40",
-                    cursor: isDisabled ? "default" : "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    opacity: isDisabled ? 0.5 : 1,
-                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--al-hairline-strong)] bg-al-surface-lowest px-3.5 py-2 text-xs font-bold text-al-primary ${
+                    isDisabled ? "cursor-default opacity-50" : "cursor-pointer"
+                  }`}
                 >
                   <Icon name="check" size={14} />
                   Keep
@@ -539,22 +339,9 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
                   type="button"
                   onClick={() => setModalConflict(c)}
                   disabled={isDisabled}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 10,
-                    border: "1px solid #a8294a",
-                    background: "#a8294a",
-                    color: "#fff",
-                    fontFamily: FONT_FAMILY,
-                    fontWeight: 700,
-                    fontSize: 12,
-                    cursor: isDisabled ? "default" : "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontVariantNumeric: "tabular-nums",
-                    opacity: isDisabled ? 0.5 : 1,
-                  }}
+                  className={`al-num inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--al-status-negative)] bg-[var(--al-status-negative)] px-3.5 py-2 text-xs font-bold text-white ${
+                    isDisabled ? "cursor-default opacity-50" : "cursor-pointer"
+                  }`}
                 >
                   <Icon name="event_busy" size={14} />
                   Cancel
@@ -565,78 +352,27 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
         })}
       </div>
 
-      {/* Cancel confirmation modal */}
+      {/* ── Cancel confirmation modal ─────────────────────────── */}
       {modalConflict && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(26,28,27,.42)",
-            backdropFilter: "blur(4px)",
-            display: "grid",
-            placeItems: "center",
-            zIndex: 50,
-            padding: "40px 24px",
-          }}
+          className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-6 py-10 backdrop-blur-[4px]"
           onClick={() => setModalConflict(null)}
         >
           <div
-            style={{
-              width: "100%",
-              maxWidth: 520,
-              background: "#fff",
-              borderRadius: 20,
-              overflow: "hidden",
-              boxShadow: "0 32px 80px rgba(26,28,27,.22)",
-            }}
+            className="w-full max-w-[520px] overflow-hidden rounded-[20px] bg-al-surface-lowest shadow-[0_32px_80px_rgba(26,28,27,.22)]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal head */}
-            <div
-              style={{
-                padding: "22px 24px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                borderBottom: "1px solid rgba(195,198,209,.25)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    background: "rgba(168,41,74,0.10)",
-                    display: "grid",
-                    placeItems: "center",
-                    color: "#a8294a",
-                  }}
-                >
+            <div className="flex items-center justify-between border-b border-[var(--al-ghost-border)] px-6 py-[22px]">
+              <div className="flex items-center gap-3">
+                <div className="grid size-10 place-items-center rounded-xl bg-[var(--al-status-negative-bg)] text-[var(--al-status-negative)]">
                   <Icon name="event_busy" size={20} fill />
                 </div>
                 <div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      letterSpacing: ".2em",
-                      textTransform: "uppercase",
-                      color: "#a8294a",
-                      opacity: 0.85,
-                    }}
-                  >
+                  <div className="al-eyebrow text-[var(--al-status-negative)] opacity-85">
                     Destructive action
                   </div>
-                  <div
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 800,
-                      color: "#001e40",
-                      letterSpacing: "-.015em",
-                      marginTop: 2,
-                    }}
-                  >
+                  <div className="mt-0.5 text-lg font-extrabold tracking-[-0.015em] text-al-primary">
                     Cancel this appointment?
                   </div>
                 </div>
@@ -644,41 +380,16 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
               <button
                 type="button"
                 onClick={() => setModalConflict(null)}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 9999,
-                  border: 0,
-                  background: "#f4f4f2",
-                  display: "grid",
-                  placeItems: "center",
-                  cursor: "pointer",
-                }}
+                className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-al-surface-container"
               >
                 <Icon name="close" size={18} />
               </button>
             </div>
 
             {/* Modal body */}
-            <div
-              style={{
-                padding: "22px 24px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 18,
-              }}
-            >
+            <div className="flex flex-col gap-[18px] px-6 py-[22px]">
               {/* Summary block */}
-              <div
-                style={{
-                  background: "#f4f4f2",
-                  borderRadius: 14,
-                  padding: "14px 18px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 10,
-                }}
-              >
+              <div className="flex flex-col gap-2.5 rounded-[14px] bg-al-surface-container px-[18px] py-3.5">
                 {[
                   {
                     label: "Appointment",
@@ -692,33 +403,12 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
                 ].map((row) => (
                   <div
                     key={row.label}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "baseline",
-                      gap: 14,
-                    }}
+                    className="flex items-baseline justify-between gap-3.5"
                   >
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        letterSpacing: ".18em",
-                        textTransform: "uppercase",
-                        color: "#43474f",
-                        opacity: 0.7,
-                      }}
-                    >
+                    <span className="al-eyebrow opacity-70">
                       {row.label}
                     </span>
-                    <span
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "#001e40",
-                        textAlign: "right",
-                      }}
-                    >
+                    <span className="text-right text-[13px] font-semibold text-al-primary">
                       {row.value}
                     </span>
                   </div>
@@ -726,59 +416,26 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
               </div>
 
               {/* Refund note */}
-              <div
-                style={{
-                  border: "1px solid rgba(195,198,209,.4)",
-                  borderRadius: 14,
-                  padding: "18px 18px 14px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    letterSpacing: ".2em",
-                    textTransform: "uppercase",
-                    color: "#43474f",
-                    opacity: 0.7,
-                    marginBottom: 10,
-                  }}
-                >
-                  What happens next
-                </div>
-                <div style={{ fontSize: 13, color: "#43474f", lineHeight: 1.55 }}>
+              <div className="rounded-[14px] border border-[var(--al-hairline-rest)] px-[18px] pb-3.5 pt-[18px]">
+                <div className="al-eyebrow mb-2.5 opacity-70">What happens next</div>
+                <div className="text-[13px] leading-[1.55] text-al-on-surface-variant">
                   If a refund is due per your cancellation policy, it will be processed automatically
                   via the original payment method within 5 business days.
                 </div>
               </div>
 
               {/* Notification checkbox */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 10,
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  background: "#f9f9f7",
-                }}
-              >
+              <div className="flex items-start gap-2.5 rounded-xl bg-al-surface px-3.5 py-3">
                 <input
                   type="checkbox"
                   defaultChecked
-                  style={{
-                    width: 18,
-                    height: 18,
-                    marginTop: 2,
-                    accentColor: "#001e40",
-                    flexShrink: 0,
-                  }}
+                  className="mt-0.5 size-[18px] shrink-0 accent-al-primary"
                 />
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#001e40" }}>
+                  <div className="text-[13px] font-bold text-al-primary">
                     Send cancellation email
                   </div>
-                  <div style={{ fontSize: 12, color: "#43474f", marginTop: 2 }}>
+                  <div className="mt-0.5 text-xs text-al-on-surface-variant">
                     Notify {modalConflict.customerName.split(" ")[0]} with an apology and link to
                     rebook.
                   </div>
@@ -787,32 +444,11 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
             </div>
 
             {/* Modal foot */}
-            <div
-              style={{
-                padding: "16px 24px 22px",
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-                borderTop: "1px solid rgba(195,198,209,.25)",
-              }}
-            >
+            <div className="flex justify-end gap-2.5 border-t border-[var(--al-ghost-border)] px-6 pb-[22px] pt-4">
               <button
                 type="button"
                 onClick={() => setModalConflict(null)}
-                style={{
-                  padding: "12px 18px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(195,198,209,.5)",
-                  background: "#fff",
-                  fontFamily: FONT_FAMILY,
-                  fontWeight: 700,
-                  fontSize: 13,
-                  color: "#001e40",
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[var(--al-hairline-strong)] bg-al-surface-lowest px-[18px] py-3 text-[13px] font-bold text-al-primary"
               >
                 Keep appointment
               </button>
@@ -820,22 +456,11 @@ export function ConflictsLedger({ conflicts, timezone: _timezone }: ConflictsLed
                 type="button"
                 onClick={handleCancelConfirm}
                 disabled={!!processing[modalConflict.id]}
-                style={{
-                  padding: "12px 18px",
-                  borderRadius: 12,
-                  border: 0,
-                  background: "#a8294a",
-                  color: "#fff",
-                  fontFamily: FONT_FAMILY,
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: processing[modalConflict.id] ? "default" : "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  boxShadow: "0 14px 28px rgba(168,41,74,.25)",
-                  opacity: processing[modalConflict.id] ? 0.5 : 1,
-                }}
+                className={`inline-flex items-center gap-1.5 rounded-xl border-0 bg-[var(--al-status-negative)] px-[18px] py-3 text-[13px] font-bold text-white shadow-[0_14px_28px_rgba(168,41,74,.25)] ${
+                  processing[modalConflict.id]
+                    ? "cursor-default opacity-50"
+                    : "cursor-pointer"
+                }`}
               >
                 <Icon name="event_busy" />
                 Cancel appointment
