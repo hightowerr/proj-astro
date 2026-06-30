@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { CustomerHistoryCard } from "@/components/appointments/customer-history-card";
+import { PaymentCard } from "@/components/appointments/payment-card";
 import { db } from "@/lib/db";
 import {
   getBookingSettingsForShop,
@@ -10,14 +11,6 @@ import {
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments, customers, eventTypes, messageLog, payments } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
-
-const formatCurrency = (amountCents?: number | null, currency?: string | null) => {
-  if (amountCents == null || !currency) return "—";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency.toUpperCase(),
-  }).format(amountCents / 100);
-};
 
 export default async function AppointmentDetailPage({
   params,
@@ -59,6 +52,8 @@ export default async function AppointmentDetailPage({
       customerPhone: customers.phone,
       amountCents: payments.amountCents,
       currency: payments.currency,
+      paymentMetadata: payments.metadata,
+      depositSkipped: appointments.depositSkipped,
       eventTypeName: eventTypes.name,
     })
     .from(appointments)
@@ -142,29 +137,18 @@ export default async function AppointmentDetailPage({
           ) : null}
         </div>
 
-        <div className="rounded-lg border p-4 space-y-2">
-          <h2 className="text-sm font-medium text-al-on-surface-variant">Payment</h2>
-          <p className="text-lg font-semibold">
-            {formatCurrency(appointment.amountCents, appointment.currency)}
-          </p>
-          <p className="text-sm">
-            Payment status:{" "}
-            <span className="capitalize">{appointment.paymentStatus}</span>
-          </p>
-          <p className="text-sm text-al-on-surface-variant">
-            {appointment.paymentRequired ? "Payment required" : "No charge"}
-          </p>
-          <p className="text-sm">
-            Outcome:{" "}
-            <span className="capitalize">{appointment.financialOutcome}</span>
-          </p>
-          <p className="text-sm text-al-on-surface-variant">
-            Resolved at:{" "}
-            {appointment.resolvedAt
-              ? formatter.format(new Date(appointment.resolvedAt))
-              : "—"}
-          </p>
-        </div>
+        <PaymentCard
+          amountCents={appointment.amountCents}
+          currency={appointment.currency}
+          paymentStatus={appointment.paymentStatus}
+          paymentRequired={appointment.paymentRequired}
+          financialOutcome={appointment.financialOutcome}
+          resolvedAt={appointment.resolvedAt}
+          formatter={formatter}
+          stripeOnboardingStatus={shop.stripeOnboardingStatus}
+          isConnectPayment={Boolean(appointment.paymentMetadata?.connectedAccountId)}
+          depositSkipped={appointment.depositSkipped ?? null}
+        />
       </div>
 
       <div className="rounded-lg border p-4 space-y-2">

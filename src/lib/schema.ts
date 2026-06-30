@@ -174,6 +174,13 @@ export const messageStatusEnum = pgEnum("message_status", [
   "failed",
 ]);
 
+export const stripeOnboardingStatusEnum = pgEnum("stripe_onboarding_status", [
+  "not_started",
+  "pending",
+  "complete",
+  "suspended",
+]);
+
 export const shops = pgTable(
   "shops",
   {
@@ -192,11 +199,26 @@ export const shops = pgTable(
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
+    stripeAccountId: text("stripe_account_id"),
+    stripeOnboardingStatus: stripeOnboardingStatusEnum(
+      "stripe_onboarding_status"
+    )
+      .default("not_started")
+      .notNull(),
+    stripeAccountCreatedAt: timestamp("stripe_account_created_at", {
+      withTimezone: true,
+    }),
+    connectReengagementSentAt: timestamp("connect_reengagement_sent_at", {
+      withTimezone: true,
+    }),
   },
   (table) => [
     uniqueIndex("shops_owner_user_id_unique").on(table.ownerUserId),
     uniqueIndex("shops_slug_unique").on(table.slug),
     index("shops_status_idx").on(table.status),
+    uniqueIndex("shops_stripe_account_id_unique")
+      .on(table.stripeAccountId)
+      .where(sql`${table.stripeAccountId} IS NOT NULL`),
   ]
 );
 
@@ -576,6 +598,9 @@ export const appointments = pgTable(
       .notNull()
       .default(sql`ARRAY['24h']::text[]`),
     calendarEventId: text("calendar_event_id"),
+    depositSkipped: text("deposit_skipped").$type<
+      "connect_not_complete" | "policy_none"
+    >(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -613,6 +638,10 @@ export const appointments = pgTable(
     check(
       "appointments_source_check",
       sql`${table.source} in ('web', 'slot_recovery')`
+    ),
+    check(
+      "appointments_deposit_skipped_check",
+      sql`${table.depositSkipped} in ('connect_not_complete', 'policy_none')`
     ),
   ]
 );

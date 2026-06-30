@@ -48,6 +48,8 @@ export default async function BookingPage({
     notFound();
   }
 
+  const canAcceptPayments = shop.stripeOnboardingStatus === "complete";
+
   const settings = await getBookingSettingsForShop(shop.id);
   const timezone = settings?.timezone ?? "UTC";
   const slotMinutes = settings?.slotMinutes ?? 60;
@@ -76,7 +78,7 @@ export default async function BookingPage({
             timezone={timezone}
             slotMinutes={slotMinutes}
             defaultDate={defaultDate}
-            paymentsEnabled={true}
+            paymentsEnabled={canAcceptPayments}
             forcePaymentSimulator={process.env.PLAYWRIGHT === "true"}
             selectedEventTypeId={eventType.id}
             selectedEventTypeName={eventType.name}
@@ -108,7 +110,7 @@ export default async function BookingPage({
             timezone={timezone}
             slotMinutes={slotMinutes}
             defaultDate={defaultDate}
-            paymentsEnabled={true}
+            paymentsEnabled={canAcceptPayments}
             forcePaymentSimulator={process.env.PLAYWRIGHT === "true"}
             selectedEventTypeId={only.id}
             selectedEventTypeName={only.name}
@@ -155,7 +157,7 @@ export default async function BookingPage({
           timezone={timezone}
           slotMinutes={slotMinutes}
           defaultDate={defaultDate}
-          paymentsEnabled={true}
+          paymentsEnabled={canAcceptPayments}
           forcePaymentSimulator={process.env.PLAYWRIGHT === "true"}
         />
       </div>

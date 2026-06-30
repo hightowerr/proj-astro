@@ -1,0 +1,17 @@
+/* ============================================================
+   Astro · Atelier Light Design System
+   ------------------------------------------------------------
+   "The Modern Atelier" — a light-only, warm-neutral editorial
+   admin UI. Navy is the only ink and CTA; terracotta is
+   rationed; meaning is carried by weight (800), uppercase
+   eyebrows, and tabular numerals — not chrome.
+
+   This file is import-only. Consumers link this one stylesheet.
+   ============================================================ */
+
+@import url('./tokens/fonts.css');
+@import url('./tokens/colors.css');
+@import url('./tokens/typography.css');
+@import url('./tokens/spacing.css');
+@import url('./tokens/effects.css');
+@import url('./tokens/base.css');

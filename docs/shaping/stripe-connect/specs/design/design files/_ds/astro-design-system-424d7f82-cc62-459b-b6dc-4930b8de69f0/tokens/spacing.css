@@ -1,0 +1,37 @@
+/* ============================================================
+   Astro · Atelier Light — Spacing & Radii
+   ------------------------------------------------------------
+   "Expensive" whitespace. Spacing tracks the Stitch 0..24 scale;
+   section padding leans on 16–24. Radius ladder is role-scaled:
+   sheets 24 · controls 10–12 · pills/dots 9999. No sharp corners.
+   ============================================================ */
+
+:root {
+  /* ── Spacing scale (px) ───────────────────────────────────── */
+  --al-sp-1:  4px;
+  --al-sp-2:  8px;
+  --al-sp-3:  12px;
+  --al-sp-4:  16px;
+  --al-sp-5:  20px;
+  --al-sp-6:  24px;
+  --al-sp-8:  32px;
+  --al-sp-10: 40px;
+  --al-sp-12: 48px;
+  --al-sp-16: 64px;
+  --al-sp-20: 80px;
+  --al-sp-24: 136px;
+
+  /* ── Radius ladder ────────────────────────────────────────── */
+  --al-radius-sm:   4px;    /* chips, menu items */
+  --al-radius-md:   6px;
+  --al-radius-lg:   8px;    /* base unit (ROUND_EIGHT) */
+  --al-radius-xl:   12px;   /* buttons, inputs, pill containers */
+  --al-radius-2xl:  16px;
+  --al-radius-3xl:  24px;   /* cards & sheets */
+  --al-radius-full: 9999px; /* pills, dots, avatars */
+
+  /* ── App shell metrics ────────────────────────────────────── */
+  --al-sidebar-w:   264px;
+  --al-main-pad-x:  48px;
+  --al-main-pad-y:  32px;
+}

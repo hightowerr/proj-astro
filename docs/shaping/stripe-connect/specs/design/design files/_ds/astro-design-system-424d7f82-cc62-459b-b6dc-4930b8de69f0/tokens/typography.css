@@ -1,0 +1,77 @@
+/* ============================================================
+   Astro · Atelier Light — Typography
+   ------------------------------------------------------------
+   One family for everything: Manrope. Mono (JetBrains Mono) is
+   reserved for numerics a user reads as data — time, money,
+   counts, capacity, slot length, cents — always with
+   font-variant-numeric: tabular-nums.
+
+   Emphasis is carried by WEIGHT (800 everywhere), uppercase
+   eyebrows with .2em tracking, and tabular numerals — never by
+   color, borders, or shadows. Fixed sizes, no fluid type.
+   ============================================================ */
+
+:root {
+  /* ── Families ─────────────────────────────────────────────── */
+  --al-font:        'Manrope', system-ui, -apple-system, sans-serif;
+  --al-font-mono:   'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --al-font-icon:   'Material Symbols Outlined';
+
+  /* Aliases (every role uses Manrope) */
+  --al-font-headline: var(--al-font);
+  --al-font-body:     var(--al-font);
+  --al-font-label:    var(--al-font);
+
+  /* ── Type scale (rem · editorial) ─────────────────────────── */
+  --al-display-lg:  3.5rem;   /* 56 */
+  --al-display-md:  2.75rem;  /* 44 — page title */
+  --al-display-sm:  2.25rem;  /* 36 — money figure */
+  --al-headline-lg: 2rem;     /* 32 */
+  --al-headline-md: 1.5rem;   /* 24 — section title */
+  --al-headline-sm: 1.25rem;  /* 20 — preview/tiers title */
+  --al-title-lg:    1.125rem; /* 18 — day label, brand word */
+  --al-title-md:    1rem;     /* 16 — input value */
+  --al-title-sm:    0.875rem; /* 14 — field label */
+  --al-body-lg:     1.125rem; /* 18 */
+  --al-body-md:     1rem;     /* 16 */
+  --al-body-sm:     0.875rem; /* 14 — row text, body */
+  --al-label-lg:    0.875rem; /* 14 */
+  --al-label-md:    0.75rem;  /* 12 — help text, filter pill */
+  --al-label-sm:    0.6875rem;/* 11 — eyebrow / column header */
+  --al-label-xs:    0.625rem; /* 10 — micro eyebrow */
+
+  /* ── Weights — 800 is the brand emphasis weight ───────────── */
+  --al-w-light:    300; /* @kind font */
+  --al-w-regular:  400; /* @kind font */
+  --al-w-medium:   500; /* @kind font */
+  --al-w-semibold: 600; /* @kind font */
+  --al-w-bold:     700; /* @kind font */
+  --al-w-extra:    800; /* @kind font */
+
+  /* ── Tracking ─────────────────────────────────────────────── */
+  --al-track-eyebrow:  0.2em;    /* uppercase eyebrows */
+  --al-track-pill:     0.16em;   /* uppercase status pills */
+  --al-track-display: -0.025em;  /* tight headline display */
+  --al-track-tight:   -0.01em;   /* row/label tightening */
+}
+
+/* ── Eyebrow utility — the most repeated motif in the system ──
+   10–11px · weight 800 · .2em tracking · UPPERCASE · muted @ .55 */
+.al-eyebrow {
+  font-family: var(--al-font);
+  font-size: var(--al-label-sm);
+  font-weight: var(--al-w-extra);
+  letter-spacing: var(--al-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--al-on-surface-variant);
+  opacity: 0.55;
+}
+
+/* ── Tabular numeric utility ─────────────────────────────────── */
+.al-num {
+  font-variant-numeric: tabular-nums;
+}
+.al-mono {
+  font-family: var(--al-font-mono);
+  font-variant-numeric: tabular-nums;
+}

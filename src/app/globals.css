@@ -177,6 +177,22 @@
   to   { transform: rotate(360deg); }
 }
 
+@keyframes al-pop {
+  0%   { transform: scale(0); }
+  70%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@keyframes al-ring {
+  0%   { transform: scale(0.65); opacity: 0.5; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes al-pulsedot {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(0.78); }
+}
+
 /* ================================================================
    Root: Atelier Light Design System
    Source: Stitch · assets/449beb1e286a415881985419132b73bd · v1
@@ -537,8 +553,9 @@
 /* Standard app page wrapper */
 .al-page {
   font-family: var(--al-font);
-  background: var(--al-background);
   min-height: 100vh;
+  max-width: 80rem;
+  margin-inline: auto;
   padding: var(--al-main-pad-y) var(--al-main-pad-x);
   display: flex;
   flex-direction: column;

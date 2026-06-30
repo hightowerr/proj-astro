@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { and, eq, sql } from "drizzle-orm";
 import { ConflictAlertBanner } from "@/components/conflicts/conflict-alert-banner";
 import { ReconcilePaymentsButton } from "@/components/payments/reconcile-button";
 import {
@@ -10,6 +11,8 @@ import {
 import { getConflictCount } from "@/lib/queries/calendar-conflicts";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { requireAuth } from "@/lib/session";
+import { db } from "@/lib/db";
+import { appointments } from "@/lib/schema";
 import { AppointmentsTable } from "./appointments-table";
 import type { SerializedAppointment } from "./appointments-table";
 
@@ -103,18 +106,32 @@ export default async function AppointmentsPage() {
     );
   }
 
-  const [settings, appointments, outcomeSummary, slotOpenings, conflictCount] = await Promise.all([
+  const [settings, appointmentRows, outcomeSummary, slotOpenings, conflictCount, unprotectedResult] = await Promise.all([
     getBookingSettingsForShop(shop.id),
     listAppointmentsForShop(shop.id),
     getOutcomeSummaryForShop(shop.id),
     listSlotOpeningsForShop(shop.id),
     getConflictCount(shop.id),
+    shop.stripeOnboardingStatus !== "complete" && shop.stripeOnboardingStatus !== "suspended"
+      ? db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(appointments)
+          .where(
+            and(
+              eq(appointments.shopId, shop.id),
+              eq(appointments.depositSkipped, "connect_not_complete"),
+              eq(appointments.status, "booked")
+            )
+          )
+      : Promise.resolve([{ count: 0 }]),
   ]);
+
+  const unprotectedCount = unprotectedResult[0]?.count ?? 0;
 
   const tz = settings?.timezone ?? "UTC";
 
   // Serialize appointments for client component
-  const serializedRows: SerializedAppointment[] = appointments.map((a) => ({
+  const serializedRows: SerializedAppointment[] = appointmentRows.map((a) => ({
     id: a.id,
     startsAt: a.startsAt.toISOString(),
     paymentAmountCents: a.paymentAmountCents ?? null,
@@ -180,6 +197,28 @@ export default async function AppointmentsPage() {
       {/* Conflict banner */}
       <ConflictAlertBanner conflictCount={conflictCount} shopId={shop.id} />
 
+      {/* Post-first-booking inline Connect prompt (spec 17) */}
+      {unprotectedCount > 0 && shop.stripeOnboardingStatus !== "complete" && shop.stripeOnboardingStatus !== "suspended" && (
+        <div
+          className="flex items-center justify-between gap-4 rounded-xl px-4 py-3"
+          style={{ background: "rgba(201,122,42,0.08)", border: "1px solid rgba(201,122,42,0.25)" }}
+        >
+          <p className="text-sm" style={{ color: "#7a4715" }}>
+            {unprotectedCount === 1
+              ? "This booking has no deposit."
+              : `${unprotectedCount} bookings have no deposit.`}
+          </p>
+          <Link
+            href="/app/settings/stripe-connect"
+            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold"
+            style={{ color: "var(--al-status-caution, #b45309)" }}
+          >
+            Connect Stripe
+            <span className="material-symbols-outlined text-base" aria-hidden="true">arrow_forward</span>
+          </Link>
+        </div>
+      )}
+
       {/* Section A -- The ledger */}
       <section className="flex flex-col gap-3.5">
         <div className="flex justify-between items-end px-1">
@@ -195,12 +234,12 @@ export default async function AppointmentsPage() {
             </div>
           </div>
           <div className="text-[11px] font-bold text-al-on-surface-variant opacity-70 tabular-nums tracking-wide whitespace-nowrap">
-            {appointments.length} {appointments.length === 1 ? "entry" : "entries"}
+            {appointmentRows.length} {appointmentRows.length === 1 ? "entry" : "entries"}
           </div>
         </div>
 
         <div className="al-card">
-          {appointments.length === 0 ? (
+          {appointmentRows.length === 0 ? (
             <div className="py-[72px] px-6 text-center">
               <div className="w-[54px] h-[54px] rounded-2xl bg-al-surface-container inline-grid place-items-center mb-4">
                 <span className="text-[28px] opacity-50">{"\uD83D\uDCC5"}</span>

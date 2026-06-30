@@ -117,6 +117,7 @@ export function BookingNav() {
 
         <Link
           href="/register"
+          className="hover:opacity-[0.92] active:scale-[0.985] transition-[opacity,transform] duration-150"
           style={{
             display: "inline-flex",
             alignItems: "center",

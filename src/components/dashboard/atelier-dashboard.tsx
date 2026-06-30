@@ -29,7 +29,7 @@ type AtelierDashboardProps = {
   bookingUrl: string;
 };
 
-type KickerStyle = "error" | "emerald" | null;
+type KickerStyle = "error" | "positive" | null;
 
 const essentials: {
   href: string;
@@ -54,7 +54,7 @@ const essentials: {
     label: "Sales & Growth",
     description: "Deep dive into daily earnings, popular services, and client retention.",
     kicker: "+14% This Month",
-    kickerStyle: "emerald",
+    kickerStyle: "positive",
     icon: "bar_chart",
     tone: "surface",
   },
@@ -87,8 +87,8 @@ export function AtelierDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-al-surface-low pb-24 text-foreground lg:pb-0">
-      <main className="mx-auto max-w-5xl px-6 py-10 md:px-10 md:py-14 lg:px-12 lg:py-16">
+    <div className="pb-24 text-foreground lg:pb-0">
+      <main className="mx-auto max-w-7xl px-6 py-10 md:px-10 md:py-14 lg:px-12 lg:py-16">
 
         {/* Hero */}
         <section className="mb-16">
@@ -229,7 +229,7 @@ export function AtelierDashboard({
                         <span className="rounded-full bg-al-error-container px-3 py-1 font-mono tabular-nums text-[11px] font-bold uppercase tracking-[0.2em] text-al-on-error-container">
                           {kicker}
                         </span>
-                      ) : kickerStyle === "emerald" ? (
+                      ) : kickerStyle === "positive" ? (
                         <span
                           className="rounded-full px-3 py-1 font-mono tabular-nums text-[11px] font-bold uppercase tracking-[0.2em]"
                           style={{ background: 'var(--al-status-positive-bg)', color: 'var(--al-status-positive)' }}

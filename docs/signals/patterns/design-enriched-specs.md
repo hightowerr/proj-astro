@@ -1,0 +1,5 @@
+- Pattern name: Design-enriched specs
+- Problem it solves: Agents skip visual polish details (watermarks, accent stripes, typography sizing, animations) when specs describe them in prose
+- Solution: Enrich specs with design brief data BEFORE implementation — exact design tokens, CSS values, animation keyframes, and responsive breakpoints inline in the spec. Include design file references (brief + HTML mock). The more concrete the spec, the less the agent invents or skips.
+- First used in: stripe-connect (specs 10, 11, 12, 15, 16 enriched from 7 design briefs + HTML mocks)
+- Reusable? YES — any feature with design mocks should merge design details into specs before the IMPLEMENT phase

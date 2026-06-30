@@ -1,0 +1,109 @@
+/* ============================================================
+   Astro · Atelier Light — Color
+   ------------------------------------------------------------
+   Light-only, warm-neutral editorial palette. Material-3 role
+   naming under the --al-* prefix is the source of truth; a thin
+   semantic alias layer (--bg, --ink, --hairline …) sits on top
+   for ergonomic everyday use.
+
+   Brand law: navy is the only ink AND the only CTA color;
+   terracotta is rationed to avatars + at most one badge per view;
+   status colors appear only as small tinted pills/dots.
+   ============================================================ */
+
+:root {
+  /* ── Primary · deep navy (ink + CTA + active) ─────────────── */
+  --al-primary:                   #001e40;
+  --al-primary-container:         #003366;   /* CTA gradient terminus */
+  --al-primary-fixed:             #d5e3ff;   /* top-tier avatar bg */
+  --al-primary-fixed-dim:         #a7c8ff;   /* top-tier avatar bg / timeline */
+  --al-on-primary:                #ffffff;
+  --al-on-primary-container:      #799dd6;
+  --al-on-primary-fixed:          #001b3c;
+  --al-on-primary-fixed-variant:  #1f477b;
+  --al-inverse-primary:           #a7c8ff;
+
+  /* ── Secondary · warm terracotta (rationed accent) ────────── */
+  --al-secondary:                 #74584f;   /* terracotta avatar border */
+  --al-secondary-container:       #fdd8cb;   /* avatar bg, nav badge */
+  --al-secondary-fixed:           #ffdbcf;   /* curator chip bg */
+  --al-secondary-fixed-dim:       #e2bfb3;
+  --al-on-secondary:              #ffffff;
+  --al-on-secondary-container:    #785c53;
+  --al-on-secondary-fixed:        #2a170f;
+  --al-on-secondary-fixed-variant:#5a4138;
+
+  /* ── Tertiary · deep sienna (avatar fg on terracotta) ─────── */
+  --al-tertiary:                  #3b1002;
+  --al-tertiary-container:        #572411;
+  --al-tertiary-fixed:            #ffdbcf;
+  --al-tertiary-fixed-dim:        #ffb59c;
+  --al-on-tertiary:               #ffffff;
+  --al-on-tertiary-container:     #d38970;
+
+  /* ── Surface hierarchy (flat: surface == background) ──────── */
+  --al-background:                #f9f9f7;   /* app canvas, sidebar */
+  --al-surface:                   #f9f9f7;
+  --al-surface-bright:            #f9f9f7;
+  --al-surface-dim:               #dadad8;
+  --al-surface-variant:           #e2e3e1;
+  --al-surface-container-lowest:  #ffffff;   /* cards, sheets, inputs */
+  --al-surface-container-low:     #f4f4f2;   /* table header band, code chips */
+  --al-surface-container:         #eeeeec;   /* hover fill, badges, row action */
+  --al-surface-container-high:    #e8e8e6;   /* input focus bg, disabled btn */
+  --al-surface-container-highest: #e2e3e1;   /* interactive zones */
+  --al-inverse-surface:           #2f3130;
+
+  /* ── Text ─────────────────────────────────────────────────── */
+  --al-on-background:             #1a1c1b;
+  --al-on-surface:                #1a1c1b;   /* body ink */
+  --al-on-surface-variant:        #43474f;   /* THE workhorse muted color */
+  --al-inverse-on-surface:        #f1f1ef;
+
+  /* ── Outline / hairline ───────────────────────────────────── */
+  --al-outline:                   #737780;   /* placeholder, disabled text */
+  --al-outline-variant:           #c3c6d1;   /* = rgb(195,198,209) hairline rgb */
+
+  /* Hairline opacity ladder — the signature divider technique.
+     .20 dividers · .30 input rest · .40–.55 interactive borders. */
+  --al-hairline:        rgba(195, 198, 209, 0.20);
+  --al-hairline-rest:   rgba(195, 198, 209, 0.30);
+  --al-hairline-strong: rgba(195, 198, 209, 0.50);
+  --al-ghost-border:    rgba(195, 198, 209, 0.20);
+
+  /* ── Error ────────────────────────────────────────────────── */
+  --al-error:                     #ba1a1a;
+  --al-error-container:           #ffdad6;
+  --al-on-error:                  #ffffff;
+  --al-on-error-container:        #93000a;
+
+  /* ── Status · navy / green / amber / rose ─────────────────── */
+  --al-status-positive:    #0e7a55;                    /* settled · paid · top */
+  --al-status-positive-bg: rgba(14, 122, 85, 0.10);
+  --al-status-negative:    #a8294a;                    /* voided · failed · risk */
+  --al-status-negative-bg: rgba(168, 41, 74, 0.10);
+  --al-status-caution:     #c97a2a;                    /* unresolved · pending */
+  --al-status-caution-bg:  rgba(201, 122, 42, 0.10);
+  --al-status-neutral:     #43474f;                    /* refunded · unpaid */
+  --al-status-neutral-bg:  #eeeeec;
+
+  /* ── Tier system (customer reliability) ───────────────────── */
+  --al-tier-top:        #0e7a55;
+  --al-tier-neutral:    #43474f;
+  --al-tier-risk:       #a8294a;
+
+  /* ════════════════════════════════════════════════════════════
+     SEMANTIC ALIASES — ergonomic everyday names.
+     Prefer these in product code; they resolve to --al-* above.
+     ════════════════════════════════════════════════════════════ */
+  --bg:                 var(--al-background);
+  --surface-card:       var(--al-surface-container-lowest);
+  --surface-sunken:     var(--al-surface-container-low);
+  --surface-muted:      var(--al-surface-container);
+  --ink:                var(--al-on-surface);
+  --ink-strong:         var(--al-primary);
+  --ink-muted:          var(--al-on-surface-variant);
+  --ink-faint:          var(--al-outline);
+  --hairline:           var(--al-hairline);
+  --accent:             var(--al-secondary-container);
+}

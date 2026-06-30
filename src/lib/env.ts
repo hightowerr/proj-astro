@@ -29,6 +29,7 @@ const serverEnvSchema = z.object({
   // Stripe
   STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY is required"),
   STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),
+  STRIPE_CONNECT_WEBHOOK_SECRET: z.string().min(1).optional(),
 
   // Twilio
   TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
@@ -219,6 +220,13 @@ export function checkEnv(): void {
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     warnings.push("BLOB_READ_WRITE_TOKEN is not set. Using local storage for file uploads.");
+  }
+
+  if (!process.env.STRIPE_CONNECT_WEBHOOK_SECRET) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("STRIPE_CONNECT_WEBHOOK_SECRET is required in production");
+    }
+    warnings.push("STRIPE_CONNECT_WEBHOOK_SECRET is not set. Stripe Connect webhook events will not be verified.");
   }
 
   // Log warnings in development

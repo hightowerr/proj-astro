@@ -1,0 +1,5 @@
+- Pattern name: Spike before shape (confirmation spikes)
+- Problem it solves: Specs make assumptions about field existence, query patterns, or infrastructure that may not hold. Discovered late, these cause rework.
+- Solution: Run 2-3 targeted spikes against the actual codebase BEFORE finalizing the shape. Focus on: (1) does the assumed field/API exist? (2) what's the existing pattern for this infrastructure? (3) what's the exact code path being modified? These are fast (minutes) and prevent incorrect spec assumptions from propagating through implementation.
+- First used in: stripe-connect (3 spikes: availabilityConfigured field, email template pattern, paymentsEnabled threading)
+- Reusable? YES — any feature touching existing code should spike the assumed integration points

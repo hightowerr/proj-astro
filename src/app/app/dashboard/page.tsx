@@ -1,13 +1,17 @@
+import { and, eq, sql } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AllAppointmentsTable } from "@/components/dashboard/all-appointments-table";
 import { AttentionRequiredTable } from "@/components/dashboard/attention-required-table";
+import { ConnectCard } from "@/components/dashboard/connect-card";
 import { DailyLogFeed } from "@/components/dashboard/daily-log-feed";
 import { DashboardSearch } from "@/components/dashboard/dashboard-search";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { TierDistributionChart } from "@/components/dashboard/tier-distribution-chart";
+import { db } from "@/lib/db";
 import { getDashboardDailyLog, getDashboardData } from "@/lib/queries/dashboard";
 import { getShopByOwnerId } from "@/lib/queries/shops";
+import { appointments } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +39,37 @@ export default async function DashboardPage({
   if (!shop) {
     redirect("/app");
   }
+
+  // Connect card gate queries — run in parallel, independent of view/period
+  const [hasServicesResult, hasAvailabilityResult, unprotectedCountResult] =
+    await Promise.all([
+      db.query.eventTypes.findFirst({
+        where: (t, { and, eq }) =>
+          and(eq(t.shopId, shop.id), eq(t.isActive, true)),
+        columns: { id: true },
+      }),
+      db.query.shopHours.findFirst({
+        where: (t, { eq }) => eq(t.shopId, shop.id),
+        columns: { id: true },
+      }),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(appointments)
+        .where(
+          and(
+            eq(appointments.shopId, shop.id),
+            eq(appointments.depositSkipped, "connect_not_complete"),
+            eq(appointments.status, "booked")
+          )
+        ),
+    ]);
+
+  const connectCardProps = {
+    stripeOnboardingStatus: shop.stripeOnboardingStatus,
+    hasServices: !!hasServicesResult,
+    hasAvailability: !!hasAvailabilityResult,
+    unprotectedBookingCount: unprotectedCountResult[0]?.count ?? 0,
+  };
 
   const { period, view } = await searchParams;
   const isLogView = view === "log";
@@ -83,9 +118,10 @@ export default async function DashboardPage({
     const logItems = await getDashboardDailyLog(shop.id, { days: 7, limit: 50 });
 
     return (
-      <div className="min-h-screen bg-al-surface-low">
+      <div>
         <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-8">
           {pageHeader}
+          <ConnectCard {...connectCardProps} />
           <DailyLogFeed items={logItems} />
         </div>
       </div>
@@ -110,6 +146,8 @@ export default async function DashboardPage({
     <div className="min-h-screen bg-al-surface-low">
       <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-8">
         {pageHeader}
+
+        <ConnectCard {...connectCardProps} />
 
         <SummaryCards
           totalUpcoming={totalUpcoming}

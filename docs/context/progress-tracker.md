@@ -6,13 +6,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Design Consistency Wave 5 — Spec #20 (dead token cleanup). Implementation complete — awaiting verification (Phase 3).
+Stripe Connect — Feature loop COMPLETE + post-loop design review done. All 23 drift shortcuts fixed. 15 new issues logged from design grilling, 3 roadmap items parked.
 
 ---
 
 ## Current Goal
 
-Wave 5 verification (Phase 3), then booking page reskin (specs #08-#09).
+Address critical current-issues from design review before ship: slot recovery Connect guard, minimum deposit floor, platform webhook Connect awareness, suspended onboarding status, free booking SMS gap.
 
 ---
 
@@ -77,6 +77,13 @@ Wave 5 verification (Phase 3), then booking page reskin (specs #08-#09).
 
 ---
 
+- Page layout consistency fix — all app pages now use centered `max-w-7xl` (1280px) content cap:
+  - `.al-page` utility class: added `max-width: 80rem; margin-inline: auto` (globals.css)
+  - App layout wrapper: added `bg-al-surface-low` for consistent background behind centered content (layout.tsx)
+  - Calendar settings: normalized from `max-w-screen-xl` to `max-w-7xl`, padding to `px-12 py-8`
+  - Reminders + Availability settings: normalized from Tailwind `container` to `max-w-7xl mx-auto`
+  - 0 TS errors. Verified via Playwright at 1920px viewport — all pages center consistently.
+
 - ESM compliance fix: moved `MsIcon` declaration in `src/app/profile/page.tsx` from between import statements to after all imports. 0 TS errors, 0 lint errors.
 - Cancel modal a11y audit: confirmed `manage-booking-view.tsx` dialog already has `role="dialog"`, `aria-modal`, Escape handling, and focus trapping via `@radix-ui/react-dialog`. No changes needed — logged as false positive in current-issues.md.
 - Icon fix in `customers-editorial.tsx`: replaced dynamic `text-[${size}px]` template literal with static size map (Tailwind JIT safe), added `aria-hidden="true"` to all icon spans. 0 TS errors, 0 lint errors.
@@ -84,15 +91,27 @@ Wave 5 verification (Phase 3), then booking page reskin (specs #08-#09).
 
 ---
 
+- **Stripe Connect** — 17 specs, 4 waves, 13 slices. All implemented (0 TS errors). Awaiting verify.
+  - Shaping: 9 requirements, shape A (Express + destination charges), 3 spikes resolved, 13 slices
+  - **Wave 1 (Foundation):** Schema (3 columns on `shops`: `stripeAccountId`, `stripeOnboardingStatus` enum, `stripeAccountCreatedAt`; pgEnum; partial unique index), migration (`drizzle/0035_stripe_connect_columns.sql`), currency USD→GBP (3 locations), env `STRIPE_CONNECT_WEBHOOK_SECRET` (optional)
+  - **Wave 2 (API + Core Logic):** 3 account lifecycle APIs (create-account POST, status GET, dashboard GET) at `/api/settings/stripe-connect/*`. Connect webhook at `/api/stripe/connect-webhook` (separate signing secret, dedup via `processedStripeEvents`, handles `account.updated`). Destination charges (`transfer_data.destination` + `application_fee_amount: 50` + `on_behalf_of` on PaymentIntents; fee waived ≤50p). Booking guard (`paymentsEnabled` dynamic from `shop.stripeOnboardingStatus === "complete"` in 3 places in `book/[slug]/page.tsx`)
+  - **Wave 3 (UI + Dependent):** Settings page (5-state client component: start→redirect 1700ms→pending progress indicator→verifying auto-poll→connected celebrate). Refresh link API (re-creates expired Account Links). Refund reverse (`reverse_transfer: true` + `refund_application_fee: true`). Dashboard connect card (4-state: Tier 1 navy, Tier 2 amber with booking count, Tier 2b pending, connected; gated behind `hasServices AND hasAvailability` queries). Payment card (5-state: connect ledger/waived/legacy/skipped/policy on appointment detail)
+  - **Wave 4 (Polish):** Nav "Payments" link with 8px amber indicator dot (gated, passed via layout→nav props). Re-engagement email cron (`connect-reengagement`, advisory lock 482181, 24–48h window, `messageDedup` tracking, inline HTML via Resend)
+  - **New files (10):** `create-account/route.ts`, `status/route.ts`, `dashboard/route.ts`, `refresh/route.ts`, `connect-webhook/route.ts`, `stripe-connect/page.tsx`, `stripe-connect-card.tsx`, `connect-card.tsx`, `payment-card.tsx`, `connect-reengagement/route.ts`
+  - **Modified files (9):** `schema.ts`, `env.ts`, `appointments.ts`, `booking-form.tsx`, `book/[slug]/page.tsx`, `stripe-refund.ts`, `dashboard/page.tsx`, `app-nav.tsx`, `layout.tsx`
+  - **Context files updated:** `architecture-context.md` (webhook, cron, env), `progress-tracker.md`, `feature-loop-contract.md`, `work-log.md`
+
+---
+
 ## In Progress
 
-None.
+- **Stripe Connect** — Loop COMPLETE. All 23 drift shortcuts fixed. Post-loop design review surfaced 15 issues (current-issues.md) and 3 roadmap items. Key issues before ship: slot recovery Connect guard (hardcoded `paymentsEnabled: true`), minimum deposit floor (£1 platform policy), suspended status for capability revocation, free booking SMS gap, platform webhook Connect transfer awareness.
 
 ---
 
 ## Next Up
 
-- Wave 5 verification (Phase 3) — separate agent, fresh session
+- Stripe Connect pre-ship fixes (15 issues from design review — see current-issues.md)
 - Remaining booking page specs: confirm-booking-CTA (08), footer (09)
 
 ---
@@ -109,6 +128,7 @@ None.
 - **Shape C selected:** Booking-specific layout (`src/app/book/layout.tsx`) isolates changes from shared `SiteHeader`. Components restyled in-place, not extracted.
 - **RouteChrome exclusion:** Add `"/book"` to `APP_ROUTE_PREFIXES` — one-line change.
 - **Home screen DS conformance:** Option A (single-file sweep) chosen. All 12 specs resolved across 7 slices over `atelier-dashboard.tsx` + `globals.css`.
+- **Stripe Connect:** Express accounts with destination charges. Separate Connect webhook endpoint (different signing secret). Prompt timing gated behind `eventTypes.findFirst()` + `shopHours.findFirst()` (no new column — `shopHours` auto-seeded on creation, real gate is `hasServices`). Re-engagement email uses `messageDedup` table for send-once constraint (no new column on shops).
 
 ---
 
@@ -143,3 +163,10 @@ Design Consistency Wave 2: `docs/shaping/design-consistency/feature-spec/shape/w
 - `design-consistency-wave2-slices.md` — 3 slices (Foundation, Dialog, Booking Components)
 - `slice-1-foundation-plan.md`, `slice-2-dialog-plan.md`, `slice-3-booking-plan.md`
 - `spike-font-rules.md`, `spike-dialog-tokens.md`, `spike-booking-components.md`
+
+Stripe Connect: `docs/shaping/stripe-connect/`
+- 17 specs (01–17) + `_build-order.md` — implementation specs with design enrichment
+- `design/` — 7 design briefs + interactive HTML mocks (.dc.html) + screenshots
+- `shape/stripe-connect-shape.md` — shaping doc (9 R's, 17 parts, fit check)
+- `shape/stripe-connect-slices.md` — 13 slices across 4 waves
+- `shape/spike-availability-gate.md`, `spike-email-pattern.md`, `spike-payments-enabled.md`

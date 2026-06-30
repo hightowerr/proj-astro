@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/colors.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/typography.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/effects.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/base.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/styles.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--al-background); }
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal; font-style: normal; line-height: 1;
+    letter-spacing: normal; text-transform: none; display: inline-block;
+    white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'liga';
+  }
+  @keyframes bk-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes bk-pop { 0% { opacity:0; transform: scale(.7); } 60% { transform: scale(1.08); } 100% { opacity:1; transform: scale(1); } }
+  .bk-input {
+    width: 100%; padding: 14px 16px; border-radius: 12px;
+    border: 1px solid var(--al-hairline-rest); background: var(--al-surface-container-lowest);
+    font-size: 15px; color: var(--al-on-surface); font-family: var(--al-font); outline: none;
+    transition: box-shadow .15s ease, border-color .15s ease;
+  }
+  .bk-input::placeholder { color: var(--al-outline); }
+  .bk-input:focus { border-color: rgba(0,30,64,.35); box-shadow: var(--al-focus-ring); }
+  /* ── Container-responsive: adapts to the component's own width, not the device ── */
+  .bk-root { container-type: inline-size; }
+  @container (max-width: 600px) {
+    .bk-nav { padding: 14px 20px !important; }
+    .bk-navlinks { display: none !important; }
+    .bk-main { padding: 40px 20px 96px !important; }
+    .bk-2col { flex-direction: column !important; gap: 22px !important; }
+    .bk-h1 { font-size: 32px !important; }
+  }
+  @container (max-width: 440px) {
+    .bk-nav { padding: 12px 16px !important; gap: 12px !important; }
+    .bk-signin { display: none !important; }
+    .bk-main { padding: 30px 16px 84px !important; }
+    .bk-h1 { font-size: 26px !important; }
+    .bk-splitrow { flex-direction: column !important; align-items: flex-start !important; gap: 14px !important; }
+    .bk-cardfield { flex-wrap: wrap !important; row-gap: 12px !important; }
+    .bk-cardnum { flex: 1 1 100% !important; }
+    .bk-cardmeta { flex: 1 1 100% !important; }
+  }
+</style>
+</helmet>
+
+<div class="bk-root" style="min-height:100vh; font-family:var(--al-font); color:var(--al-on-surface); background:var(--al-background); display:flex; flex-direction:column;">
+
+  <!-- ░░ MARKETING NAV ░░ -->
+  <header class="bk-nav" style="display:flex; align-items:center; justify-content:space-between; padding:18px 40px; background:var(--al-surface-container-lowest); border-bottom:1px solid var(--al-hairline);">
+    <div style="display:flex; align-items:center; gap:11px;">
+      <div style="width:34px; height:34px; border-radius:9px; background:var(--al-gradient-cta); box-shadow:var(--al-shadow-mark); display:flex; align-items:center; justify-content:center;">
+        <span class="material-symbols-outlined" style="font-size:20px; color:#fff; font-variation-settings:'FILL' 1;">dashboard_customize</span>
+      </div>
+      <span style="font-size:16px; font-weight:800; letter-spacing:.16em; color:var(--al-primary);">ASTRO</span>
+    </div>
+    <nav class="bk-navlinks" style="display:flex; align-items:center; gap:30px;">
+      <a href="#" style="font-size:13.5px; font-weight:600; color:var(--al-on-surface-variant); text-decoration:none;">How it works</a>
+      <a href="#" style="font-size:13.5px; font-weight:600; color:var(--al-on-surface-variant); text-decoration:none;">Features</a>
+      <a href="#" style="font-size:13.5px; font-weight:600; color:var(--al-on-surface-variant); text-decoration:none;">Pricing</a>
+      <a href="#" style="font-size:13.5px; font-weight:600; color:var(--al-on-surface-variant); text-decoration:none;">FAQ</a>
+    </nav>
+    <div style="display:flex; align-items:center; gap:18px;">
+      <a href="#" class="bk-signin" style="font-size:13.5px; font-weight:700; color:var(--al-primary); text-decoration:none;">Sign in</a>
+      <a href="#" style="font-size:13px; font-weight:700; color:#fff; text-decoration:none; background:var(--al-gradient-cta); box-shadow:var(--al-shadow-cta); padding:11px 20px; border-radius:11px;">Start free trial</a>
+    </div>
+  </header>
+
+  <!-- ░░ COLUMN ░░ -->
+  <main class="bk-main" style="flex:1; width:100%; max-width:624px; margin:0 auto; padding:52px 24px 96px;">
+
+    <!-- ═══════════ BOOKING FORM ═══════════ -->
+    <sc-if value="{{ showForm }}" hint-placeholder-val="{{ true }}">
+    <div>
+
+      <div class="al-eyebrow" style="margin-bottom:14px;">Book an appointment</div>
+      <h1 class="bk-h1" style="font-size:40px; font-weight:800; letter-spacing:-0.03em; color:var(--al-primary); margin:0 0 10px; line-height:1.05;">Book with kicksnare</h1>
+      <p style="font-size:15px; color:var(--al-on-surface-variant); margin:0 0 30px;">{{ serviceName }} · {{ serviceDuration }}</p>
+
+      <!-- selected service -->
+      <div class="bk-splitrow" style="display:flex; align-items:center; justify-content:space-between; gap:16px; background:var(--al-surface-container-low); border-radius:18px; padding:20px 22px; margin-bottom:30px;">
+        <div>
+          <div class="al-eyebrow" style="margin-bottom:8px;">Selected service</div>
+          <div style="font-size:17px; font-weight:800; color:var(--al-primary); margin-bottom:4px;">{{ serviceName }}</div>
+          <div style="font-size:13px; color:var(--al-on-surface-variant);">{{ serviceDuration }} · UTC</div>
+        </div>
+        <span style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--al-status-positive); background:var(--al-status-positive-bg); padding:7px 13px; border-radius:9999px;">
+          <span style="width:7px; height:7px; border-radius:50%; background:var(--al-status-positive);"></span>Selected
+        </span>
+      </div>
+
+      <!-- date -->
+      <label style="display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--al-primary); margin-bottom:9px;">Date<span style="width:5px; height:5px; border-radius:50%; background:var(--al-primary);"></span></label>
+      <div style="display:flex; align-items:center; justify-content:space-between; background:var(--al-surface-container-lowest); border:1px solid var(--al-hairline-rest); border-radius:12px; padding:14px 16px; margin-bottom:26px;">
+        <span style="font-size:15px; font-weight:600; color:var(--al-on-surface);">Sat 04 Jul 2026</span>
+        <span class="material-symbols-outlined" style="font-size:21px; color:var(--al-on-surface-variant); opacity:.7;">calendar_month</span>
+      </div>
+
+      <!-- slots -->
+      <label style="display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--al-primary); margin-bottom:4px;">Available slots<span style="width:5px; height:5px; border-radius:50%; background:var(--al-primary);"></span></label>
+      <div style="font-size:12.5px; color:var(--al-on-surface-variant); margin-bottom:12px;">{{ serviceDuration }} · UTC</div>
+      <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:30px;">
+        <sc-for list="{{ slots }}" as="s" hint-placeholder-count="5">
+          <button onClick="{{ s.onClick }}" style="{{ s.style }}">{{ s.time }}</button>
+        </sc-for>
+      </div>
+
+      <!-- customer details -->
+      <label style="display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--al-primary); margin-bottom:9px;">Full name<span style="width:5px; height:5px; border-radius:50%; background:var(--al-primary);"></span></label>
+      <input class="bk-input" placeholder="Jordan Carter" style="margin-bottom:22px;">
+
+      <div class="bk-2col" style="display:flex; gap:16px; margin-bottom:30px;">
+        <div style="flex:1;">
+          <label style="display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--al-primary); margin-bottom:9px;">Phone<span style="width:5px; height:5px; border-radius:50%; background:var(--al-primary);"></span></label>
+          <input class="bk-input" placeholder="+44 7700 900123">
+        </div>
+        <div style="flex:1;">
+          <label style="display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--al-primary); margin-bottom:9px;">Email<span style="width:5px; height:5px; border-radius:50%; background:var(--al-primary);"></span></label>
+          <input class="bk-input" placeholder="you@email.com">
+        </div>
+      </div>
+
+      <!-- sms -->
+      <label style="display:flex; align-items:center; gap:12px; margin-bottom:16px; cursor:pointer;">
+        <span style="width:20px; height:20px; border-radius:6px; border:1.5px solid var(--al-hairline-strong); flex:none;"></span>
+        <span style="font-size:14px; font-weight:600; color:var(--al-on-surface);">Send me SMS updates about this booking.</span>
+      </label>
+
+      <!-- email reminders -->
+      <div style="display:flex; align-items:flex-start; gap:12px; background:var(--al-surface-container-low); border-radius:14px; padding:16px 18px; margin-bottom:30px;">
+        <span style="width:20px; height:20px; border-radius:6px; background:var(--al-primary); flex:none; display:flex; align-items:center; justify-content:center; margin-top:1px;">
+          <span class="material-symbols-outlined" style="font-size:15px; color:#fff; font-variation-settings:'FILL' 1;">check</span>
+        </span>
+        <div>
+          <div style="font-size:14px; font-weight:800; color:var(--al-primary); margin-bottom:3px;">Send me email reminders.</div>
+          <div style="font-size:13px; line-height:1.5; color:var(--al-on-surface-variant);">Get an email reminder about 24 hours before your appointment. You can opt out later.</div>
+        </div>
+      </div>
+
+      <!-- ═══ PAYMENT SECTION — deposits enabled only ═══ -->
+      <sc-if value="{{ depositsEnabled }}">
+      <div style="margin-bottom:30px;">
+        <div style="height:1px; background:var(--al-hairline); margin-bottom:26px;"></div>
+
+        <div class="al-eyebrow" style="margin-bottom:14px;">Deposit</div>
+
+        <!-- deposit summary -->
+        <div class="bk-splitrow" style="display:flex; align-items:center; justify-content:space-between; background:var(--al-surface-container-low); border-radius:14px; padding:16px 18px; margin-bottom:20px;">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:var(--al-primary); margin-bottom:3px;">Deposit due today</div>
+            <div style="font-size:12.5px; color:var(--al-on-surface-variant);">Held against your appointment · balance settled in studio</div>
+          </div>
+          <div class="al-mono" style="font-size:24px; font-weight:700; color:var(--al-primary); letter-spacing:-0.01em;">{{ amountStr }}</div>
+        </div>
+
+        <!-- stripe card field -->
+        <label style="font-size:13px; font-weight:800; color:var(--al-primary); margin-bottom:9px; display:block;">Card details</label>
+        <div class="bk-cardfield" style="display:flex; align-items:center; gap:12px; background:var(--al-surface-container-lowest); border:1px solid var(--al-hairline-rest); border-radius:12px; padding:14px 16px;">
+          <div class="bk-cardnum" style="display:flex; align-items:center; gap:12px; flex:1 1 auto; min-width:0;">
+            <span class="material-symbols-outlined" style="font-size:21px; color:var(--al-on-surface-variant); opacity:.7;">credit_card</span>
+            <span style="flex:1; font-size:15px; color:var(--al-outline); white-space:nowrap;">1234 1234 1234 1234</span>
+          </div>
+          <div class="bk-cardmeta" style="display:flex; align-items:center; gap:18px; flex:none;">
+            <span style="font-size:15px; color:var(--al-outline); white-space:nowrap;">MM / YY</span>
+            <span style="font-size:15px; color:var(--al-outline);">CVC</span>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; margin-top:11px;">
+          <span class="material-symbols-outlined" style="font-size:14px; color:var(--al-on-surface-variant); opacity:.65;">lock</span>
+          <span style="font-size:11.5px; font-weight:600; color:var(--al-on-surface-variant); opacity:.8;">Secured by Stripe · your card is encrypted end-to-end</span>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- CTA -->
+      <button onClick="{{ onBook }}" style-hover="opacity:.92" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; background:var(--al-gradient-cta); box-shadow:var(--al-shadow-cta); color:#fff; border:none; border-radius:14px; padding:18px; font-family:var(--al-font); font-size:16px; font-weight:800; letter-spacing:-0.01em; cursor:pointer; transition:opacity .15s ease;">
+        {{ ctaLabel }}
+      </button>
+      <p style="text-align:center; font-size:12.5px; color:var(--al-on-surface-variant); margin:14px 0 0;">{{ reassurance }}</p>
+
+    </div>
+    </sc-if>
+
+    <!-- ═══════════ CONFIRMATION ═══════════ -->
+    <sc-if value="{{ showConfirm }}">
+    <div style="text-align:center; padding-top:24px;">
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--al-status-positive-bg); display:flex; align-items:center; justify-content:center; margin:0 auto 26px;">
+        <span class="material-symbols-outlined" style="font-size:40px; color:var(--al-status-positive); font-variation-settings:'FILL' 1;">check_circle</span>
+      </div>
+
+      <div class="al-eyebrow" style="margin-bottom:14px;">Booking confirmed</div>
+      <h1 class="bk-h1" style="font-size:34px; font-weight:800; letter-spacing:-0.025em; color:var(--al-primary); margin:0 0 12px; line-height:1.1;">Your booking is confirmed.</h1>
+      <p style="font-size:15px; line-height:1.5; color:var(--al-on-surface-variant); margin:0 auto 36px; max-width:42ch;">{{ confirmSub }}</p>
+
+      <!-- receipt -->
+      <div style="text-align:left; background:var(--al-surface-container-lowest); box-shadow:var(--al-shadow-float); border-radius:20px; overflow:hidden;">
+        <sc-for list="{{ receipt }}" as="r" hint-placeholder-count="4">
+          <div style="{{ r.rowStyle }}">
+            <span style="font-size:13.5px; color:var(--al-on-surface-variant);">{{ r.label }}</span>
+            <span style="{{ r.valStyle }}">{{ r.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <p style="font-size:13px; color:var(--al-on-surface-variant); margin:24px auto 28px; max-width:44ch; line-height:1.5;">A confirmation has been sent to your email. We'll remind you 24 hours before your appointment.</p>
+
+      <button onClick="{{ onReset }}" style-hover="background-color:var(--al-surface-container)" style="display:inline-flex; align-items:center; gap:8px; background:var(--al-surface-container-low); border:1px solid var(--al-hairline-strong); border-radius:11px; padding:12px 20px; font-family:var(--al-font); font-size:13.5px; font-weight:700; color:var(--al-primary); cursor:pointer; transition:background .15s ease;">
+        <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>Make another booking
+      </button>
+    </div>
+    </sc-if>
+
+  </main>
+</div>
+
+  <!-- ░░ PREVIEW SWITCHER (review aid — not part of the live page) ░░ -->
+  <div style="position:fixed; left:50%; bottom:22px; transform:translateX(-50%); display:flex; align-items:center; gap:10px; background:var(--al-surface-container-lowest); box-shadow:var(--al-shadow-menu); border:1px solid var(--al-hairline-strong); border-radius:9999px; padding:7px 7px 7px 16px; z-index:50;">
+    <span style="font-size:9.5px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:var(--al-on-surface-variant); opacity:.7;">Preview</span>
+    <div style="display:flex; gap:3px; background:var(--al-surface-container); border-radius:9999px; padding:3px;">
+      <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="2">
+        <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1080,&quot;height&quot;:1180},&quot;depositsEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Deposit state&quot;},&quot;depositAmount&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:25,&quot;min&quot;:5,&quot;max&quot;:200,&quot;unit&quot;:&quot;£&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Deposit state&quot;}}">
+class Component extends DCLogic {
+  state = { confirmed: false, slot: 2, depOverride: null };
+
+  deposits() {
+    if (this.state.depOverride !== null) return this.state.depOverride;
+    return this.props.depositsEnabled !== false;
+  }
+
+  renderVals() {
+    const dep = this.deposits();
+    const amount = (this.props.depositAmount != null ? this.props.depositAmount : 25);
+    const amountStr = '£' + Number(amount).toFixed(2);
+    const serviceName = 'Full Colour & Gloss';
+    const serviceDuration = '90 minutes';
+
+    // slots
+    const times = ['09:00', '10:30', '13:00', '15:30', '17:00'];
+    const slotBase = 'font-family:var(--al-font); font-size:14px; font-weight:700; padding:11px 18px; border-radius:11px; cursor:pointer; transition:all .15s ease;';
+    const slotIdle = slotBase + ' background:var(--al-surface-container-lowest); border:1px solid var(--al-hairline-strong); color:var(--al-on-surface-variant);';
+    const slotActive = slotBase + ' background:var(--al-primary); border:1px solid var(--al-primary); color:#fff; box-shadow:var(--al-shadow-ring);';
+    const slots = times.map((time, i) => ({
+      time,
+      onClick: () => this.setState({ slot: i }),
+      style: i === this.state.slot ? slotActive : slotIdle,
+    }));
+    const chosenTime = times[this.state.slot];
+
+    // preview toggles
+    const tBase = { fontFamily: 'var(--al-font)', fontSize: '11.5px', fontWeight: 700, padding: '7px 14px', borderRadius: '9999px', cursor: 'pointer', border: 'none', transition: 'all .15s ease', whiteSpace: 'nowrap' };
+    const tActive = { ...tBase, background: 'var(--al-surface-container-lowest)', color: 'var(--al-primary)', boxShadow: '0 1px 2px rgba(0,0,0,.06)' };
+    const tIdle = { ...tBase, background: 'transparent', color: 'var(--al-on-surface-variant)' };
+    const toggles = [
+      { key: true, label: 'Deposits on' },
+      { key: false, label: 'Deposits off' },
+    ].map(o => ({
+      label: o.label,
+      onClick: () => this.setState({ depOverride: o.key, confirmed: false }),
+      style: dep === o.key ? tActive : tIdle,
+    }));
+
+    // receipt
+    const rowBase = (i) => 'display:flex; align-items:center; justify-content:space-between; padding:16px 22px;' + (i ? ' border-top:1px solid var(--al-hairline);' : '');
+    const valPlain = 'font-size:14px; font-weight:700; color:var(--al-primary);';
+    const valMono = 'font-size:14px; font-weight:700; color:var(--al-primary); font-family:var(--al-font-mono); font-variant-numeric:tabular-nums;';
+    const valPaid = 'display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:var(--al-status-positive); background:var(--al-status-positive-bg); padding:5px 11px; border-radius:9999px; font-family:var(--al-font-mono);';
+    const receiptRows = [
+      { label: 'Service', value: serviceName, valStyle: valPlain },
+      { label: 'Date', value: 'Sat 04 Jul 2026', valStyle: valPlain },
+      { label: 'Time', value: chosenTime + ' UTC', valStyle: valMono },
+    ];
+    if (dep) {
+      receiptRows.push({ label: 'Deposit paid', value: amountStr, valStyle: valPaid });
+      receiptRows.push({ label: 'Card', value: '•••• 4242', valStyle: valMono });
+    }
+    receiptRows.push({ label: 'Confirmation', value: '#KS-7F2A9', valStyle: valMono });
+    const receipt = receiptRows.map((r, i) => ({ ...r, rowStyle: rowBase(i) }));
+
+    return {
+      depositsEnabled: dep,
+      showForm: !this.state.confirmed,
+      showConfirm: this.state.confirmed,
+      serviceName,
+      serviceDuration,
+      amountStr,
+      slots,
+      toggles,
+      receipt,
+      ctaLabel: dep ? ('Book & Pay ' + amountStr) : 'Confirm booking',
+      reassurance: dep
+        ? "You won't be charged the full service price today — only the deposit above."
+        : 'No payment required — your slot is reserved as soon as you confirm.',
+      confirmSub: dep
+        ? (amountStr + ' deposit paid. The balance is settled in studio after your appointment.')
+        : "We've reserved your slot. See you on the day.",
+      onBook: () => this.setState({ confirmed: true }),
+      onReset: () => this.setState({ confirmed: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

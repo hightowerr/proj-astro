@@ -1,0 +1,5 @@
+- Date: 2026-06-29
+- Spec: 09 (webhook)
+- Description: Connect webhook reads STRIPE_CONNECT_WEBHOOK_SECRET directly from process.env instead of through the validated env.ts module, even though spec 04 explicitly added the variable to the Zod schema. The existing platform webhook likely does the same thing.
+- Root cause: CODEBASE — the existing webhook pattern reads process.env directly. The implementing agent correctly followed the existing pattern, but the existing pattern bypasses env validation.
+- Suggested fix: Audit all webhook routes to use the validated env module. This is a codebase-level fix, not specific to Connect.

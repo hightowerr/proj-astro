@@ -44,11 +44,12 @@ import {
   shops,
   slotOpenings,
 } from "@/lib/schema";
+import type Stripe from "stripe";
 import { getStripeClient, normalizeStripePaymentStatus, stripeIsMocked } from "@/lib/stripe";
 import { applyTierPricingOverride, derivePaymentRequirement } from "@/lib/tier-pricing";
 
 const DEFAULT_PAYMENT_POLICY = {
-  currency: "USD",
+  currency: "GBP",
   paymentMode: "deposit" as const,
   depositAmountCents: 2000,
 };
@@ -799,7 +800,7 @@ export const createAppointment = async (input: {
       let policyVersion: typeof policyVersions.$inferSelect | null = null;
       let paymentRequired = false;
       let amountCents = 0;
-      let currency = "USD";
+      let currency = "GBP";
 
       if (paymentsEnabled) {
         const policy = await ensureShopPolicy(tx, input.shopId);
@@ -889,6 +890,19 @@ export const createAppointment = async (input: {
         throw new SlotTakenError();
       }
 
+      let depositSkipped: "connect_not_complete" | "policy_none" | null = null;
+      if (!paymentsEnabled) {
+        const shopRow = await tx.query.shops.findFirst({
+          where: (table, { eq }) => eq(table.id, input.shopId),
+          columns: { stripeOnboardingStatus: true },
+        });
+        if (shopRow?.stripeOnboardingStatus !== "complete") {
+          depositSkipped = "connect_not_complete";
+        }
+      } else if (!paymentRequired) {
+        depositSkipped = "policy_none";
+      }
+
       const appointmentValues: typeof appointments.$inferInsert = {
         shopId: input.shopId,
         customerId: customer.id,
@@ -900,6 +914,7 @@ export const createAppointment = async (input: {
         policyVersionId: policyVersion?.id ?? null,
         paymentStatus: paymentRequired ? "pending" : "unpaid",
         paymentRequired,
+        depositSkipped,
         source: input.source ?? "web",
         sourceSlotOpeningId: input.sourceSlotOpeningId ?? null,
         bookingUrl: null,
@@ -1102,7 +1117,13 @@ export const createAppointment = async (input: {
         throw new Error("Payment record not found");
       }
 
-      paymentIntent = await stripe.paymentIntents.create({
+      // Look up the shop's Stripe Connect status for destination charges
+      const connectAccount = await db.query.shops.findFirst({
+        where: (table, { eq }) => eq(table.id, created.appointment.shopId),
+        columns: { stripeAccountId: true, stripeOnboardingStatus: true },
+      });
+
+      const piParams: Stripe.PaymentIntentCreateParams = {
         amount: created.amountCents,
         currency: created.currency,
         metadata: {
@@ -1113,7 +1134,20 @@ export const createAppointment = async (input: {
         automatic_payment_methods: {
           enabled: true,
         },
-      });
+      };
+
+      if (connectAccount?.stripeAccountId && connectAccount.stripeOnboardingStatus === "complete") {
+        piParams.transfer_data = { destination: connectAccount.stripeAccountId };
+        piParams.application_fee_amount = 50; // 50 pence flat fee
+        piParams.on_behalf_of = connectAccount.stripeAccountId;
+      }
+
+      // Edge case: amount <= 50p, skip application fee
+      if (piParams.application_fee_amount && created.amountCents <= 50) {
+        delete piParams.application_fee_amount;
+      }
+
+      paymentIntent = await stripe.paymentIntents.create(piParams);
     } catch (error) {
       if (created.payment) {
         await db.transaction(async (tx) => {
@@ -1140,11 +1174,21 @@ export const createAppointment = async (input: {
     }
 
     const mappedStatus = normalizeStripePaymentStatus(paymentIntent.status);
+    const connectedAccountId =
+      typeof paymentIntent.transfer_data?.destination === "string"
+        ? paymentIntent.transfer_data.destination
+        : paymentIntent.transfer_data?.destination?.id ?? null;
     await db
       .update(payments)
       .set({
         stripePaymentIntentId: paymentIntent.id,
         status: mappedStatus,
+        ...(connectedAccountId && {
+          metadata: {
+            ...(created.payment.metadata ?? {}),
+            connectedAccountId,
+          },
+        }),
         updatedAt: new Date(),
       })
       .where(eq(payments.id, created.payment.id));

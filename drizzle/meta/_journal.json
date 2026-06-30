@@ -246,6 +246,34 @@
       "when": 1776493627824,
       "tag": "0034_watery_toad",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1777545600000,
+      "tag": "0035_stripe_connect_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1777632000000,
+      "tag": "0036_deposit_skipped",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1777718400000,
+      "tag": "0037_connect_reengagement_sent_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1777804800000,
+      "tag": "0038_stripe_connect_suspended",
+      "breakpoints": true
     }
   ]
 }

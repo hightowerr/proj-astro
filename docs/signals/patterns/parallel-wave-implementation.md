@@ -1,0 +1,5 @@
+- Pattern name: Parallel wave implementation with worktree agents
+- Problem it solves: Sequential slice implementation is slow. Slices within a wave have no inter-dependencies.
+- Solution: Launch one agent per slice using worktree isolation. All slices in a wave run simultaneously. Run typecheck after each wave completes (not per-slice, since worktree changes merge back). For stripe-connect: 4 waves × 2-5 parallel agents = ~30min total vs ~2hr sequential.
+- First used in: stripe-connect Wave 2 (4 parallel agents) and Wave 3 (5 parallel agents)
+- Reusable? YES — standard approach for any wave with 2+ independent slices

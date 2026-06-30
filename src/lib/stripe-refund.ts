@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import { and, eq, inArray, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { appointmentEvents, appointments, payments } from "@/lib/schema";
@@ -183,15 +184,25 @@ export async function processRefund({
     const stripe = getStripeClient();
 
     try {
-      const refund = await stripe.refunds.create(
-        {
-          payment_intent: payment.stripePaymentIntentId,
-          amount: payment.amountCents,
-          metadata: {
-            appointmentId: appointment.id,
-            reason: "customer_cancellation",
-          },
+      const intent = await stripe.paymentIntents.retrieve(payment.stripePaymentIntentId);
+      const usedConnect = Boolean(intent.transfer_data?.destination);
+
+      const refundParams: Stripe.RefundCreateParams = {
+        payment_intent: payment.stripePaymentIntentId,
+        amount: payment.amountCents,
+        metadata: {
+          appointmentId: appointment.id,
+          reason: "customer_cancellation",
         },
+      };
+
+      if (usedConnect) {
+        refundParams.reverse_transfer = true;
+        refundParams.refund_application_fee = true;
+      }
+
+      const refund = await stripe.refunds.create(
+        refundParams,
         {
           idempotencyKey: `refund-${appointment.id}`,
         }

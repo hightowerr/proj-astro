@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { AppNav } from "@/components/app/app-nav";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -17,10 +18,28 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     return children;
   }
 
+  const [hasServicesResult, hasAvailabilityResult] = await Promise.all([
+    db.query.eventTypes.findFirst({
+      where: (t, { and, eq }) =>
+        and(eq(t.shopId, shop.id), eq(t.isActive, true)),
+      columns: { id: true },
+    }),
+    db.query.shopHours.findFirst({
+      where: (t, { eq }) => eq(t.shopId, shop.id),
+      columns: { id: true },
+    }),
+  ]);
+
   return (
     <>
-      <AppNav user={session.user} shopName={shop.name} />
-      <div className="lg:pl-72 min-h-screen">
+      <AppNav
+        user={session.user}
+        shopName={shop.name}
+        stripeOnboardingStatus={shop.stripeOnboardingStatus}
+        hasServices={!!hasServicesResult}
+        hasAvailability={!!hasAvailabilityResult}
+      />
+      <div className="lg:pl-72 min-h-screen bg-al-surface-low">
         {children}
       </div>
     </>

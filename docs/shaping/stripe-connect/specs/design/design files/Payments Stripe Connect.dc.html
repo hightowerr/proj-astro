@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/colors.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/typography.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/effects.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/base.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/styles.css">
+<script src="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/_ds_bundle.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--al-background); }
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal; font-style: normal; line-height: 1;
+    letter-spacing: normal; text-transform: none; display: inline-block;
+    white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'liga';
+  }
+  @keyframes al-spin { to { transform: rotate(360deg); } }
+  @keyframes al-ring { 0% { transform: scale(.65); opacity: .5; } 100% { transform: scale(1.9); opacity: 0; } }
+  @keyframes al-pop { 0% { transform: scale(0); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  @keyframes al-fade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  @keyframes al-pulsedot { 0%, 100% { transform: scale(1); } 50% { transform: scale(.78); } }
+</style>
+</helmet>
+
+<div style="{{ rootStyle }}">
+
+  <!-- ░░ SIDEBAR ░░ -->
+  <aside style="display:flex; flex-direction:column; width:var(--al-side-w,264px); flex:none; border-right:var(--al-side-br,1px solid var(--al-hairline)); border-bottom:var(--al-side-bb,none); padding:var(--al-side-pad,24px 16px);">
+    <div style="display:flex; align-items:center; gap:11px; justify-content:var(--al-brand-just,flex-start); padding:6px 8px var(--al-brand-pb,22px);">
+      <div style="display:flex; align-items:center; gap:11px; min-width:0;">
+        <div style="width:36px; height:36px; border-radius:10px; background:var(--al-gradient-cta); box-shadow:var(--al-shadow-mark); display:flex; align-items:center; justify-content:center; flex:none;">
+          <span class="material-symbols-outlined" style="font-size:21px; color:#fff; font-variation-settings:'FILL' 1;">dashboard_customize</span>
+        </div>
+        <div style="display:flex; flex-direction:column; line-height:1.15;">
+          <span style="font-size:13px; font-weight:800; letter-spacing:.16em; color:var(--al-primary);">ASTRO</span>
+          <span style="font-size:11px; color:var(--al-on-surface-variant); letter-spacing:.02em;">Maison Noir</span>
+        </div>
+      </div>
+      <button onClick="{{ toggleMenu }}" aria-label="Toggle navigation menu" style="display:var(--al-ham-display,none); align-items:center; justify-content:center; width:40px; height:40px; flex:none; border-radius:10px; border:1px solid var(--al-hairline-strong); background:var(--al-surface-container-lowest); color:var(--al-on-surface); cursor:pointer;">
+        <span class="material-symbols-outlined" style="font-size:24px;">{{ menuIcon }}</span>
+      </button>
+    </div>
+
+    <div style="display:var(--al-nav-display,flex); flex-direction:column; flex:var(--al-nav-flex,1);">
+    <nav style="display:flex; flex-direction:column; gap:2px;">
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; color:var(--al-on-surface-variant); text-decoration:none; font-size:13.5px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:21px;">home</span>Home Hub</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; color:var(--al-on-surface-variant); text-decoration:none; font-size:13.5px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:21px;">calendar_month</span>Appointments</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; color:var(--al-on-surface-variant); text-decoration:none; font-size:13.5px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:21px;">group</span>Customers</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; color:var(--al-on-surface-variant); text-decoration:none; font-size:13.5px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:21px;">sell</span>Shop Catalog</a>
+    </nav>
+
+    <div class="al-eyebrow" style="padding:20px 12px 8px;">Settings</div>
+    <nav style="display:flex; flex-direction:column; gap:2px;">
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; color:var(--al-on-surface-variant); text-decoration:none; font-size:13.5px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:21px;">notifications</span>Reminders</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; color:var(--al-on-surface-variant); text-decoration:none; font-size:13.5px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:21px;">schedule</span>Availability</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; color:var(--al-on-surface-variant); text-decoration:none; font-size:13.5px; font-weight:600;">
+        <span class="material-symbols-outlined" style="font-size:21px;">receipt_long</span>Payment Policy</a>
+      <a href="#" style="display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; background:var(--al-primary-container); color:#fff; text-decoration:none; font-size:13.5px; font-weight:700;">
+        <span class="material-symbols-outlined" style="font-size:21px; font-variation-settings:'FILL' 1;">account_balance_wallet</span>Payments</a>
+    </nav>
+
+    <div style="flex:1;"></div>
+    <div style="display:flex; align-items:center; gap:10px; padding:10px 8px; border-top:1px solid var(--al-hairline);">
+      <div style="width:30px; height:30px; border-radius:50%; background:var(--al-gradient-avatar-std); display:flex; align-items:center; justify-content:center; flex:none; font-size:12px; font-weight:800; color:var(--al-tertiary);">MN</div>
+      <div style="display:flex; flex-direction:column; line-height:1.2;">
+        <span style="font-size:12.5px; font-weight:700; color:var(--al-on-surface);">Maison Noir</span>
+        <span style="font-size:11px; color:var(--al-on-surface-variant);">Owner</span>
+      </div>
+    </div>
+    </div>
+  </aside>
+
+  <!-- ░░ MAIN ░░ -->
+  <main style="flex:1; padding:var(--al-main-pad,32px 48px); display:flex; flex-direction:column; gap:30px; min-width:0;">
+
+    <!-- header row -->
+    <div style="display:flex; flex-direction:var(--al-head-dir,row); align-items:flex-start; justify-content:space-between; gap:20px;">
+      <div>
+        <div class="al-eyebrow" style="margin-bottom:8px;">Settings</div>
+        <h1 style="font-size:32px; font-weight:800; letter-spacing:-0.025em; color:var(--al-primary); margin:0 0 6px;">Payments</h1>
+        <p style="font-size:15px; color:var(--al-on-surface-variant); margin:0;">Manage how you receive booking deposits</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; align-items:var(--al-prev-align,flex-end); flex:none;">
+        <span class="al-eyebrow">Preview state</span>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:var(--al-pills-just,flex-end); max-width:var(--al-pills-maxw,280px);">
+          <sc-for list="{{ pills }}" as="p" hint-placeholder-count="5">
+            <button onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- card area -->
+    <div style="display:flex; justify-content:center; padding-top:8px;">
+      <div style="position:relative; width:100%; max-width:560px; background:var(--al-surface-container-lowest); border-radius:24px; box-shadow:var(--al-shadow-float); overflow:hidden;">
+
+        <!-- ── STATE 1 · Not started ── -->
+        <sc-if value="{{ isStart }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative; padding:var(--al-cardpad,40px); animation:al-fade .25s var(--al-ease);">
+            <span class="material-symbols-outlined" style="position:absolute; top:-14px; right:-8px; font-size:150px; line-height:1; color:var(--al-primary); opacity:.06; pointer-events:none;">credit_card</span>
+            <h2 style="font-size:22px; font-weight:800; color:var(--al-primary); letter-spacing:-0.01em; margin:0 0 14px; position:relative;">Get paid directly</h2>
+            <p style="font-size:15px; line-height:1.62; color:var(--al-on-surface-variant); margin:0 0 18px; max-width:44ch; position:relative;">Customer deposits go straight to your bank account. You'll see payouts, refunds, and tax info in your own Stripe dashboard.</p>
+            <p style="font-size:13px; line-height:1.5; color:var(--al-on-surface-variant); opacity:.72; margin:0 0 28px; position:relative;">A <span class="al-mono">50p</span> platform fee applies per booking deposit.</p>
+            <div style="position:relative;">
+              <x-import component-from-global-scope="AstroDesignSystem_424d7f.Button" size="lg" icon-right="arrow_forward" onClick="{{ onConnect }}" hint-size="auto,48px">Connect with Stripe</x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ── STATE 1b · Redirecting ── -->
+        <sc-if value="{{ isRedirect }}">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:18px; padding:60px 24px; animation:al-fade .25s var(--al-ease);">
+            <div style="width:30px; height:30px; border-radius:50%; border:3px solid var(--al-hairline-strong); border-top-color:var(--al-primary); animation:al-spin .8s linear infinite;"></div>
+            <p style="font-size:15px; color:var(--al-on-surface-variant); margin:0;">Setting up your Stripe account…</p>
+          </div>
+        </sc-if>
+
+        <!-- ── STATE 2 · Pending ── -->
+        <sc-if value="{{ isPending }}">
+          <div style="position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--al-primary);"></div>
+          <div style="padding:var(--al-cardpad,40px); animation:al-fade .25s var(--al-ease);">
+            <h2 style="font-size:22px; font-weight:800; color:var(--al-primary); letter-spacing:-0.01em; margin:0 0 12px;">Almost there</h2>
+            <p style="font-size:15px; line-height:1.6; color:var(--al-on-surface-variant); margin:0 0 30px; max-width:42ch;">Complete your Stripe verification to start collecting deposits.</p>
+
+            <div role="progressbar" aria-valuenow="1" aria-valuemax="3" style="position:relative; margin:6px 0 2px;">
+              <div style="position:absolute; top:13px; left:16.667%; width:33.333%; height:2px; background:var(--al-status-positive);"></div>
+              <div style="position:absolute; top:13px; left:50%; width:33.333%; height:2px; background:repeating-linear-gradient(90deg, var(--al-outline-variant) 0 5px, transparent 5px 10px);"></div>
+              <div style="position:relative; display:grid; grid-template-columns:repeat(3,1fr);">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:var(--al-status-positive); display:flex; align-items:center; justify-content:center; color:#fff;">
+                    <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings:'FILL' 1;">check</span>
+                  </div>
+                  <span style="font-size:12px; font-weight:700; color:var(--al-on-surface); text-align:center;">Account created</span>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:var(--al-surface-container-lowest); border:2px solid var(--al-outline-variant);"></div>
+                  <span style="font-size:12px; font-weight:600; color:var(--al-on-surface-variant); text-align:center;">Stripe verifying</span>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:var(--al-surface-container-lowest); border:2px solid var(--al-outline-variant);"></div>
+                  <span style="font-size:12px; font-weight:600; color:var(--al-on-surface-variant); text-align:center;">Ready to collect</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:30px;">
+              <x-import component-from-global-scope="AstroDesignSystem_424d7f.Button" size="lg" icon-right="arrow_forward" onClick="{{ onContinue }}" hint-size="auto,48px">Continue setup</x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ── STATE 2b · Verifying ── -->
+        <sc-if value="{{ isVerifying }}">
+          <div style="position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--al-primary);"></div>
+          <div style="padding:var(--al-cardpad,40px); animation:al-fade .25s var(--al-ease);">
+            <h2 style="font-size:22px; font-weight:800; color:var(--al-primary); letter-spacing:-0.01em; margin:0 0 30px;">Almost there</h2>
+
+            <div role="progressbar" aria-valuenow="2" aria-valuemax="3" style="position:relative; margin:6px 0 2px;">
+              <div style="position:absolute; top:13px; left:16.667%; width:33.333%; height:2px; background:var(--al-status-positive);"></div>
+              <div style="position:absolute; top:13px; left:50%; width:33.333%; height:2px; background:repeating-linear-gradient(90deg, var(--al-outline-variant) 0 5px, transparent 5px 10px);"></div>
+              <div style="position:relative; display:grid; grid-template-columns:repeat(3,1fr);">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:var(--al-status-positive); display:flex; align-items:center; justify-content:center; color:#fff;">
+                    <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings:'FILL' 1;">check</span>
+                  </div>
+                  <span style="font-size:12px; font-weight:700; color:var(--al-on-surface); text-align:center;">Account created</span>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                  <div style="position:relative; width:28px; height:28px; display:flex; align-items:center; justify-content:center;">
+                    <div style="position:absolute; inset:0; border-radius:50%; background:var(--al-status-caution); opacity:.35; animation:al-ring 1.5s ease-out infinite;"></div>
+                    <div style="width:28px; height:28px; border-radius:50%; background:var(--al-status-caution); animation:al-pulsedot 1.5s ease-in-out infinite;"></div>
+                  </div>
+                  <span style="font-size:12px; font-weight:700; color:var(--al-status-caution); text-align:center;">Verifying…</span>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:var(--al-surface-container-lowest); border:2px solid var(--al-outline-variant);"></div>
+                  <span style="font-size:12px; font-weight:600; color:var(--al-on-surface-variant); text-align:center;">Ready to collect</span>
+                </div>
+              </div>
+            </div>
+
+            <div aria-live="polite" style="display:flex; gap:11px; align-items:flex-start; background:var(--al-surface-container); border-radius:12px; padding:14px 16px; margin-top:28px;">
+              <span class="material-symbols-outlined" style="font-size:20px; color:var(--al-on-surface-variant); flex:none;">info</span>
+              <p style="font-size:13.5px; line-height:1.55; color:var(--al-on-surface-variant); margin:0;">Stripe is verifying your details — this usually takes a few minutes.</p>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ── STATE 3 · Connected ── -->
+        <sc-if value="{{ isConnected }}">
+          <div style="position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--al-status-positive);"></div>
+          <div style="padding:var(--al-cardpad,40px); animation:al-fade .3s var(--al-ease);">
+            <div style="display:flex; gap:14px; align-items:flex-start; margin-bottom:24px;">
+              <div style="position:relative; flex:none;">
+                <sc-if value="{{ celebrate }}">
+                  <div style="position:absolute; inset:-7px; border-radius:50%; border:2px solid var(--al-status-positive); animation:al-ring 1.3s ease-out 2;"></div>
+                </sc-if>
+                <div style="width:38px; height:38px; border-radius:50%; background:var(--al-status-positive-bg); display:flex; align-items:center; justify-content:center; animation:al-pop .5s var(--al-ease-spring);">
+                  <span class="material-symbols-outlined" style="font-size:25px; color:var(--al-status-positive); font-variation-settings:'FILL' 1;">check</span>
+                </div>
+              </div>
+              <div style="padding-top:2px;">
+                <h2 style="font-size:22px; font-weight:800; color:var(--al-primary); letter-spacing:-0.01em; margin:0 0 6px;">Payments connected</h2>
+                <sc-if value="{{ celebrate }}">
+                  <p style="font-size:14.5px; line-height:1.55; color:var(--al-status-positive); font-weight:700; margin:0;">You're all set! Deposits are now enabled on your booking page.</p>
+                </sc-if>
+                <sc-if value="{{ settled }}">
+                  <p style="font-size:14.5px; line-height:1.55; color:var(--al-on-surface-variant); margin:0;">Booking deposits will now go directly to your bank account.</p>
+                </sc-if>
+              </div>
+            </div>
+
+            <div style="background:var(--al-surface-container-low); border-radius:12px; padding:18px 20px; display:flex; flex-direction:column; gap:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--al-on-surface-variant); opacity:.7;">Account</span>
+                <span class="al-mono" style="font-size:13px; color:var(--al-on-surface);">acct_•••AbC</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--al-on-surface-variant); opacity:.7; padding-top:2px;">Status</span>
+                <div style="display:flex; flex-direction:column; gap:7px; align-items:flex-end;">
+                  <span style="display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--al-on-surface);"><span style="width:7px; height:7px; border-radius:50%; background:var(--al-status-positive);"></span>Charges enabled</span>
+                  <span style="display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--al-on-surface);"><span style="width:7px; height:7px; border-radius:50%; background:var(--al-status-positive);"></span>Payouts enabled</span>
+                </div>
+              </div>
+              <div style="height:1px; background:var(--al-hairline);"></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+                <span style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--al-on-surface-variant); opacity:.7;">Platform fee</span>
+                <span style="font-size:13px; color:var(--al-on-surface);"><span class="al-mono">50p</span> per booking deposit</span>
+              </div>
+            </div>
+
+            <div style="margin-top:22px;">
+              <x-import component-from-global-scope="AstroDesignSystem_424d7f.Button" variant="ghost" size="md" icon-right="open_in_new" hint-size="auto,44px">Open Stripe Dashboard</x-import>
+            </div>
+
+            <div style="height:1px; background:var(--al-hairline); margin:26px 0;"></div>
+
+            <a href="#" onClick="{{ onBridge }}" style-hover="text-decoration:underline" style="display:inline-flex; align-items:center; gap:9px; font-size:15px; font-weight:800; color:var(--al-primary); text-decoration:none; letter-spacing:-0.01em;">
+              <span class="material-symbols-outlined" style="font-size:20px;">arrow_forward</span>Review your deposit policy</a>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    view: 'start',
+    celebrate: false,
+    isMobile: (typeof window !== 'undefined' && window.innerWidth < 768),
+    menuOpen: false,
+  };
+
+  componentDidMount() {
+    this._onResize = () => {
+      const m = window.innerWidth < 768;
+      if (m !== this.state.isMobile) this.setState({ isMobile: m, menuOpen: false });
+    };
+    window.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._t);
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+  }
+
+  _clear() { clearTimeout(this._t); this._t = null; }
+
+  go(view, celebrate) {
+    this._clear();
+    this.setState({ view: view, celebrate: !!celebrate });
+  }
+
+  pill(view) {
+    if (view === 'verifying') { this.startVerify(); return; }
+    this.go(view, false);
+  }
+
+  startVerify() {
+    this._clear();
+    this.setState({ view: 'verifying', celebrate: false });
+    this._t = setTimeout(() => this.go('connected', true), 4200);
+  }
+
+  renderVals() {
+    const v = this.state.view;
+    const base = {
+      padding: '7px 12px', borderRadius: '9999px', fontSize: '12px',
+      fontWeight: 700, fontFamily: 'var(--al-font)', cursor: 'pointer',
+      letterSpacing: '.01em', transition: 'background .15s ease, color .15s ease',
+    };
+    const idle = { ...base, border: '1px solid var(--al-hairline-strong)', background: 'var(--al-surface-container-lowest)', color: 'var(--al-on-surface-variant)' };
+    const active = { ...base, border: '1px solid var(--al-primary)', background: 'var(--al-primary)', color: '#fff' };
+    const defs = [
+      ['start', 'Not started'], ['redirect', 'Redirecting'], ['pending', 'Pending'],
+      ['verifying', 'Verifying'], ['connected', 'Connected'],
+    ];
+    const pills = defs.map(([key, label]) => ({
+      key, label,
+      onClick: () => this.pill(key),
+      style: v === key ? active : idle,
+    }));
+
+    const isMobile = this.state.isMobile;
+    const menuOpen = this.state.menuOpen;
+    const rootStyle = {
+      display: 'flex',
+      minHeight: '100vh',
+      fontFamily: 'var(--al-font)',
+      color: 'var(--al-on-surface)',
+      background: 'var(--al-background)',
+      flexDirection: isMobile ? 'column' : 'row',
+    };
+    if (isMobile) Object.assign(rootStyle, {
+      '--al-side-w': '100%',
+      '--al-side-br': 'none',
+      '--al-side-bb': '1px solid var(--al-hairline)',
+      '--al-side-pad': '12px 16px',
+      '--al-brand-pb': '0px',
+      '--al-brand-just': 'space-between',
+      '--al-ham-display': 'inline-flex',
+      '--al-nav-display': menuOpen ? 'flex' : 'none',
+      '--al-nav-flex': '0',
+      '--al-main-pad': '20px 16px',
+      '--al-head-dir': 'column',
+      '--al-prev-align': 'flex-start',
+      '--al-pills-just': 'flex-start',
+      '--al-pills-maxw': 'none',
+      '--al-cardpad': '26px 22px',
+    });
+
+    return {
+      rootStyle,
+      menuIcon: menuOpen ? 'close' : 'menu',
+      toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen }),
+      isStart: v === 'start',
+      isRedirect: v === 'redirect',
+      isPending: v === 'pending',
+      isVerifying: v === 'verifying',
+      isConnected: v === 'connected',
+      celebrate: this.state.celebrate,
+      settled: !this.state.celebrate,
+      pills,
+      onConnect: () => {
+        this._clear();
+        this.setState({ view: 'redirect', celebrate: false });
+        this._t = setTimeout(() => this.go('pending'), 1700);
+      },
+      onContinue: () => {
+        this._clear();
+        this.setState({ view: 'redirect', celebrate: false });
+        this._t = setTimeout(() => this.startVerify(), 1700);
+      },
+      onBridge: (e) => { if (e && e.preventDefault) e.preventDefault(); },
+    };
+  }
+}
+</script>
+</body>
+</html>

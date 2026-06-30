@@ -20,7 +20,7 @@ export default async function ReminderSettingsPage() {
 
   if (!shop) {
     return (
-      <div className="container mx-auto px-12 py-8">
+      <div className="max-w-7xl mx-auto px-12 py-8">
         <h1 className="al-page-title">Reminders</h1>
         <p className="al-lede">
           Create your shop to configure reminder settings.
@@ -50,7 +50,7 @@ export default async function ReminderSettingsPage() {
   );
 
   return (
-    <div className="container mx-auto space-y-8 px-12 py-8">
+    <div className="max-w-7xl mx-auto space-y-8 px-12 py-8">
       <header className="space-y-2">
         <h1 className="al-page-title">Reminders</h1>
         <p className="al-lede">

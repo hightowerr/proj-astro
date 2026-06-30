@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/colors.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/typography.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/effects.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/base.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/styles.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--al-surface-container-low); font-family: var(--al-font); }
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal;
+    line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block;
+    white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; font-feature-settings: 'liga';
+  }
+  @keyframes apFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .ap-root { container-type: inline-size; }
+  .ap-topbar { display: none; }
+  .ap-tabbar { display: none; }
+  @container (max-width: 880px) {
+    .ap-root { flex-direction: column !important; }
+    .ap-side { display: none !important; }
+    .ap-topbar { display: flex !important; }
+    .ap-tabbar { display: flex !important; }
+    .ap-main { padding: 26px 22px 40px !important; }
+    .ap-2col { grid-template-columns: 1fr !important; }
+    .ap-h1 { font-size: 40px !important; }
+  }
+  @container (max-width: 520px) {
+    .ap-main { padding: 22px 16px 36px !important; }
+    .ap-h1 { font-size: 32px !important; }
+    .ap-backrow { font-size: 13px !important; }
+    .ap-card { padding: 20px 18px !important; }
+    .ap-detail-date { font-size: 19px !important; }
+  }
+</style>
+</helmet>
+
+<div class="ap-root" style="display:flex; min-height:100vh; background:var(--al-surface-container-low); color:var(--al-on-surface);">
+
+  <!-- ░░ SIDEBAR ░░ -->
+  <aside class="ap-side" style="display:flex; flex-direction:column; width:268px; flex:none; background:var(--al-surface-container-lowest); border-right:1px solid var(--al-hairline); padding:26px 16px 18px;">
+    <div style="display:flex; align-items:center; gap:11px; padding:4px 8px 26px;">
+      <div style="width:38px; height:38px; border-radius:11px; background:var(--al-gradient-cta); box-shadow:var(--al-shadow-mark); display:flex; align-items:center; justify-content:center; flex:none;">
+        <span class="material-symbols-outlined" style="font-size:22px; color:#fff; font-variation-settings:'FILL' 1;">dashboard_customize</span>
+      </div>
+      <div style="display:flex; flex-direction:column; line-height:1.25;">
+        <span style="font-size:15px; font-weight:800; letter-spacing:.16em; color:var(--al-primary);">KICKSNARE</span>
+        <span style="font-size:9.5px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; color:var(--al-on-surface-variant); opacity:.68;">Studio Management</span>
+      </div>
+    </div>
+
+    <nav style="display:flex; flex-direction:column; gap:3px;">
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">home</span>Home Hub</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">dashboard</span>Dashboard</a>
+      <a href="#" aria-current="page" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; background:linear-gradient(135deg,#001e40,#003366); color:#fff; text-decoration:none; font-size:14px; font-weight:700; box-shadow:0 10px 22px rgba(0,30,64,.22);"><span class="material-symbols-outlined" style="font-size:22px; font-variation-settings:'FILL' 1;">calendar_month</span>Appointments</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">sell</span>Shop Catalog</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">warning</span>Conflicts</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">group</span>Customers</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">schedule</span>Availability</a>
+    </nav>
+
+    <div class="al-eyebrow" style="padding:22px 13px 8px;">Settings</div>
+    <nav style="display:flex; flex-direction:column; gap:3px;">
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">receipt_long</span>Payment Policy</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">event</span>Calendar</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">notifications</span>Reminders</a>
+      <a href="#" style-hover="background-color:var(--al-surface-container)" style="display:flex; align-items:center; gap:13px; padding:11px 13px; border-radius:11px; color:var(--al-on-surface-variant); text-decoration:none; font-size:14px; font-weight:600;"><span class="material-symbols-outlined" style="font-size:22px;">account_balance_wallet</span>Billing</a>
+    </nav>
+
+    <div style="flex:1;"></div>
+    <div style="display:flex; align-items:center; gap:11px; padding:12px 10px 4px; border-top:1px solid var(--al-hairline);">
+      <div style="width:34px; height:34px; border-radius:50%; background:#1a1c1b; display:flex; align-items:center; justify-content:center; flex:none; font-size:12px; font-weight:800; color:#fff;">N</div>
+      <div style="display:flex; flex-direction:column; line-height:1.25; flex:1; min-width:0;">
+        <span style="font-size:13px; font-weight:700; color:var(--al-on-surface);">Olayinka Ola</span>
+        <span style="font-size:9.5px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--al-on-surface-variant);">Account &amp; Profile</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ░░ MOBILE TOP BAR (narrow only) ░░ -->
+  <header class="ap-topbar" style="position:sticky; top:0; z-index:30; flex:none; align-items:center; justify-content:space-between; padding:11px 16px; background:var(--al-surface-container-lowest); border-bottom:1px solid var(--al-hairline);">
+    <div style="display:flex; align-items:center; gap:9px;">
+      <button aria-label="Open menu" style="width:42px; height:42px; border-radius:11px; border:0; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer;"><span class="material-symbols-outlined" style="font-size:25px; color:var(--al-primary);">menu</span></button>
+      <span style="font-size:16px; font-weight:800; letter-spacing:.14em; color:var(--al-primary);">KICKSNARE</span>
+    </div>
+    <div style="width:34px; height:34px; border-radius:50%; background:#1a1c1b; display:flex; align-items:center; justify-content:center; flex:none; font-size:12px; font-weight:800; color:#fff;">N</div>
+  </header>
+
+  <!-- ░░ MAIN ░░ -->
+  <main class="ap-main" style="flex:1; min-width:0; padding:38px 48px 80px;">
+
+    <a href="#" class="ap-backrow" style="display:inline-flex; align-items:center; gap:5px; font-size:13.5px; font-weight:600; color:var(--al-primary); text-decoration:none; margin-bottom:16px;"><span class="material-symbols-outlined" style="font-size:17px;">chevron_left</span>Back to appointments</a>
+
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:30px;">
+      <div>
+        <h1 class="ap-h1" style="font-size:48px; font-weight:800; letter-spacing:-0.03em; color:var(--al-primary); margin:0 0 6px; line-height:1;">Appointment</h1>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:15px; font-weight:600; color:var(--al-on-surface-variant);">Jordan Avery</span>
+          <span style="width:4px; height:4px; border-radius:50%; background:var(--al-on-surface-variant); opacity:.5;"></span>
+          <span style="font-size:13px; font-weight:700; color:var(--al-on-surface-variant); font-family:var(--al-font-mono);">#KS-7F2A9</span>
+        </div>
+      </div>
+      <span style="display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:{{ tierColor }}; background:{{ tierBg }}; padding:8px 14px; border-radius:9999px;">
+        <span style="width:7px; height:7px; border-radius:50%; background:{{ tierColor }};"></span>{{ tierLabel }}
+      </span>
+    </div>
+
+    <!-- ── top row: Details | Payment ── -->
+    <div class="ap-2col" style="display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-bottom:22px;">
+
+      <!-- Details -->
+      <section class="ap-card" style="background:var(--al-surface-container-lowest); border:1px solid var(--al-hairline); border-radius:18px; padding:24px 26px;">
+        <div class="al-eyebrow" style="margin-bottom:16px;">Details</div>
+        <div class="ap-detail-date" style="font-size:21px; font-weight:800; letter-spacing:-0.015em; color:var(--al-primary); margin-bottom:6px;">Jun 27, 2026 · 10:00 AM</div>
+        <div style="font-size:13px; color:var(--al-on-surface-variant); margin-bottom:18px;">Ends Jun 27, 2026 · 11:00 AM (UTC)</div>
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;"><span style="font-size:13.5px; color:var(--al-on-surface-variant);">Status</span><span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:800; color:var(--al-status-positive); background:var(--al-status-positive-bg); padding:4px 11px; border-radius:9999px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--al-status-positive);"></span>Booked</span></div>
+          <div style="height:1px; background:var(--al-hairline);"></div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;"><span style="font-size:13.5px; color:var(--al-on-surface-variant);">Service</span><span style="font-size:14px; font-weight:700; color:var(--al-on-surface);">Full Colour &amp; Gloss</span></div>
+          <div style="height:1px; background:var(--al-hairline);"></div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;"><span style="font-size:13.5px; color:var(--al-on-surface-variant);">Duration</span><span style="font-size:14px; font-weight:700; color:var(--al-on-surface); font-family:var(--al-font-mono);">60 min</span></div>
+        </div>
+      </section>
+
+      <!-- Payment -->
+      <section class="ap-card" style="background:var(--al-surface-container-lowest); border:1px solid var(--al-hairline); border-radius:18px; padding:24px 26px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <div class="al-eyebrow">Payment</div>
+          <sc-if value="{{ viaConnect }}" hint-placeholder-val="{{ true }}">
+            <span style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--al-on-surface-variant);">
+              <span class="material-symbols-outlined" style="font-size:14px;">account_balance</span>Stripe Connect
+            </span>
+          </sc-if>
+        </div>
+
+        <!-- ═ LEDGER MODE (a real charge) ═ -->
+        <sc-if value="{{ isLedger }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:apFade .2s var(--al-ease);">
+          <dl style="margin:0;">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="3">
+              <div style="{{ r.wrapStyle }}">
+                <dt style="{{ r.labelStyle }}">{{ r.label }}</dt>
+                <dd style="{{ r.valStyle }}">{{ r.value }}</dd>
+              </div>
+            </sc-for>
+          </dl>
+
+          <sc-if value="{{ viaConnect }}">
+          <div style="display:flex; align-items:center; gap:6px; margin-top:14px; padding-top:14px; border-top:1px solid var(--al-hairline);">
+            <span class="material-symbols-outlined" style="font-size:15px; color:var(--al-on-surface-variant); opacity:.7;">north_east</span>
+            <span style="font-size:12px; color:var(--al-on-surface-variant);">Payout routed to your connected bank account.</span>
+          </div>
+          </sc-if>
+
+          <!-- status block -->
+          <div style="display:flex; flex-direction:column; gap:11px; margin-top:18px; padding-top:18px; border-top:1px solid var(--al-hairline);">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;"><span style="font-size:13.5px; color:var(--al-on-surface-variant);">Payment status</span><span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:800; color:var(--al-status-positive); background:var(--al-status-positive-bg); padding:4px 11px; border-radius:9999px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--al-status-positive);"></span>Succeeded</span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;"><span style="font-size:13.5px; color:var(--al-on-surface-variant);">Outcome</span><span style="font-size:14px; font-weight:700; color:var(--al-on-surface);">Settled</span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;"><span style="font-size:13.5px; color:var(--al-on-surface-variant);">Resolved</span><span style="font-size:13px; font-weight:600; color:var(--al-on-surface-variant); font-family:var(--al-font-mono);">27 Jun 2026, 10:42</span></div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ═ NOTICE MODE (no deposit collected) ═ -->
+        <sc-if value="{{ isNotice }}">
+        <div style="animation:apFade .2s var(--al-ease);">
+          <div style="display:flex; align-items:flex-start; gap:13px; padding:4px 0 2px;">
+            <span style="width:38px; height:38px; border-radius:11px; background:var(--al-surface-container); display:flex; align-items:center; justify-content:center; flex:none; margin-top:2px;">
+              <span class="material-symbols-outlined" style="font-size:21px; color:var(--al-on-surface-variant);">{{ noticeIcon }}</span>
+            </span>
+            <div>
+              <div style="font-size:16px; font-weight:800; color:var(--al-primary); margin-bottom:4px;">{{ noticeTitle }}</div>
+              <div style="font-size:13.5px; line-height:1.5; color:var(--al-on-surface-variant); max-width:42ch;">{{ noticeBody }}</div>
+            </div>
+          </div>
+          <sc-if value="{{ showConnectLink }}">
+          <a href="#" style-hover="opacity:.7" style="display:inline-flex; align-items:center; gap:5px; margin-top:18px; margin-left:51px; font-size:13.5px; font-weight:700; color:var(--al-primary); text-decoration:underline; text-underline-offset:3px; transition:opacity .15s ease;">Connect Stripe<span class="material-symbols-outlined" style="font-size:17px;">arrow_forward</span></a>
+          </sc-if>
+        </div>
+        </sc-if>
+      </section>
+    </div>
+
+    <!-- ── Customer ── -->
+    <section class="ap-card" style="background:var(--al-surface-container-lowest); border:1px solid var(--al-hairline); border-radius:18px; padding:24px 26px; margin-bottom:22px;">
+      <div class="al-eyebrow" style="margin-bottom:16px;">Customer</div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg,#fdd8cb,#e2bfb3); display:flex; align-items:center; justify-content:center; flex:none; font-size:15px; font-weight:800; color:#7a3b2e;">JA</div>
+        <div>
+          <div style="font-size:16px; font-weight:800; color:var(--al-primary); margin-bottom:2px;">Jordan Avery</div>
+          <div style="font-size:13.5px; color:var(--al-on-surface-variant);">jordan.avery@gmail.com</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Appointment History ── -->
+    <section class="ap-card" style="background:var(--al-surface-container-lowest); border:1px solid var(--al-hairline); border-radius:18px; padding:24px 26px; margin-bottom:34px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <div class="al-eyebrow">Appointment History</div>
+        <span style="font-size:12px; font-weight:700; color:var(--al-on-surface-variant);">Last 1 appointment</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:13px; background:var(--al-surface-container-low); border-radius:13px; padding:14px 16px;">
+        <span class="material-symbols-outlined" style="font-size:22px; color:var(--al-status-caution); flex:none;">block</span>
+        <div>
+          <div style="font-size:14px; font-weight:800; color:var(--al-primary);">Jun 30, 2026 · 12:00 PM</div>
+          <div style="font-size:12.5px; color:var(--al-status-caution); font-weight:600;">Cancelled (on-time)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Messages ── -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+      <h2 style="font-size:24px; font-weight:800; letter-spacing:-0.02em; color:var(--al-primary); margin:0;">Messages</h2>
+    </div>
+    <div style="display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--al-on-surface-variant);">
+      <span class="material-symbols-outlined" style="font-size:19px; opacity:.6;">mail</span>No messages logged for this appointment.
+    </div>
+
+  </main>
+
+  <!-- ░░ MOBILE TAB BAR (narrow only) ░░ -->
+  <nav class="ap-tabbar" style="position:sticky; bottom:0; z-index:30; flex:none; height:66px; align-items:flex-start; justify-content:space-around; padding:9px 6px 0; background:var(--al-surface-container-lowest); border-top:1px solid var(--al-hairline);">
+    <a href="#" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; text-decoration:none;"><span style="display:flex; align-items:center; justify-content:center; width:60px; height:32px;"><span class="material-symbols-outlined" style="font-size:23px; color:var(--al-on-surface-variant);">home</span></span><span class="al-mono" style="font-size:10px; font-weight:700; letter-spacing:.1em; color:var(--al-on-surface-variant);">HUB</span></a>
+    <a href="#" aria-current="page" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; text-decoration:none;"><span style="display:flex; align-items:center; justify-content:center; width:60px; height:32px; border-radius:17px; background:linear-gradient(135deg,#001e40,#003366); box-shadow:0 8px 18px rgba(0,30,64,.22);"><span class="material-symbols-outlined" style="font-size:23px; color:#fff; font-variation-settings:'FILL' 1;">calendar_month</span></span><span class="al-mono" style="font-size:10px; font-weight:700; letter-spacing:.1em; color:var(--al-primary);">BOOK</span></a>
+    <a href="#" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; text-decoration:none;"><span style="display:flex; align-items:center; justify-content:center; width:60px; height:32px;"><span class="material-symbols-outlined" style="font-size:23px; color:var(--al-on-surface-variant);">inventory_2</span></span><span class="al-mono" style="font-size:10px; font-weight:700; letter-spacing:.1em; color:var(--al-on-surface-variant);">CATALOG</span></a>
+    <a href="#" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; text-decoration:none;"><span style="display:flex; align-items:center; justify-content:center; width:60px; height:32px;"><span class="material-symbols-outlined" style="font-size:23px; color:var(--al-on-surface-variant);">settings</span></span><span class="al-mono" style="font-size:10px; font-weight:700; letter-spacing:.1em; color:var(--al-on-surface-variant);">SHOP</span></a>
+  </nav>
+</div>
+
+<!-- ░░ PREVIEW SWITCHER (review aid — not part of the live page) ░░ -->
+<div style="position:fixed; left:50%; bottom:20px; transform:translateX(-50%); display:flex; align-items:center; gap:10px; background:var(--al-surface-container-lowest); box-shadow:var(--al-shadow-menu); border:1px solid var(--al-hairline-strong); border-radius:9999px; padding:7px 7px 7px 15px; z-index:50; max-width:94vw;">
+  <span style="font-size:9.5px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:var(--al-on-surface-variant); opacity:.7; white-space:nowrap;">Payment</span>
+  <div style="display:flex; gap:3px; background:var(--al-surface-container); border-radius:9999px; padding:3px;">
+    <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="5">
+      <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:960},&quot;paymentState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;connect&quot;,&quot;options&quot;:[&quot;connect&quot;,&quot;waived&quot;,&quot;legacy&quot;,&quot;skipped&quot;,&quot;policy&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Payment state&quot;}}">
+class Component extends DCLogic {
+  state = { override: null };
+
+  current() {
+    if (this.state.override) return this.state.override;
+    return this.props.paymentState || 'connect';
+  }
+
+  renderVals() {
+    const s = this.current();
+
+    const mono = 'font-family:var(--al-font-mono); font-variant-numeric:tabular-nums;';
+    // generic row builders for the ledger breakdown
+    const wrap = (extra) => 'display:flex; align-items:baseline; justify-content:space-between; gap:14px;' + (extra || '');
+    const lbl = (muted) => 'margin:0; font-size:13.5px; color:' + (muted ? 'var(--al-on-surface-variant)' : 'var(--al-on-surface)') + ';';
+    const valNum = 'margin:0; font-size:15px; font-weight:700; color:var(--al-on-surface); ' + mono;
+    const valMuted = 'margin:0; font-size:14px; font-weight:600; color:var(--al-on-surface-variant); ' + mono;
+    const valWaived = 'margin:0; font-size:13.5px; font-style:italic; font-weight:500; color:var(--al-on-surface-variant);';
+    const valTotal = 'margin:0; font-size:19px; font-weight:800; letter-spacing:-0.01em; color:var(--al-primary); ' + mono;
+    const lblTotal = 'margin:0; font-size:14px; font-weight:800; color:var(--al-primary);';
+    const dottedTop = ' margin-top:12px; padding-top:12px; border-top:1px dashed var(--al-hairline-strong);';
+
+    let rows = [];
+    let viaConnect = false, isLedger = false, isNotice = false;
+    let noticeTitle = '', noticeBody = '', noticeIcon = 'info', showConnectLink = false;
+
+    if (s === 'connect') {
+      viaConnect = true; isLedger = true;
+      rows = [
+        { label: 'Deposit', value: '£10.00', wrapStyle: wrap(), labelStyle: lbl(false), valStyle: valNum },
+        { label: 'Platform fee', value: '−£0.50', wrapStyle: wrap('margin-top:9px;'), labelStyle: lbl(true), valStyle: valMuted },
+        { label: 'Your payout', value: '£9.50', wrapStyle: wrap(dottedTop), labelStyle: lblTotal, valStyle: valTotal },
+      ];
+    } else if (s === 'waived') {
+      viaConnect = true; isLedger = true;
+      rows = [
+        { label: 'Deposit', value: '£0.50', wrapStyle: wrap(), labelStyle: lbl(false), valStyle: valNum },
+        { label: 'Platform fee', value: 'Waived', wrapStyle: wrap('margin-top:9px;'), labelStyle: lbl(true), valStyle: valWaived },
+        { label: 'Your payout', value: '£0.50', wrapStyle: wrap(dottedTop), labelStyle: lblTotal, valStyle: valTotal },
+      ];
+    } else if (s === 'legacy') {
+      viaConnect = false; isLedger = true;
+      rows = [
+        { label: 'Amount', value: '£10.00', wrapStyle: wrap(), labelStyle: lbl(false), valStyle: valTotal },
+      ];
+    } else if (s === 'skipped') {
+      isNotice = true;
+      noticeIcon = 'link_off';
+      noticeTitle = 'No deposit collected';
+      noticeBody = 'Stripe was not connected when this booking was made, so no deposit could be held.';
+      showConnectLink = true;
+    } else if (s === 'policy') {
+      isNotice = true;
+      noticeIcon = 'check_circle';
+      noticeTitle = 'No deposit required';
+      noticeBody = 'This booking followed your payment policy, which does not collect a deposit.';
+      showConnectLink = false;
+    }
+
+    // switcher
+    const tBase = { fontFamily: 'var(--al-font)', fontSize: '11.5px', fontWeight: 700, padding: '7px 13px', borderRadius: '9999px', cursor: 'pointer', border: 'none', transition: 'all .15s ease', whiteSpace: 'nowrap' };
+    const tActive = { ...tBase, background: 'var(--al-surface-container-lowest)', color: 'var(--al-primary)', boxShadow: '0 1px 2px rgba(0,0,0,.08)' };
+    const tIdle = { ...tBase, background: 'transparent', color: 'var(--al-on-surface-variant)' };
+    const opts = [
+      { key: 'connect', label: 'Connect' },
+      { key: 'waived', label: 'Fee waived' },
+      { key: 'legacy', label: 'Legacy' },
+      { key: 'skipped', label: 'Skipped' },
+      { key: 'policy', label: 'No deposit' },
+    ];
+    const toggles = opts.map(o => ({
+      label: o.label,
+      onClick: () => this.setState({ override: o.key }),
+      style: s === o.key ? tActive : tIdle,
+    }));
+
+    // tier pill colour (reliability)
+    const tier = {
+      color: 'var(--al-status-positive)', bg: 'var(--al-status-positive-bg)', label: 'Top tier',
+    };
+
+    return {
+      viaConnect, isLedger, isNotice, rows,
+      noticeTitle, noticeBody, noticeIcon, showConnectLink,
+      toggles,
+      tierColor: tier.color, tierBg: tier.bg, tierLabel: tier.label,
+    };
+  }
+}
+</script>
+</body>
+</html>

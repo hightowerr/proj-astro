@@ -108,43 +108,50 @@ const formatCurrency = (amountCents: number, currency: string) => {
   }).format(amountCents / 100);
 };
 
+// Stripe Elements appearance — Atelier Light theme.
+// CSS variables cannot be used here (Stripe runs in a sandboxed iframe).
+// Values are the AL token hex equivalents: al-primary=#001e40, al-surface=#f9f9f7,
+// al-surface-container-lowest=#ffffff, al-on-surface=#1a1c1b, al-on-surface-variant=#43474f,
+// al-error=#ba1a1a, al-outline-variant=rgba(195,198,209,…).
 const stripeElementsAppearance = {
-  theme: "night" as const,
+  theme: "stripe" as const,
   variables: {
-    colorPrimary: "#3dd4c8",
-    colorBackground: "#1d2738",
-    colorText: "#edf2f7",
-    colorDanger: "#f45878",
-    borderRadius: "0.625rem",
+    colorPrimary: "#001e40",
+    colorBackground: "#ffffff",
+    colorText: "#1a1c1b",
+    colorTextSecondary: "#43474f",
+    colorDanger: "#ba1a1a",
+    borderRadius: "0.75rem",
   },
   rules: {
     ".Input": {
-      backgroundColor: "#1d2738",
-      border: "1px solid rgba(255,255,255,0.11)",
-      color: "#edf2f7",
+      backgroundColor: "#ffffff",
+      border: "1px solid rgba(195,198,209,0.50)",
+      color: "#1a1c1b",
+      boxShadow: "none",
     },
     ".Input:focus": {
-      border: "1px solid #3dd4c8",
-      boxShadow: "0 0 0 3px rgba(61,212,200,0.14)",
+      border: "1px solid #001e40",
+      boxShadow: "0 0 0 3px rgba(0,30,64,0.12)",
     },
     ".Label": {
-      color: "#8aa2bc",
+      color: "#43474f",
       fontSize: "0.75rem",
       fontWeight: "600",
     },
     ".Tab": {
-      backgroundColor: "#161e2c",
-      border: "1px solid rgba(255,255,255,0.11)",
-      color: "#8aa2bc",
+      backgroundColor: "#f4f4f2",
+      border: "1px solid rgba(195,198,209,0.30)",
+      color: "#43474f",
     },
     ".Tab--selected": {
-      backgroundColor: "#1d2738",
-      border: "1px solid #3dd4c8",
-      color: "#edf2f7",
+      backgroundColor: "#ffffff",
+      border: "1px solid #001e40",
+      color: "#001e40",
     },
     ".Block": {
-      backgroundColor: "#161e2c",
-      border: "1px solid rgba(255,255,255,0.07)",
+      backgroundColor: "#f9f9f7",
+      border: "1px solid rgba(195,198,209,0.20)",
     },
   },
 };
@@ -411,7 +418,7 @@ function PaymentStep({
 
 export function BookingForm({
   shopSlug,
-  shopName,
+  shopName: _shopName,
   timezone,
   slotMinutes,
   defaultDate,
@@ -442,7 +449,7 @@ export function BookingForm({
   const [resumeLoading, setResumeLoading] = useState(false);
   const [resumeFailed, setResumeFailed] = useState(false);
   const [paymentAmountCents, setPaymentAmountCents] = useState(0);
-  const [paymentCurrency, setPaymentCurrency] = useState("USD");
+  const [paymentCurrency, setPaymentCurrency] = useState("GBP");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -878,6 +885,14 @@ export function BookingForm({
   };
 
   if (success) {
+    const depositCollected = paymentAmountCents > 0;
+    const formattedDeposit = depositCollected
+      ? new Intl.NumberFormat("en-GB", {
+          style: "currency",
+          currency: paymentCurrency,
+        }).format(paymentAmountCents / 100)
+      : null;
+
     return (
       <div className="space-y-5 rounded-2xl border border-al-outline-variant bg-al-surface-container-lowest p-6 shadow-sm">
         <div className="space-y-2">
@@ -885,10 +900,12 @@ export function BookingForm({
             Booking confirmed
           </p>
           <h2 className="text-balance text-2xl font-semibold text-al-on-surface">
-            You&apos;re booked with {shopName}
+            Your booking is confirmed.
           </h2>
           <p className="text-pretty text-sm text-al-on-surface-variant">
-            We&apos;ve reserved your slot at {shopName}.
+            {depositCollected
+              ? `${formattedDeposit} deposit paid. The balance is settled in studio after your appointment.`
+              : "We\u2019ve reserved your slot. See you on the day."}
           </p>
           {selectedSlot ? (
             <p className="text-sm font-medium text-al-on-surface">
@@ -1388,6 +1405,12 @@ export function BookingForm({
           </p>
         </div>
       ) : null}
+
+      {!paymentsEnabled && (
+        <p className="text-sm text-al-on-surface-variant text-center">
+          No payment required &mdash; your slot is reserved as soon as you confirm.
+        </p>
+      )}
 
       <button type="submit" disabled={isSubmitting} style={{ width: "100%", height: "2.75rem", background: isSubmitting ? "var(--al-primary)" : "var(--al-primary)", color: "var(--al-on-primary)", borderRadius: "var(--radius-lg)", fontSize: "1rem", fontWeight: 600, border: "none", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
         {isSubmitting ? "Booking…" : "Confirm booking"}

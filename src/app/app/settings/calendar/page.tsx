@@ -22,8 +22,8 @@ export default async function CalendarSettingsPage() {
   );
 
   return (
-    <div className="min-h-screen font-manrope bg-al-surface">
-      <main className="mx-auto max-w-screen-xl px-6 md:px-12 py-12 md:py-16">
+    <div className="min-h-screen font-manrope">
+      <main className="mx-auto max-w-7xl px-12 py-8">
         {/* Breadcrumb */}
         <p className="al-eyebrow mb-4">
           Settings / Calendar

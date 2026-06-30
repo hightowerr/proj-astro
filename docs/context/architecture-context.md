@@ -14,7 +14,7 @@ A multi-tenant appointment booking and no-show risk management system for servic
 | ORM | Drizzle 0.44.7 + postgres.js 3.4.8 | Schema, queries, migrations |
 | Database | PostgreSQL 18 (pgvector image) | Primary data store; advisory locks for job concurrency |
 | Auth | Better Auth 1.4.18 | Email/password, session management, rate limiting |
-| Payments | Stripe 16.12.0 (API v2024-06-20) | Payment intents, refunds, webhook processing |
+| Payments | Stripe 16.12.0 (API v2024-06-20) | Payment intents, refunds, webhook processing, Connect Express (destination charges) |
 | SMS | Twilio (REST API, no SDK) | Reminders, confirmations, slot recovery offers, inbound handling |
 | Email | Resend 6.4.1 | Transactional email delivery |
 | Cache/Locks | Upstash Redis 1.36.1 | Session caching, distributed locks, offer cooldowns |
@@ -73,6 +73,8 @@ A multi-tenant appointment booking and no-show risk management system for servic
 | `/api/jobs/offer-loop` | Uses `x-internal-secret` (not `x-cron-secret`) | Called internally by other jobs, not by Vercel Cron | `src/app/api/jobs/offer-loop/route.ts` |
 | `/manage/[token]/*` | Token-based auth, no session required | Customer self-service via hashed manage token | `src/app/api/manage/[token]/cancel/route.ts` |
 | `/api/stripe/webhook` | Stripe signature validation, dedup via `processedStripeEvents` | Idempotent; triggers calendar sync + SMS + offer loop on payment success | `src/app/api/stripe/webhook/route.ts` |
+| `/api/stripe/connect-webhook` | Connect-specific webhook, separate signing secret (`STRIPE_CONNECT_WEBHOOK_SECRET`) | Handles `account.updated` for Connect onboarding status sync | `src/app/api/stripe/connect-webhook/route.ts` |
+| `/api/settings/stripe-connect/*` | Connect account lifecycle (create, status, dashboard, refresh) | Express account creation, Account Link generation, status polling | `src/app/api/settings/stripe-connect/*/route.ts` |
 | `/api/twilio/inbound` | HMAC-SHA1 signature validation, returns TwiML XML | "YES" accepts slot offer; "STOP" opts out of SMS | `src/app/api/twilio/inbound/route.ts` |
 | `/app/app/page.tsx` | Shows `OnboardingFlow` if shop is null, else `AtelierDashboard` | Conditional rendering based on shop existence | `src/app/app/page.tsx` |
 | All `/api/jobs/*` | PostgreSQL advisory locks prevent concurrent execution | Each job has a unique lock ID; overlap = skip | `src/app/api/jobs/*/route.ts` |
@@ -90,6 +92,7 @@ A multi-tenant appointment booking and no-show risk management system for servic
 | `send-confirmations` | Daily 03:05 UTC | 482179 | Send confirmation request SMS/email |
 | `expire-confirmations` | Daily 03:10 UTC | 482180 | Cancel unconfirmed appointments |
 | `scan-calendar-conflicts` | Daily 04:00 UTC | 987654321 | Google Calendar overlap detection |
+| `connect-reengagement` | Daily 05:00 UTC | 482181 | Email shop owners who abandoned Connect onboarding (24–48h window) |
 | `expire-pending-recoveries` | On-demand | 482176 | Cancel abandoned slot-recovery bookings |
 
 ## 5. Content Model
@@ -232,6 +235,7 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 | `STRIPE_SECRET_KEY` | Stripe API access | Runtime |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side Stripe | Build + Runtime |
 | `STRIPE_WEBHOOK_SECRET` | Webhook signature validation | Runtime |
+| `STRIPE_CONNECT_WEBHOOK_SECRET` | Connect webhook signature validation (optional) | Runtime |
 | `TWILIO_ACCOUNT_SID` / `AUTH_TOKEN` / `PHONE_NUMBER` | SMS sending | Runtime |
 | `RESEND_API_KEY` / `EMAIL_FROM_ADDRESS` | Email sending | Runtime |
 | `UPSTASH_REDIS_REST_URL` / `TOKEN` | Redis cache + locks | Runtime |

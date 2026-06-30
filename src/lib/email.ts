@@ -5,6 +5,7 @@ export interface SendEmailParams {
   to: string | string[];
   subject: string;
   html: string;
+  text?: string;
 }
 
 export interface SendEmailResult {
@@ -30,6 +31,7 @@ export async function sendEmail({
   to,
   subject,
   html,
+  text,
 }: SendEmailParams): Promise<SendEmailResult> {
   const env = getServerEnv();
   const resend = new Resend(env.RESEND_API_KEY);
@@ -40,6 +42,7 @@ export async function sendEmail({
       to,
       subject,
       html,
+      ...(text ? { text } : {}),
     });
 
     if (error) {

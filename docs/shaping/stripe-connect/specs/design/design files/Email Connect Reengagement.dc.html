@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/colors.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/typography.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/effects.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/tokens/base.css">
+<link rel="stylesheet" href="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/styles.css">
+<script src="_ds/astro-design-system-424d7f82-cc62-459b-b6dc-4930b8de69f0/_ds_bundle.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #ecece8; }
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal; font-style: normal; line-height: 1;
+    letter-spacing: normal; text-transform: none; display: inline-block;
+    white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'liga';
+  }
+  @keyframes em-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .em-cta { transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease; }
+  .em-cta:hover { opacity: .92; }
+</style>
+</helmet>
+
+<div style="min-height:100vh; font-family:var(--al-font); display:flex; flex-direction:column; align-items:center; padding:40px 24px 72px; background:{{ cPage }};">
+
+  <!-- ░░ CONTROL BAR ░░ -->
+  <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; justify-content:center; margin-bottom:36px;">
+    <div style="display:flex; flex-direction:column; gap:3px;">
+      <span style="font-size:10px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:{{ cFaint }};">Brief 06 · Email</span>
+      <span style="font-size:13px; font-weight:700; color:{{ cBarInk }};">Abandoned Connect — Re-engagement</span>
+    </div>
+    <div style="width:1px; height:30px; background:{{ cBarLine }};"></div>
+    <div style="display:flex; gap:8px;">
+      <div style="display:inline-flex; gap:2px; background:{{ cSeg }}; border-radius:9px; padding:3px;">
+        <button onClick="{{ setDesktop }}" style="{{ segDesktop }}">Desktop</button>
+        <button onClick="{{ setMobile }}" style="{{ segMobile }}">Mobile</button>
+      </div>
+      <div style="display:inline-flex; gap:2px; background:{{ cSeg }}; border-radius:9px; padding:3px;">
+        <button onClick="{{ setLight }}" style="{{ segLight }}">Light</button>
+        <button onClick="{{ setDark }}" style="{{ segDark }}">Dark</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ EMAIL CLIENT WINDOW ░░ -->
+  <div style="width:100%; max-width:{{ frameW }}; border-radius:18px; overflow:hidden; background:{{ cWindow }}; box-shadow:0 30px 70px rgba(26,28,27,.16); border:1px solid {{ cWindowBorder }}; animation:em-in .35s var(--al-ease);">
+
+    <!-- client toolbar -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 22px; background:{{ cToolbar }}; border-bottom:1px solid {{ cHair }};">
+      <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+        <span class="material-symbols-outlined" style="font-size:19px; color:{{ cMuted }};">inbox</span>
+        <span style="font-size:12.5px; font-weight:600; color:{{ cMuted }};">Inbox</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span class="material-symbols-outlined" style="font-size:19px; color:{{ cFaintIcon }};">archive</span>
+        <span class="material-symbols-outlined" style="font-size:19px; color:{{ cFaintIcon }};">delete</span>
+        <span class="material-symbols-outlined" style="font-size:19px; color:{{ cFaintIcon }};">more_horiz</span>
+      </div>
+    </div>
+
+    <!-- subject + sender -->
+    <div style="padding:24px 32px 20px; border-bottom:1px solid {{ cHair }};">
+      <h1 style="font-size:21px; font-weight:800; letter-spacing:-0.015em; color:{{ cInk }}; margin:0 0 16px; line-height:1.3;">You're one step away from collecting deposits</h1>
+      <div style="display:flex; align-items:center; gap:13px;">
+        <div style="width:42px; height:42px; border-radius:11px; background:var(--al-gradient-cta); display:flex; align-items:center; justify-content:center; flex:none; box-shadow:0 6px 14px rgba(0,30,64,.28);">
+          <span class="material-symbols-outlined" style="font-size:23px; color:#fff; font-variation-settings:'FILL' 1;">dashboard_customize</span>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:baseline; gap:8px;">
+            <span style="font-size:14px; font-weight:700; color:{{ cInk }};">Astro</span>
+            <span style="font-size:12px; color:{{ cFaint }};">hello@astro.app</span>
+          </div>
+          <div style="font-size:12.5px; color:{{ cMuted }}; margin-top:2px;">to {{ greetingName }}</div>
+        </div>
+        <div style="font-size:12px; color:{{ cFaint }}; flex:none;">9:02 AM</div>
+      </div>
+    </div>
+
+    <!-- ════ EMAIL BODY ════ -->
+    <div style="padding:{{ bodyPad }}; background:{{ cBody }};">
+
+      <!-- brand wordmark -->
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:30px;">
+        <div style="width:30px; height:30px; border-radius:9px; background:var(--al-gradient-cta); display:flex; align-items:center; justify-content:center; flex:none;">
+          <span class="material-symbols-outlined" style="font-size:18px; color:#fff; font-variation-settings:'FILL' 1;">dashboard_customize</span>
+        </div>
+        <span style="font-size:13px; font-weight:800; letter-spacing:.16em; color:{{ cWordmark }};">ASTRO</span>
+      </div>
+
+      <p style="font-size:16px; color:{{ cInk }}; margin:0 0 18px; font-weight:600;">Hi {{ greetingName }},</p>
+
+      <p style="font-size:21px; line-height:1.4; font-weight:800; letter-spacing:-0.015em; color:{{ cWordmark }}; margin:0 0 18px; text-wrap:pretty;">You started connecting your Stripe account — you're almost there.</p>
+
+      <p style="font-size:15.5px; line-height:1.65; color:{{ cMuted }}; margin:0 0 36px; max-width:46ch; text-wrap:pretty;">Once verified, customer deposits will go directly to your bank account on every booking.</p>
+
+      <!-- CTA -->
+      <div style="{{ ctaWrap }}">
+        <a href="#" class="em-cta" style="{{ ctaStyle }}">Complete setup&nbsp;&nbsp;<span style="font-weight:700;">&rarr;</span></a>
+      </div>
+
+      <p style="{{ nudgeStyle }}">This usually takes under 5 minutes.</p>
+
+      <div style="height:1px; background:{{ cHair }}; margin:36px 0 24px;"></div>
+
+      <p style="font-size:15px; color:{{ cInk }}; margin:0; font-weight:600;">— Astro</p>
+
+      <!-- footer -->
+      <div style="margin-top:40px; padding-top:20px; border-top:1px solid {{ cHair }};">
+        <p style="font-size:11.5px; line-height:1.6; color:{{ cFaint }}; margin:0;">You're receiving this because you started setting up deposit collection for your Astro account. This is a transactional account-setup message.</p>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:12px;">
+          <span style="font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:{{ cFaint }};">Astro</span>
+          <span style="font-size:11px; color:{{ cFaint }};">Stop losing money to no-shows.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- meta -->
+  <div style="display:flex; align-items:center; gap:12px; margin-top:22px; font-family:var(--al-font-mono);">
+    <span style="font-size:11px; color:{{ cFaint }};">templateKey: connect-onboarding-reengagement</span>
+    <span style="width:3px; height:3px; border-radius:50%; background:{{ cFaint }};"></span>
+    <span style="font-size:11px; color:{{ cFaint }};">v1</span>
+    <span style="width:3px; height:3px; border-radius:50%; background:{{ cFaint }};"></span>
+    <span style="font-size:11px; color:{{ cFaint }};">sent once · 24h after abandon</span>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:1180},&quot;ownerFirstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Sarah&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { device: 'desktop', theme: 'light' };
+
+  renderVals() {
+    const device = this.state.device;
+    const theme = this.state.theme;
+    const dark = theme === 'dark';
+    const name = this.props.ownerFirstName || 'Sarah';
+
+    // ── theme tokens ──
+    const L = {
+      page: '#ecece8', barInk: '#1a1c1b', barLine: 'rgba(26,28,27,.14)', faint: '#737780',
+      seg: '#ffffff', window: '#ffffff', windowBorder: 'rgba(195,198,209,.45)',
+      toolbar: '#f4f4f2', body: '#ffffff', hair: 'rgba(195,198,209,.45)',
+      ink: '#1a1c1b', wordmark: '#001e40', muted: '#43474f', faintIcon: '#9a9ea6',
+    };
+    const D = {
+      page: '#0e1013', barInk: '#e8e8ea', barLine: 'rgba(255,255,255,.12)', faint: '#7c828c',
+      seg: '#1c1f24', window: '#16191e', windowBorder: 'rgba(255,255,255,.08)',
+      toolbar: '#1b1e23', body: '#16191e', hair: 'rgba(255,255,255,.10)',
+      ink: '#f1f2f4', wordmark: '#cdddf7', muted: '#a3a9b2', faintIcon: '#6b7079',
+    };
+    const c = dark ? D : L;
+
+    // ── segmented control styles ──
+    const segBase = { padding: '7px 16px', borderRadius: '7px', fontSize: '12px', fontWeight: 700, fontFamily: 'var(--al-font)', cursor: 'pointer', border: 'none', transition: 'all .15s ease', letterSpacing: '.01em' };
+    const on = { ...segBase, background: dark ? '#2b2f36' : '#001e40', color: dark ? '#fff' : '#fff', boxShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,.12)' };
+    const off = { ...segBase, background: 'transparent', color: c.muted };
+    const sty = (o) => Object.entries(o).map(([k, v]) => k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ':' + v).join(';');
+
+    // ── CTA ──
+    const ctaGrad = dark ? 'linear-gradient(135deg,#1f477b,#003366)' : 'var(--al-gradient-cta)';
+    const ctaShadow = dark ? '0 12px 26px rgba(0,40,90,.5)' : '0 14px 28px rgba(0,30,64,.22)';
+    const ctaBase = `display:inline-flex; align-items:center; justify-content:center; min-height:50px; padding:0 36px; border-radius:12px; background:${ctaGrad}; color:#fff; font-size:15.5px; font-weight:700; letter-spacing:.01em; text-decoration:none; box-shadow:${ctaShadow};`;
+
+    const mobile = device === 'mobile';
+
+    return {
+      greetingName: name,
+      frameW: mobile ? '392px' : '600px',
+      bodyPad: mobile ? '32px 26px' : '44px 56px',
+      ctaWrap: mobile ? 'display:block;' : 'display:flex; justify-content:center;',
+      ctaStyle: mobile ? ctaBase + ' display:flex; width:100%;' : ctaBase,
+      nudgeStyle: `font-size:13px; color:${c.faint}; margin:16px 0 0; ${mobile ? 'text-align:center;' : 'text-align:center;'}`,
+
+      cPage: c.page, cBarInk: c.barInk, cBarLine: c.barLine, cFaint: c.faint, cSeg: c.seg,
+      cWindow: c.window, cWindowBorder: c.windowBorder, cToolbar: c.toolbar, cBody: c.body,
+      cHair: c.hair, cInk: c.ink, cWordmark: c.wordmark, cMuted: c.muted, cFaintIcon: c.faintIcon,
+
+      segDesktop: sty(device === 'desktop' ? on : off),
+      segMobile: sty(mobile ? on : off),
+      segLight: sty(!dark ? on : off),
+      segDark: sty(dark ? on : off),
+
+      setDesktop: () => this.setState({ device: 'desktop' }),
+      setMobile: () => this.setState({ device: 'mobile' }),
+      setLight: () => this.setState({ theme: 'light' }),
+      setDark: () => this.setState({ theme: 'dark' }),
+    };
+  }
+}
+</script>
+</body>
+</html>

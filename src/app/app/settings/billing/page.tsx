@@ -108,7 +108,7 @@ export default async function BillingPage() {
   const currency = payments[0]?.currency ?? "USD";
 
   return (
-    <div className="min-h-screen bg-al-surface-low">
+    <div>
       <div className="px-12 pb-24 max-w-7xl mx-auto space-y-16 py-8">
         <section className="space-y-4">
           <h2 className="al-page-title">
