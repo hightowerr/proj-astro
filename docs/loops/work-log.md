@@ -4,6 +4,99 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-02] verify+drift+retro | webhook-unaware all waves
+
+- **Picked up**: Phases 3-5 for webhook-unaware feature (verify in separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 30 PASS / 0 FAIL / 3 BLOCKED (spec 07 — deployment). Independent verifier in fresh session.
+  - Drift: 7 divergences, all EVOLUTION (0 shortcuts, 0%). 5 specs patched (02, 03, 04, 09, 10). 3 root causes: lint `no-console` (D1, D6), Stripe TS type gap (D2), column type `Record<string, string>` (D3-D5, D7).
+  - Retro: 1 pattern extracted (extract-for-testability), 1 pattern updated (spike-before-shape +2 items), 1 friction logged (no-console-info-lint).
+  - Key learning: backend-only features produce zero visual drift — all deviations are compile-time constraints discoverable at spike time. Expanding spikes to "will this compile?" and "what types does the target accept?" would prevent all 7.
+- **Unresolved**: Spec 07 (ops) blocked on deployment — register transfer events in Stripe Dashboard.
+
+---
+
+## [2026-07-01] shape | webhook-unaware
+
+- **Picked up**: Phase 1 SHAPE for webhook-unaware feature ("Platform webhook unaware of Connect transfers" from current-issues.md)
+- **Result**: Shaping complete. 10 specs created (01-10), BUILD-ORDER with dependency graph and 3-phase build order. Shape document with 4 shapes evaluated (A chosen — console logging v1). 4 spikes pre-resolved via agent codebase analysis. Slices document mapping specs to 3 waves (9 slices total). 9 individual slice implementation plans. Loop contract updated. No UI — entirely backend observability. Specs 02+03 combined into single implementation slice (same file contention on connect-webhook/route.ts).
+- **Unresolved**: none — ready for Phase 2 IMPLEMENT
+
+---
+
+## [2026-07-01] implement | webhook-unaware waves 1–3
+
+- **Picked up**: Phase 2 IMPLEMENT for all 3 waves of webhook-unaware feature
+- **Result**: All 9 code slices implemented across 3 waves:
+  - Wave 1 (3 parallel agents): `stripe-utils.ts` (new, 112 LOC), `appointments.ts` (+1 line metadata), `webhook/route.ts` (+else branch)
+  - Wave 2 (3 parallel agents): `connect-webhook/route.ts` (+transfer.created/failed handlers), `stripe-utils.test.ts` (5 tests), `appointments-metadata.test.ts` (11 tests)
+  - Wave 3 (1 direct + 1 agent): `connect-webhook/route.ts` (+else branch for unhandled), `connect-webhook/route.test.ts` (7 tests), ops checklist documented
+  - Deviations logged: (1) `console.info` → `console.warn` for transfer.created (lint `no-console` rule), (2) `buildConnectPaymentMetadata` extracted as pure function (testability), (3) `(event.type as string)` cast for transfer.failed (Stripe TS types omit it), (4) `String()` wrapping for metadata (column is `Record<string, string>`)
+  - 23 new tests, all passing. 3 pre-existing failures unchanged. Zero new type errors.
+  - Spec 07 (ops: register events in Stripe Dashboard) documented but BLOCKED on deployment
+- **Unresolved**: Spec 07 requires deployment. Phase 3 VERIFY next (separate session per loop contract).
+
+---
+
+## [2026-07-01] shape | refund-state
+
+- **Picked up**: Phase 1 SHAPE for refund-state feature (issue #1 from stripe-connect design review)
+- **Result**: Shaping complete.
+  - Split feature into 10 specs (01–10) with design-enriched details from interactive prototype
+  - Extracted 9 requirements (R0–R8) from specs + mental models analysis (12 models, all converge)
+  - Single shape: modifier approach — `refunded: boolean` prop on `FeeBreakdown`, no 6th FeeState
+  - No spikes needed — data path, component interface, rendering logic all understood from stripe-connect
+  - Dependency graph + BUILD-ORDER.md: 3 phases, critical path `02→03→04→08` (4 specs)
+  - Sliced into 3 waves: W1 foundations (3 specs), W2 core rendering (3 specs), W3 polish+tests (4 specs)
+  - Design prototype reviewed (3 variants: connect+refunded, waived+refunded, legacy+refunded)
+  - Design brief updated with prototype details (icon swaps, italic styling, card collapse behaviour)
+  - Signals check: `agent-skips-visual-polish` friction applied → specs include explicit styling (italic, bold, Material icon names)
+  - Implementation note: all specs touch single file (`payment-card.tsx`) → single agent recommended, not parallel
+  - Shape docs: `shape/refund-state-shape.md`, `shape/refund-state-slices.md`, 3 wave plans
+- **Unresolved**: none — ready for Wave 1 IMPLEMENT
+
+## [2026-07-01] implement | refund-state waves 1–3
+
+- **Picked up**: Phase 2 IMPLEMENT for all 3 waves (10 specs total)
+- **Result**: All 3 waves implemented. Typecheck clean after each wave.
+  - **Wave 1** (3 specs): Derived `refunded` boolean from `financialOutcome` (spec 01), added `refunded?: boolean` prop to `FeeBreakdown` (spec 02), legacy+refunded fallback collapses card to "Outcome: Refunded" + hides metadata (spec 06)
+  - **Wave 2** (3 specs): Refunded display — "Returned" italic for fee, £0.00 for payout (spec 03), waived+refunded shows "Returned" not "Waived" (spec 05), threaded `refunded` prop from PaymentCard to FeeBreakdown (spec 07)
+  - **Wave 3** (4 specs): Helper text icon swap `north_east`→`undo` + copy swap (spec 04), logic tests — 11 tests pass: 7 determineFeeState regression + 4 refunded derivation (specs 08-10 partial)
+  - **Deviation**: Specs 08-10 called for 21 rendering tests but project has no component test infra (no RTL, no jsdom). Wrote 11 logic tests instead. Logged friction: `docs/signals/friction/no-component-test-infra.md`
+  - **New files**: 1 (`payment-card.test.ts`). **Modified files**: 1 (`payment-card.tsx`).
+  - Exported `determineFeeState` + `FeeState` type for testability
+  - Context files updated: loop contract
+- **Unresolved**: Rendering test coverage deferred to Phase 3 VERIFY (Playwright)
+
+## [2026-07-01] verify | refund-state all waves
+
+- **Picked up**: Phase 3 VERIFY — independent agent, fresh session
+- **Result**: 26 PASS / 3 FAIL / 5 BLOCKED.
+  - Code implementation: all 26 behavioral criteria pass by code review
+  - Tests: 3 FAIL — specs 08-10 require rendering tests (RTL + jsdom not installed). Logic tests pass (11/11)
+  - Playwright: 5 BLOCKED — empty database, no seed data
+  - Verifier caught 2 spec issues: impossible states in spec 09 (cases 7-8) and spec 10 (case 5)
+- **Unresolved**: Rendering test gap (friction logged). Playwright needs seed data.
+
+## [2026-07-01] drift-audit + retro | refund-state all waves
+
+- **Picked up**: Phase 4 DRIFT AUDIT + Phase 5 RETRO
+- **Result**: Loop COMPLETE.
+  - **Drift**: 5 divergences found. 4 evolution / 1 shortcut (20% — below 50% threshold)
+    - Evolutions (4): added `north_east` icon to non-refunded helper (matches design), exported `determineFeeState`/`FeeState` for testability, removed impossible test cases from specs 09+10
+    - Shortcuts (1): rendering tests substituted with logic tests (codebase lacks RTL)
+  - **Patterns extracted (2):** modifier-over-enum (orthogonal boolean vs enum expansion — reusable for disputes, transfer_held), design-prototype-as-source-of-truth (interactive HTML for visual specs)
+  - **Friction logged (1):** no-component-test-infra (CODEBASE)
+  - **Friction analysis:** single friction item is codebase fault — RTL installation would resolve all 3 test FAILs
+  - **Drift analysis:** all 4 evolutions accepted. 1 shortcut: tech debt for RTL installation
+  - **Key learning:** Single-file features → single agent, sequential waves. Design prototypes > text specs for visual fidelity.
+  - Evolution/shortcut ratio: 4/1 (80% evolution)
+  - Patterns extracted: 2
+  - Friction logged: 1
+- **Unresolved**: RTL installation queued as codebase improvement
+
+---
+
 ## [2026-06-28] shape | stripe-connect
 
 - **Picked up**: Phase 1 SHAPE for Stripe Connect feature (17 specs + 7 design briefs + HTML mocks)

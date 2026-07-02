@@ -1,0 +1,5 @@
+- Date: 2026-07-02
+- Spec: 02-handle-transfer-created
+- Description: Lint `no-console` rule only allows `console.warn` and `console.error`. Spec called for `console.info` to log successful transfer outcomes (semantically correct — success is informational, not a warning). Implementation used `console.warn` with "Transfer succeeded" message text as a workaround. This pollutes the warn channel — Vercel log filtering by severity will mix success transfers with actual warnings.
+- Root cause: CODEBASE — ESLint config restricts console methods. The rule was originally set to prevent accidental debug logging in production, but it also blocks intentional observability logging.
+- Suggested fix: Either (a) configure `no-console` to allow `console.info` (eslintrc: `"no-console": ["error", { allow: ["warn", "error", "info"] }]`), or (b) create a `src/lib/logger.ts` utility that wraps structured logging with severity levels. Option (a) is simpler; option (b) is justified when a second observability feature needs it (disputes, payouts). Do NOT fix until a second use case appears — one workaround is not worth the abstraction.

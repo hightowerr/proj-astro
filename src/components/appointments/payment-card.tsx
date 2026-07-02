@@ -13,9 +13,9 @@ type PaymentCardProps = {
   depositSkipped: "connect_not_complete" | "policy_none" | null;
 };
 
-type FeeState = "connect" | "waived" | "legacy" | "skipped" | "policy";
+export type FeeState = "connect" | "waived" | "legacy" | "skipped" | "policy";
 
-function determineFeeState(
+export function determineFeeState(
   amountCents: number | null,
   paymentRequired: boolean,
   isConnectPayment: boolean,
@@ -39,14 +39,18 @@ function formatGBP(cents: number): string {
 function FeeBreakdown({
   amountCents,
   waived,
+  refunded = false,
 }: {
   amountCents: number;
   waived: boolean;
+  refunded?: boolean;
 }) {
   const deposit = formatGBP(amountCents);
-  const payout = waived
-    ? formatGBP(amountCents)
-    : formatGBP(amountCents - PLATFORM_FEE_CENTS);
+  const payout = refunded
+    ? formatGBP(0)
+    : waived
+      ? formatGBP(amountCents)
+      : formatGBP(amountCents - PLATFORM_FEE_CENTS);
 
   return (
     <div className="space-y-1 text-sm">
@@ -57,7 +61,9 @@ function FeeBreakdown({
       <div className="flex justify-between">
         <span className="text-al-on-surface-variant">Platform fee</span>
         <span className="font-mono text-al-on-surface-variant">
-          {waived ? (
+          {refunded ? (
+            <em>Returned</em>
+          ) : waived ? (
             <em>Waived</em>
           ) : (
             <>-{formatGBP(PLATFORM_FEE_CENTS)}</>
@@ -130,6 +136,7 @@ export function PaymentCard({
   depositSkipped,
 }: PaymentCardProps) {
   const feeState = determineFeeState(amountCents, paymentRequired, isConnectPayment, depositSkipped);
+  const refunded = financialOutcome === "refunded";
 
   return (
     <div className="rounded-lg border p-4 space-y-3">
@@ -154,17 +161,22 @@ export function PaymentCard({
               Stripe Connect
             </span>
           </div>
-          <FeeBreakdown amountCents={amountCents} waived={feeState === "waived"} />
+          <FeeBreakdown amountCents={amountCents} waived={feeState === "waived"} refunded={refunded} />
           <p
-            className="text-xs"
+            className="flex items-center gap-1 text-xs"
             style={{ color: "var(--al-on-surface-variant)" }}
           >
-            Payout routed to your connected bank account.
+            <span className="material-symbols-outlined" style={{ fontSize: "14px" }} aria-hidden="true">
+              {refunded ? "undo" : "north_east"}
+            </span>
+            {refunded
+              ? "Payout reversed to customer."
+              : "Payout routed to your connected bank account."}
           </p>
         </>
       )}
 
-      {feeState === "legacy" && (
+      {feeState === "legacy" && !refunded && (
         <div className="flex justify-between text-sm">
           <span>Amount</span>
           <span className="font-mono font-semibold">
@@ -175,6 +187,13 @@ export function PaymentCard({
                 }).format(amountCents / 100)
               : "—"}
           </span>
+        </div>
+      )}
+
+      {feeState === "legacy" && refunded && (
+        <div className="flex justify-between text-sm">
+          <span>Outcome</span>
+          <span className="font-semibold">Refunded</span>
         </div>
       )}
 
@@ -208,10 +227,10 @@ export function PaymentCard({
         />
       )}
 
-      {/* Payment metadata — shown for all states that have a payment */}
+      {/* Payment metadata — shown for all states that have a payment (hidden for legacy+refunded) */}
       {(feeState === "connect" ||
         feeState === "waived" ||
-        feeState === "legacy") && (
+        (feeState === "legacy" && !refunded)) && (
         <div className="space-y-1 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-al-on-surface-variant">Payment status</span>

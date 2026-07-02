@@ -1146,7 +1146,7 @@ export function BookingForm({
           className="al-input-wrap"
           style={{
             background: 'var(--al-surface-container-lowest)',
-            border: '1px solid rgba(195,198,209,0.50)',
+            border: '1px solid var(--al-hairline-strong)',
             borderRadius: '12px',
             padding: '14px 16px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -1211,13 +1211,13 @@ export function BookingForm({
                   data-booking-slot={slot.startsAt}
                   aria-pressed={selected}
                   style={{
-                    fontFamily: 'var(--font-mono)',
+                    fontFamily: 'var(--al-font-mono)',
                     fontSize: '13px',
                     fontWeight: selected ? 700 : 600,
                     fontVariantNumeric: 'tabular-nums',
                     color: selected ? 'var(--al-on-primary)' : 'var(--al-on-surface-variant)',
                     background: selected ? 'var(--al-primary)' : 'var(--al-surface-container-lowest)',
-                    border: `1px solid ${selected ? 'var(--al-primary)' : 'rgba(195,198,209,0.50)'}`,
+                    border: `1px solid ${selected ? 'var(--al-primary)' : 'var(--al-hairline-strong)'}`,
                     borderRadius: '12px',
                     padding: '12px 20px',
                     cursor: 'pointer',
@@ -1245,7 +1245,7 @@ export function BookingForm({
           </label>
           <div className="al-input-wrap" style={{
             background: 'var(--al-surface-container-lowest)',
-            border: '1px solid rgba(195,198,209,0.50)',
+            border: '1px solid var(--al-hairline-strong)',
             borderRadius: '12px',
             padding: '14px 16px',
             transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
@@ -1280,7 +1280,7 @@ export function BookingForm({
             </label>
             <div className="al-input-wrap" style={{
               background: 'var(--al-surface-container-lowest)',
-              border: '1px solid rgba(195,198,209,0.50)',
+              border: '1px solid var(--al-hairline-strong)',
               borderRadius: '12px',
               padding: '14px 16px',
               transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
@@ -1313,7 +1313,7 @@ export function BookingForm({
             </label>
             <div className="al-input-wrap" style={{
               background: 'var(--al-surface-container-lowest)',
-              border: '1px solid rgba(195,198,209,0.50)',
+              border: '1px solid var(--al-hairline-strong)',
               borderRadius: '12px',
               padding: '14px 16px',
               transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
@@ -1343,7 +1343,7 @@ export function BookingForm({
         <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
           <span style={{
             width: '20px', height: '20px',
-            border: smsOptIn ? '2px solid var(--al-primary)' : '2px solid rgba(195,198,209,0.50)',
+            border: smsOptIn ? '2px solid var(--al-primary)' : '2px solid var(--al-hairline-strong)',
             borderRadius: '6px', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: smsOptIn ? 'var(--al-primary)' : 'var(--al-surface-container-lowest)',
@@ -1371,7 +1371,7 @@ export function BookingForm({
         }}>
           <span style={{
             width: '20px', height: '20px',
-            border: emailOptIn ? '2px solid var(--al-primary)' : '2px solid rgba(195,198,209,0.50)',
+            border: emailOptIn ? '2px solid var(--al-primary)' : '2px solid var(--al-hairline-strong)',
             borderRadius: '6px', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: emailOptIn ? 'var(--al-primary)' : 'var(--al-surface-container-lowest)',

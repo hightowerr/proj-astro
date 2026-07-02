@@ -1,73 +1,65 @@
 # Feature Loop Contract
 
 ## Goal
-All Stripe Connect specs (17 specs across 4 phases) are implemented, independently verified,
+All webhook-unaware specs (10 specs across 3 waves) are implemented, independently verified,
 drift-audited with zero unresolved conflicts, and retrospective logged.
 
 ## Current state
-- Feature: stripe-connect
-- Wave: ALL (1–4)
-- Phase: COMPLETE + POST-LOOP DESIGN REVIEW
-- Verify: 72 PASS / 2 FAIL (LOW)
-- Drift: 20 evolution / 23 shortcut — all 23 shortcuts fixed
-- Retro: 3 patterns, 2 friction signals logged
-- Design review: 13 questions grilled, 10 issues logged, 2 parked to roadmap
+- Feature: webhook-unaware (Platform webhook unaware of Connect transfers)
+- Wave: ALL (1–3)
+- Phase: COMPLETE
+- Specs in scope: docs/shaping/webhook-unaware/ (01–10)
+- Verify: 30 PASS / 0 FAIL / 3 BLOCKED (spec 07 — deployment)
+- Drift: 7 evolution / 0 shortcut (0% — well below 50% threshold)
+- Retro: 1 pattern, 1 friction signal, 1 pattern updated
+- Tests: 23 new tests (5 + 11 + 7), all passing. 3 pre-existing failures unchanged.
+- Type-check: zero new errors
 
 ## Retro summary
-- **Patterns extracted (3):** design-enriched-specs, spike-before-shape, parallel-wave-implementation
-- **Friction logged (2):** agent-skips-visual-polish (AGENT), env-validation-bypass (CODEBASE)
-- **Drift analysis:** 20 evolutions accepted. 23 shortcuts → all fixed.
-- **Key learning:** Agents implement business logic faithfully but treat visual polish as optional.
+- **Patterns extracted (1):** extract-for-testability (pure function extraction for testing inline logic without mocks)
+- **Patterns updated (1):** spike-before-shape — added items 4-5: check lint rules/TS types will compile, check target column types
+- **Friction logged (1):** no-console-info-lint (CODEBASE — lint `no-console` blocks `console.info`, pollutes warn channel for observability logging)
+- **Drift analysis:** 7 evolutions, 0 shortcuts. 3 root causes: lint constraint, Stripe TS gap, column type. All discoverable pre-shape with expanded spikes.
+- **Key learning:** Backend-only features with no UI produce zero visual drift — all deviations trace to compile-time constraints (lint, types, column schemas). Expanding spike scope to include "will this compile?" and "what types does the target accept?" would have caught all 7 at shape time.
 
-## Post-loop design review (grill-with-docs)
-13 questions grilled against specs + codebase. Surfaced:
-
-**Design decisions made:**
-- Add `suspended` onboarding status for Stripe capability revocation (distinct from `pending`)
-- 50p flat fee is deliberate for v1, revisit with volume data
-- Platform absorbs Stripe processing fee on refunds (not surfaced to merchants)
-- £1 minimum deposit floor enforced at platform level (`topDepositWaived` bypasses)
-- Re-engagement email window anchored to later of `stripeAccountCreatedAt` or first service created date
-
-**Issues logged to current-issues.md (10):**
-1. Refund state missing from payment card (need 6th state)
-2. In-flight payments during Connect suspension
-3. Platform webhook unaware of Connect transfers (`transfer.created`/`transfer.failed`)
-4. Slot recovery bypasses Connect guard (hardcoded `paymentsEnabled: true`)
-5. No minimum deposit floor
-6. Webhook event type misconfiguration can silently drop events
-7. Auto-poll timeout has no fallback state
-8. Stripe receipt emails may duplicate app confirmations
-9. Free bookings get no confirmation SMS
-10. MCC hardcoded to 7241
-11. Re-engagement email assumes owner reached Stripe
-12. Payouts-not-enabled not surfaced in Connected state
-13. Re-engagement email window anchored incorrectly
-14. Disputes attributed to merchant with no visibility
-15. Kicksnare migration: pre-Connect appointments have no depositSkipped signal
-
-**Parked to roadmap.md (2):**
-1. Multi-currency / international expansion
-2. Partial refunds with Connect
-3. Multi-shop / multi-owner support
+## Backlog
+- Wave 1: ✅ Specs 01, 04, 05 — foundations
+- Wave 2: ✅ Specs 02+03, 08, 10 — core handlers + foundation tests
+- Wave 3: ✅ Specs 06, 09 — safety nets + handler tests. Spec 07 (ops) BLOCKED on deployment.
+- Blocked specs: 07 (register events in Stripe Dashboard — requires deployment first)
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |
 |------|------|-------|----------|-------|
-| 2026-06-28 | — | SHAPE | — | 9 R's, 17 parts, 3 spikes, 13 slices across 4 waves |
-| 2026-06-28 | 1–4 | IMPLEMENT | — | 13 slices, 10 new files, 9 modified. Typecheck clean |
-| 2026-06-28 | ALL | VERIFY Rev 1 | — | 54 PASS / 20 FAIL. 18 fixed between Rev 1-2 |
-| 2026-06-29 | ALL | VERIFY Rev 2 | — | 72 PASS / 2 FAIL (LOW) |
-| 2026-06-29 | ALL | DRIFT AUDIT | — | 20 evolution / 23 shortcut — all 23 fixed |
-| 2026-06-29 | ALL | RETRO | — | 3 patterns, 2 friction. Loop COMPLETE |
-| 2026-06-30 | — | DESIGN REVIEW | — | 13 questions grilled, 15 issues logged, 3 roadmap items parked |
+| 2026-07-01 | — | SHAPE | — | 10 specs, 3 waves, shape + spike + slices + 9 slice plans. No UI — all backend observability. |
+| 2026-07-01 | 1 | IMPLEMENT | — | 3 parallel agents (worktree). stripe-utils.ts (new), appointments.ts (+1 line), webhook/route.ts (+else branch). Clean. |
+| 2026-07-01 | 2 | IMPLEMENT | — | 3 parallel agents. connect-webhook handlers, 2 test files (16 tests). Deviations: console.info→console.warn (lint), buildConnectPaymentMetadata extraction. |
+| 2026-07-01 | 3 | IMPLEMENT | — | 1 direct + 1 agent. else branch in connect-webhook, handler test file (7 tests). Spec 07 (ops) documented, blocked on deploy. |
+| 2026-07-02 | ALL | VERIFY | — | 30 PASS / 0 FAIL / 3 BLOCKED (spec 07). Independent verifier in separate session. |
+| 2026-07-02 | ALL | DRIFT AUDIT | — | 7 evolution / 0 shortcut (0%). 4 specs patched (02, 03, 04, 09, 10). 3 root causes: lint constraint, Stripe TS gap, column type. |
+| 2026-07-02 | ALL | RETRO | — | 1 pattern extracted, 1 pattern updated, 1 friction logged. Loop COMPLETE. |
+
+## Prior feature (refund-state) — COMPLETE
+| Date | Wave | Phase | Duration | Notes |
+|------|------|-------|----------|-------|
+| 2026-07-01 | — | SHAPE | — | 10 specs, 3 waves, design prototype reviewed |
+| 2026-07-01 | 1–3 | IMPLEMENT | — | 3 waves sequential, typecheck clean |
+| 2026-07-01 | ALL | VERIFY | — | 31 PASS / 3 FAIL (test infra) / 0 BLOCKED |
+| 2026-07-01 | ALL | DRIFT AUDIT | — | 4 evolution / 1 shortcut (20%) |
+| 2026-07-01 | ALL | RETRO | — | 2 patterns, 1 friction. Loop COMPLETE |
 
 ## References
-- Drift: docs/signals/drift/stripe-connect-wave-all.md
-- Verify: docs/shaping/stripe-connect/shape/wave-all-verify.md
-- Patterns: docs/signals/patterns/ (design-enriched-specs, spike-before-shape, parallel-wave-implementation)
-- Friction: docs/signals/friction/ (agent-skips-visual-polish, env-validation-bypass)
-- Shaping: docs/shaping/stripe-connect/shape/
-- Specs: docs/shaping/stripe-connect/
+- Shape: docs/shaping/webhook-unaware/shape/webhook-unaware-shape.md
+- Slices: docs/shaping/webhook-unaware/shape/webhook-unaware-slices.md
+- Spike: docs/shaping/webhook-unaware/shape/spike-codebase-analysis.md
+- Specs: docs/shaping/webhook-unaware/ (01–10)
+- Build order: docs/shaping/webhook-unaware/BUILD-ORDER.md
+- Verify: docs/shaping/webhook-unaware/shape/wave-all-verify.md
+- Drift: docs/signals/drift/webhook-unaware-all-waves.md
+- Architecture: docs/context/architecture-context.md
+- Design system: docs/design-system/
+- Progress: docs/context/progress-tracker.md
 - Issues: docs/context/current-issues.md
-- Roadmap: docs/context/roadmap.md
+- Signals: docs/signals/
+- Work log: docs/loops/work-log.md
+- Mental models: mcp-go/Mental Models/WorkSpace/26-06-30_12-07-52_webhook_transfer_awareness/analysis-report.md

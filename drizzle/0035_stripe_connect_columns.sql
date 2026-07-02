@@ -4,9 +4,9 @@ EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
 ALTER TABLE "shops"
-  ADD COLUMN "stripe_account_id" text,
-  ADD COLUMN "stripe_onboarding_status" "stripe_onboarding_status" DEFAULT 'not_started' NOT NULL,
-  ADD COLUMN "stripe_account_created_at" timestamp with time zone;
+  ADD COLUMN IF NOT EXISTS "stripe_account_id" text,
+  ADD COLUMN IF NOT EXISTS "stripe_onboarding_status" "stripe_onboarding_status" DEFAULT 'not_started' NOT NULL,
+  ADD COLUMN IF NOT EXISTS "stripe_account_created_at" timestamp with time zone;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "shops_stripe_account_id_unique"
   ON "shops" ("stripe_account_id")

@@ -696,6 +696,31 @@ export const updateNoShowScoreAtBooking = async (input: {
     .where(eq(appointments.id, appointmentId));
 };
 
+/**
+ * Build the metadata update for a Connect payment.
+ * Returns the spread-ready object: either `{ metadata: {...} }` or `{}`.
+ */
+export function buildConnectPaymentMetadata(
+  transferData: { destination?: string | { id: string } | null } | null | undefined,
+  applicationFeeAmount: number | null | undefined,
+  existingMetadata: Record<string, string> | null | undefined,
+): { metadata: Record<string, string> } | Record<string, never> {
+  const connectedAccountId =
+    typeof transferData?.destination === "string"
+      ? transferData.destination
+      : (transferData?.destination as { id: string } | undefined)?.id ?? null;
+
+  if (!connectedAccountId) return {};
+
+  return {
+    metadata: {
+      ...(existingMetadata ?? {}),
+      connectedAccountId,
+      applicationFeeAmountCents: String(applicationFeeAmount ?? 0),
+    },
+  };
+}
+
 export const createAppointment = async (input: {
   shopId: string;
   startsAt: Date;
@@ -1174,21 +1199,16 @@ export const createAppointment = async (input: {
     }
 
     const mappedStatus = normalizeStripePaymentStatus(paymentIntent.status);
-    const connectedAccountId =
-      typeof paymentIntent.transfer_data?.destination === "string"
-        ? paymentIntent.transfer_data.destination
-        : paymentIntent.transfer_data?.destination?.id ?? null;
     await db
       .update(payments)
       .set({
         stripePaymentIntentId: paymentIntent.id,
         status: mappedStatus,
-        ...(connectedAccountId && {
-          metadata: {
-            ...(created.payment.metadata ?? {}),
-            connectedAccountId,
-          },
-        }),
+        ...buildConnectPaymentMetadata(
+          paymentIntent.transfer_data,
+          paymentIntent.application_fee_amount,
+          created.payment.metadata,
+        ),
         updatedAt: new Date(),
       })
       .where(eq(payments.id, created.payment.id));

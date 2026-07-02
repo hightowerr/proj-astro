@@ -260,6 +260,12 @@ export async function POST(req: Request) {
           "canceled",
           { incrementAttempts: true }
         );
+      } else {
+        console.warn("Unexpected event type at platform webhook — check Stripe webhook configuration", {
+          eventType: event.type,
+          eventId: event.id,
+          endpoint: "/api/stripe/webhook",
+        });
       }
     });
   } catch (error) {

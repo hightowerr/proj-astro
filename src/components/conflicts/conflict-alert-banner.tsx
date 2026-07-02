@@ -73,7 +73,7 @@ export function ConflictAlertBanner({ conflictCount, shopId }: ConflictAlertBann
   return (
     <div
       className="flex items-center justify-between gap-4 rounded-lg p-4"
-      style={{ border: "1px solid rgba(201,122,42,0.25)", background: "var(--al-status-caution-bg)" }}
+      style={{ border: "1px solid var(--al-status-caution-border)", background: "var(--al-status-caution-bg)" }}
       role="alert"
       aria-live="polite"
     >

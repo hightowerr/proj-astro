@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getServerEnv } from "@/lib/env";
 import { processedStripeEvents, shops } from "@/lib/schema";
 import { getStripeClient } from "@/lib/stripe";
+import { resolveTransferContext } from "@/lib/stripe-utils";
 
 export const runtime = "nodejs";
 
@@ -83,6 +84,56 @@ export async function POST(req: Request) {
             })
             .where(eq(shops.id, shop.id));
         }
+      } else if (event.type === "transfer.created") {
+        const transfer = event.data.object as Stripe.Transfer;
+        const context = await resolveTransferContext(transfer);
+
+        if (context) {
+          // console.info not allowed by lint — use console.warn with level field
+          console.warn("Transfer succeeded", {
+            transferId: transfer.id,
+            amount: transfer.amount,
+            currency: transfer.currency,
+            destinationAccountId: transfer.destination,
+            appointmentId: context.appointmentId,
+            shopId: context.shopId,
+            shopName: context.shopName,
+            status: "succeeded",
+          });
+        } else {
+          console.warn(
+            "Transfer created but could not resolve appointment context",
+            {
+              transferId: transfer.id,
+              amount: transfer.amount,
+              destinationAccountId: transfer.destination,
+            }
+          );
+        }
+      } else if ((event.type as string) === "transfer.failed") {
+        // Stripe sends transfer.failed at runtime but their TS types omit it.
+        const transfer = (event as Stripe.Event).data.object as Stripe.Transfer;
+        const context = await resolveTransferContext(transfer);
+
+        console.error("Transfer failed — MANUAL_REVIEW_REQUIRED", {
+          transferId: transfer.id,
+          amount: transfer.amount,
+          currency: transfer.currency,
+          destinationAccountId: transfer.destination,
+          failureMessage: (transfer as any).failure_message ?? "unknown",
+          failureCode: (transfer as any).failure_code ?? "unknown",
+          appointmentId: context?.appointmentId ?? "unknown",
+          shopId: context?.shopId ?? "unknown",
+          shopName: context?.shopName ?? "unknown",
+          eventId: event.id,
+          action: "MANUAL_REVIEW_REQUIRED",
+        });
+      } else {
+        console.warn("Unexpected event type at Connect webhook — check Stripe webhook configuration", {
+          eventType: event.type,
+          eventId: event.id,
+          endpoint: "/api/stripe/connect-webhook",
+        });
       }
     });
   } catch (error) {

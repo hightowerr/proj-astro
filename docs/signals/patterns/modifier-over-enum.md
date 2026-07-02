@@ -1,0 +1,5 @@
+- Pattern name: Modifier over enum expansion
+- Problem it solves: When a new dimension (temporal outcome) needs to affect rendering of an existing structural classification (fee state), adding enum values creates a combinatorial explosion and loses information about the original classification.
+- Solution: Add an orthogonal boolean modifier prop (`refunded?: boolean`) rather than expanding the enum. The modifier takes rendering precedence when active but doesn't alter the structural classification. `determineFeeState()` stays pure.
+- First used in: refund-state feature (Spec 02, payment-card.tsx)
+- Reusable? YES — same pattern applies to `disputed` (P4 in current-issues.md), `transfer_held` (P2 in in-flight payments issue), and any future temporal outcome that overlays structural fee states.

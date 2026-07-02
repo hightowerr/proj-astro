@@ -150,7 +150,7 @@ function Icon({
 /* ------------------------------------------------------------------ */
 
 const FONT_MAIN = "var(--al-font)";
-const FONT_MONO = "var(--font-mono)";
+const FONT_MONO = "var(--al-font-mono)";
 const COLOR_PRIMARY = "var(--al-primary)";
 const COLOR_VARIANT = "var(--al-on-surface-variant)";
 const BORDER_SOFT = "1px solid rgba(195,198,209,.5)";

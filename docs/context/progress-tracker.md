@@ -6,13 +6,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Stripe Connect — Feature loop COMPLETE + post-loop design review done. All 23 drift shortcuts fixed. 15 new issues logged from design grilling, 3 roadmap items parked.
+Refund State — Feature loop COMPLETE. 31 PASS / 3 FAIL (test infra) / 0 BLOCKED. All 3 refund variants visually verified via Playwright with seed data.
 
 ---
 
 ## Current Goal
 
-Address critical current-issues from design review before ship: slot recovery Connect guard, minimum deposit floor, platform webhook Connect awareness, suspended onboarding status, free booking SMS gap.
+Address remaining current-issues from Stripe Connect design review. Refund state is shipped.
 
 ---
 
@@ -91,7 +91,14 @@ Address critical current-issues from design review before ship: slot recovery Co
 
 ---
 
-- **Stripe Connect** — 17 specs, 4 waves, 13 slices. All implemented (0 TS errors). Awaiting verify.
+- **Stripe Connect** — 17 specs, 4 waves, 13 slices. All implemented (0 TS errors). Verified (72 PASS / 2 FAIL LOW). Loop COMPLETE.
+
+- **Refund State** — 10 specs, 3 waves. Modifier approach: `refunded?: boolean` prop on `FeeBreakdown`, derived from `financialOutcome === "refunded"`. 3 variants (connect+refunded, waived+refunded, legacy+refunded). All visually verified via Playwright. Seed script: `pnpm seed:payments` (8 scenarios covering all 5 fee states + refund modifier). Loop COMPLETE (31 PASS / 3 FAIL test infra / 0 BLOCKED).
+  - **Wave 1 (Foundations):** Derive refunded flag, FeeBreakdown prop, legacy refund fallback
+  - **Wave 2 (Core rendering):** Refunded display ("Returned" italic, £0.00), waived+refunded edge case, prop threading
+  - **Wave 3 (Polish + tests):** Helper text icon swap (north_east→undo), 11 logic tests (determineFeeState + derivation)
+  - **New files (2):** `payment-card.test.ts`, `scripts/seed-payment-scenarios.ts`
+  - **Modified files (2):** `payment-card.tsx`, `package.json`
   - Shaping: 9 requirements, shape A (Express + destination charges), 3 spikes resolved, 13 slices
   - **Wave 1 (Foundation):** Schema (3 columns on `shops`: `stripeAccountId`, `stripeOnboardingStatus` enum, `stripeAccountCreatedAt`; pgEnum; partial unique index), migration (`drizzle/0035_stripe_connect_columns.sql`), currency USD→GBP (3 locations), env `STRIPE_CONNECT_WEBHOOK_SECRET` (optional)
   - **Wave 2 (API + Core Logic):** 3 account lifecycle APIs (create-account POST, status GET, dashboard GET) at `/api/settings/stripe-connect/*`. Connect webhook at `/api/stripe/connect-webhook` (separate signing secret, dedup via `processedStripeEvents`, handles `account.updated`). Destination charges (`transfer_data.destination` + `application_fee_amount: 50` + `on_behalf_of` on PaymentIntents; fee waived ≤50p). Booking guard (`paymentsEnabled` dynamic from `shop.stripeOnboardingStatus === "complete"` in 3 places in `book/[slug]/page.tsx`)
@@ -103,15 +110,27 @@ Address critical current-issues from design review before ship: slot recovery Co
 
 ---
 
+- **Webhook Transfer Awareness** — 10 specs, 3 waves. Backend-only observability (no UI). Loop COMPLETE (30 PASS / 0 FAIL / 3 BLOCKED on deployment). 7 evolutions / 0 shortcuts (0%).
+  - **Wave 1 (Foundations):** `resolveTransferContext()` helper (src/lib/stripe-utils.ts), `applicationFeeAmountCents` in payments.metadata, `console.warn` for unhandled platform webhook events
+  - **Wave 2 (Handlers + tests):** `transfer.created` + `transfer.failed` handlers in connect-webhook, 16 unit tests (stripe-utils + appointments-metadata)
+  - **Wave 3 (Safety nets):** `console.warn` for unhandled connect-webhook events, 7 handler integration tests, ops checklist for Stripe Dashboard
+  - **New files (4):** `stripe-utils.ts`, `stripe-utils.test.ts`, `appointments-metadata.test.ts`, `connect-webhook/route.test.ts`
+  - **Modified files (3):** `connect-webhook/route.ts` (+transfer handlers, +unhandled else), `webhook/route.ts` (+unhandled else), `appointments.ts` (+`buildConnectPaymentMetadata()` extraction)
+  - **Spec 07 (ops):** BLOCKED on deployment — register `transfer.created`/`transfer.failed` in Stripe Dashboard after deploy
+
+---
+
 ## In Progress
 
-- **Stripe Connect** — Loop COMPLETE. All 23 drift shortcuts fixed. Post-loop design review surfaced 15 issues (current-issues.md) and 3 roadmap items. Key issues before ship: slot recovery Connect guard (hardcoded `paymentsEnabled: true`), minimum deposit floor (£1 platform policy), suspended status for capability revocation, free booking SMS gap, platform webhook Connect transfer awareness.
+- **Stripe Connect** — Loop COMPLETE. All 23 drift shortcuts fixed. Post-loop design review surfaced 15 issues (current-issues.md) and 3 roadmap items.
+- **Refund State** — Loop COMPLETE. 10 specs, 3 waves. Modifier approach — `refunded: boolean` on FeeBreakdown, no 6th FeeState. Visually verified via Playwright (seed data: `pnpm seed:payments`). 4 evolutions / 1 shortcut (20%).
 
 ---
 
 ## Next Up
 
 - Stripe Connect pre-ship fixes (15 issues from design review — see current-issues.md)
+- Stripe Connect transfer safety net (refund fallback, detection guard, suspension sweep — see current-issues.md "In-flight payments during Connect suspension")
 - Remaining booking page specs: confirm-booking-CTA (08), footer (09)
 
 ---
@@ -170,3 +189,12 @@ Stripe Connect: `docs/shaping/stripe-connect/`
 - `shape/stripe-connect-shape.md` — shaping doc (9 R's, 17 parts, fit check)
 - `shape/stripe-connect-slices.md` — 13 slices across 4 waves
 - `shape/spike-availability-gate.md`, `spike-email-pattern.md`, `spike-payments-enabled.md`
+
+Refund State: `docs/shaping/refund-state/`
+- 10 specs (01–10) + `BUILD-ORDER.md` — dependency graph + phased build order
+- `DESIGN-BRIEF.md` — design details from interactive prototype
+- `Appointment Fee Breakdown.html` — interactive design prototype (tab switcher for all variants)
+- `shape/refund-state-shape.md` — shaping doc (9 R's, single shape, fit check)
+- `shape/refund-state-slices.md` — 3 waves, critical path, implementation notes
+- `shape/wave-{1,2,3}/` — per-wave slice plans with acceptance criteria
+- `shape/wave-all-verify.md` — verification report (31 PASS / 3 FAIL / 0 BLOCKED)

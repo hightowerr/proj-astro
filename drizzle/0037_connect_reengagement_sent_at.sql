@@ -1,1 +1,1 @@
-ALTER TABLE "shops" ADD COLUMN "connect_reengagement_sent_at" timestamp with time zone;
+ALTER TABLE "shops" ADD COLUMN IF NOT EXISTS "connect_reengagement_sent_at" timestamp with time zone;

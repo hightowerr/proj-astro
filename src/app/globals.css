@@ -2,8 +2,6 @@
 
 @theme inline {
   /* --- Typography --- */
-  --font-display:  var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
-  --font-body:     var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
   --font-mono:     var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
   --font-manrope:  var(--font-manrope-raw), 'Manrope', system-ui, sans-serif;
 
@@ -107,6 +105,7 @@
   --color-al-secondary-fixed:      var(--al-secondary-fixed);
   --color-al-on-secondary-fixed:   var(--al-on-secondary-fixed);
 
+  --color-al-background:           var(--al-background);
   --color-al-surface:              var(--al-surface);
   --color-al-surface-lowest:       var(--al-surface-container-lowest);
   --color-al-surface-low:          var(--al-surface-container-low);
@@ -479,6 +478,12 @@
 }
 .al-service-card:hover .service-card-arrow {
   opacity: 1;
+}
+
+/* Slot button hover (unselected only) */
+button[data-booking-slot][aria-pressed="false"]:hover {
+  background: var(--al-surface-container) !important;
+  border-color: var(--al-outline-variant) !important;
 }
 
 /* Focus ring */

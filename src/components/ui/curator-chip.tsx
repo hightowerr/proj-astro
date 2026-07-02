@@ -14,7 +14,7 @@ const curatorChipVariants = cva(
       variant: {
         /** Default: warm peach — secondary_fixed */
         default:
-          "[background:#ffdbcf] [color:#2a170f] hover:[background:#e2bfb3]",
+          "bg-al-secondary-fixed text-al-on-secondary-fixed hover:bg-al-secondary-fixed-dim",
         /** Primary: deep navy */
         primary:
           "[background:#001e40] [color:#ffffff] hover:[background:#003366]",
@@ -26,7 +26,7 @@ const curatorChipVariants = cva(
           "[background:#eeeeec] [color:#43474f] hover:[background:#e8e8e6]",
         /** Tertiary: sienna */
         tertiary:
-          "[background:#ffdbcf] [color:#380d01] hover:[background:#ffb59c]",
+          "bg-al-tertiary-fixed text-al-on-tertiary-fixed hover:bg-al-tertiary-fixed-dim",
       },
       size: {
         sm: "px-2.5 py-0.5 text-[0.6875rem]",

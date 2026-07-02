@@ -39,7 +39,7 @@ const SORTS = [
 
 function avatarStyle(risk: string | null): { background: string; color: string } {
   if (risk === "top") return { background: "linear-gradient(135deg,#d5e3ff,#a7c8ff)", color: "#001e40" };
-  if (risk === "risk") return { background: "linear-gradient(135deg,#fdd8cb,#e2bfb3)", color: "#572411" };
+  if (risk === "risk") return { background: "linear-gradient(135deg,var(--al-secondary-container),var(--al-secondary-fixed-dim))", color: "var(--al-tertiary-container)" };
   return { background: "#eeeeec", color: "#43474f" };
 }
 

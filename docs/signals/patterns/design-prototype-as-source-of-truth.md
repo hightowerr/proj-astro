@@ -1,0 +1,5 @@
+- Pattern name: Design prototype as source of truth for visual details
+- Problem it solves: Text-based specs can't fully specify visual behaviour (italic style, icon names, card collapse, element visibility). Agents fill gaps with assumptions that diverge from designer intent.
+- Solution: Create an interactive HTML prototype alongside specs. Reference it in the design brief with explicit per-element style details (font weight, icon names, layout changes). Specs describe behaviour; the prototype is authoritative for visual output.
+- First used in: refund-state feature (DESIGN-BRIEF.md + Appointment Fee Breakdown.html)
+- Reusable? YES — all UI features benefit from this. Builds on the `design-enriched-specs` pattern from stripe-connect but goes further: the prototype is directly reviewable and tab-switchable for variant comparison.

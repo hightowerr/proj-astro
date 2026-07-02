@@ -305,7 +305,7 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
               className={cn(
                 "px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide transition-colors",
                 statusFilter === chip.value
-                  ? "bg-[#ffdbcf] text-[#2a170f]"
+                  ? "bg-al-secondary-fixed text-al-on-secondary-fixed"
                   : "bg-al-surface-container text-al-on-surface-variant hover:bg-al-surface-container-high"
               )}
             >

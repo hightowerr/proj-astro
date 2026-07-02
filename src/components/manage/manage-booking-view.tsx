@@ -359,7 +359,7 @@ export function ManageBookingView({
               <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>Customer</p>
               <p className="font-medium" style={{ color: "var(--al-on-surface)" }}>{customer.fullName}</p>
               <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>{customer.email}</p>
-              <p className="text-sm" style={{ fontFamily: "var(--font-mono)", color: "var(--al-on-surface-variant)" }}>{customer.phone}</p>
+              <p className="text-sm" style={{ fontFamily: "var(--al-font-mono)", color: "var(--al-on-surface-variant)" }}>{customer.phone}</p>
             </div>
           </div>
 
@@ -369,7 +369,7 @@ export function ManageBookingView({
               <p className="text-sm" style={{ color: "var(--al-on-surface-variant)" }}>Payment</p>
               {payment ? (
                 <>
-                  <p className="font-medium" style={{ fontFamily: "var(--font-mono)", color: "var(--al-primary)" }}>
+                  <p className="font-medium" style={{ fontFamily: "var(--al-font-mono)", color: "var(--al-primary)" }}>
                     {formatCurrency(payment.amountCents, payment.currency)}
                   </p>
                   <p className="text-sm capitalize" style={{ color: "var(--al-on-surface-variant)" }}>

@@ -1,0 +1,5 @@
+- Date: 2026-07-01
+- Spec: 08-unit-tests-refunded-display, 09-unit-tests-edge-cases, 10-integration-test-payment-card
+- Description: Specs called for 21 rendering tests (8+8+5) but project has no component test infrastructure — no @testing-library/react, no jsdom environment, vitest includes only .ts files (not .tsx). Could only write 11 logic tests for determineFeeState and refunded derivation. Rendering verification deferred to Phase 3 Playwright.
+- Root cause: CODEBASE — component testing was never set up; all existing tests are pure logic / API tests
+- Suggested fix: Install @testing-library/react + @testing-library/jest-dom + jsdom. Update vitest.config.mts include pattern to accept .tsx. Add jsdom environment override for component test files. This would enable the 21 rendering tests from specs 08-10.

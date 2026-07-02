@@ -70,7 +70,7 @@ export function AttentionRequiredTable({ appointments, currentPeriod }: Attentio
               className={cn(
                 "px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide transition-colors disabled:opacity-60",
                 currentPeriod === option.value
-                  ? "bg-[#ffdbcf] text-[#2a170f]"
+                  ? "bg-al-secondary-fixed text-al-on-secondary-fixed"
                   : "bg-al-surface-container text-al-on-surface-variant hover:bg-al-surface-container-high"
               )}
             >

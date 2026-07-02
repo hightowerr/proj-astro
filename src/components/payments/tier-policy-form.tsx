@@ -37,7 +37,7 @@ type TierState = {
 // ---------------------------------------------------------------------------
 
 const FONT = "var(--al-font)";
-const MONO = "var(--font-mono)";
+const MONO = "var(--al-font-mono)";
 
 const TIER_COLORS = {
   risk: {
