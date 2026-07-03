@@ -206,23 +206,46 @@ export async function POST(req: Request) {
             }
           );
         }
-      } else if ((event.type as string) === "transfer.failed") {
-        // Stripe sends transfer.failed at runtime but their TS types omit it.
-        const transfer = (event as Stripe.Event).data.object as Stripe.Transfer;
+      } else if (event.type === "transfer.reversed") {
+        const transfer = event.data.object as Stripe.Transfer;
         const context = await resolveTransferContext(transfer);
 
-        console.error("Transfer failed — MANUAL_REVIEW_REQUIRED", {
+        if (context) {
+          console.error("Transfer reversed — MANUAL_REVIEW_REQUIRED", {
+            transferId: transfer.id,
+            amount: transfer.amount,
+            currency: transfer.currency,
+            destinationAccountId: transfer.destination,
+            appointmentId: context.appointmentId,
+            shopId: context.shopId,
+            shopName: context.shopName,
+            eventId: event.id,
+            action: "MANUAL_REVIEW_REQUIRED",
+          });
+        } else {
+          console.error(
+            "Transfer reversed but could not resolve appointment context",
+            {
+              transferId: transfer.id,
+              amount: transfer.amount,
+              destinationAccountId: transfer.destination,
+              eventId: event.id,
+              action: "MANUAL_REVIEW_REQUIRED",
+            }
+          );
+        }
+      } else if (event.type === "transfer.updated") {
+        const transfer = event.data.object as Stripe.Transfer;
+        const context = await resolveTransferContext(transfer);
+
+        console.warn("Transfer updated", {
           transferId: transfer.id,
           amount: transfer.amount,
           currency: transfer.currency,
           destinationAccountId: transfer.destination,
-          failureMessage: (transfer as any).failure_message ?? "unknown",
-          failureCode: (transfer as any).failure_code ?? "unknown",
           appointmentId: context?.appointmentId ?? "unknown",
           shopId: context?.shopId ?? "unknown",
-          shopName: context?.shopName ?? "unknown",
           eventId: event.id,
-          action: "MANUAL_REVIEW_REQUIRED",
         });
       } else {
         console.warn("Unexpected event type at Connect webhook — check Stripe webhook configuration", {

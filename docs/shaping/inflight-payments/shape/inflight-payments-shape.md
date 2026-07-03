@@ -21,6 +21,11 @@ Issue from Stripe Connect post-loop design review (`current-issues.md`): race co
 | R8 | Suspension sweep flags recently-succeeded payments (1h window) with `transferHeld: true` | Spec 08 | P3 |
 | R9 | Refunded takes precedence over transferHeld in UI rendering | Design prototype | P2 |
 | R10 | All logging uses `console.warn` (lint blocks `console.info`) | Spike 7 / friction signal | All |
+| R11 | Remove `transfer.failed` dead code — not a real Stripe event | Transfer event rethink analysis | P3 cleanup |
+| R12 | Add `transfer.reversed` handler with `MANUAL_REVIEW_REQUIRED` logging | Transfer event rethink analysis | P2 |
+| R13 | Add `transfer.updated` handler with informational logging | Transfer event rethink analysis | P3 |
+| R14 | Detection guard (R3/spec 03) is PRIMARY transfer failure detection — not belt-and-suspenders | Transfer event rethink analysis | P2 docs |
+| R15 | `transfer.reversed`/`transfer.updated` use native Stripe TS types — no `(event.type as string)` cast | Spike: transfer event types | All |
 
 ## Shape A — Orthogonal modifier + guard + sweep (selected)
 
@@ -46,8 +51,23 @@ Single approach — mental models analysis + modifier-over-enum pattern from ref
 | R8 | ✓ | Batch update `transferHeld: true` for paid appointments within 1h window |
 | R9 | ✓ | Conditional precedence: `refunded ? refundedUI : transferHeld ? heldUI : normalUI` |
 | R10 | ✓ | All specs updated to use `console.warn` |
+| R11 | ✓ | Spec 14: remove handler branch + test block |
+| R12 | ✓ | Spec 15: `console.error` with `MANUAL_REVIEW_REQUIRED`, uses `resolveTransferContext` |
+| R13 | ✓ | Spec 17: `console.warn` (informational), uses `resolveTransferContext` |
+| R14 | ✓ | Spec 19: docs updated to reflect PRIMARY status |
+| R15 | ✓ | Spike confirmed: both events fully typed in `EventTypes.d.ts:3533-3560` |
 
 All requirements satisfied. No alternative shapes — the modifier-over-enum pattern is the proven approach from refund-state, and the mental models analysis provides strong convergence.
+
+## Transfer Event Rethink (specs 14-19)
+
+The original analysis (webhook-unaware feature) assumed `transfer.failed` was a real Stripe event whose TS type was simply missing. The Stripe TS types' omission was actually a correct signal — `transfer.failed` does not exist. Transfer failure manifests as:
+
+1. **Transfer never created** — automatic transfer silently doesn't happen when connected account is suspended. Detectable only by *absence* of `transfer.created`, not by a failure event. The detection guard (spec 03 / R3) is the PRIMARY mechanism for catching this.
+2. **Transfer reversed** — `transfer.reversed` fires when a chargeback or manual reversal occurs after a successful transfer. Post-transfer failure.
+3. **Transfer status change** — `transfer.updated` fires when transfer metadata or status changes. Informational only.
+
+**Key insight**: The detection guard (spec 03) is the PRIMARY transfer failure detection mechanism, not a belt-and-suspenders addition. Transfer webhook events are supplementary observability for post-transfer failures only.
 
 ## Spike findings
 
@@ -55,6 +75,11 @@ See `shape/spike-codebase-analysis.md`. Three critical findings incorporated:
 1. Webhook needs shop lookup via `stripeAccountId` (R3 implementation path)
 2. New error detection helper needed (R1 implementation path)
 3. `console.warn` required throughout (R10)
+
+See `shape/spike-transfer-event-types.md`. Key findings:
+4. `transfer.reversed` and `transfer.updated` are fully typed — no cast needed (R15)
+5. `resolveTransferContext()` works for all transfer event types — same `data.object: Stripe.Transfer`
+6. `transfer.updated` only fires for description/metadata changes — `console.warn` is correct severity
 
 ## Architecture mapping
 
@@ -68,6 +93,11 @@ See `shape/spike-codebase-analysis.md`. Three critical findings incorporated:
 | `src/components/appointments/payment-card.tsx` | 04, 05 | `transferHeld` prop + payout "Held" + helper text |
 | `src/app/app/dashboard/page.tsx` | 06 | Render `TransferHeldCard` |
 | `src/components/dashboard/transfer-held-card.tsx` | 06 | New component |
+| `src/app/api/stripe/connect-webhook/route.ts` | 14 | Remove `transfer.failed` dead code handler |
+| `src/app/api/stripe/connect-webhook/route.test.ts` | 14 | Remove `transfer.failed` test block |
+| `src/app/api/stripe/connect-webhook/route.ts` | 15, 17 | Add `transfer.reversed` + `transfer.updated` handlers |
+| `src/app/api/stripe/connect-webhook/route.test.ts` | 16, 18 | Tests for new handlers |
+| `docs/shaping/inflight-payments/03-detection-guard.md` | 19 | Update PRIMARY framing |
 
 ## Design
 

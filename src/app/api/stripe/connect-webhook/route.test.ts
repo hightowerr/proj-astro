@@ -235,23 +235,20 @@ describe("Connect webhook — POST", () => {
   });
 
   // -----------------------------------------------------------------------
-  // transfer.failed
+  // transfer.reversed
   // -----------------------------------------------------------------------
-  describe("transfer.failed", () => {
-    it("logs error with MANUAL_REVIEW_REQUIRED on happy path", async () => {
-      const transfer = makeTransfer({
-        failure_message: "Insufficient funds",
-        failure_code: "insufficient_funds",
-      } as any);
-      const event = makeEvent("transfer.failed", "evt_tf_1", transfer);
+  describe("transfer.reversed", () => {
+    it("logs error with context on reversal", async () => {
+      const transfer = makeTransfer();
+      const event = makeEvent("transfer.reversed", "evt_tr_1", transfer);
 
       mockConstructEvent.mockReturnValue(event);
-      mockReturning.mockResolvedValue([{ id: "evt_tf_1" }]);
+      mockReturning.mockResolvedValue([{ id: "evt_tr_1" }]);
       mockResolveTransferContext.mockResolvedValue({
-        appointmentId: "apt_2",
-        shopId: "shop_2",
-        shopName: "Sharp Styles",
-        paymentId: "pay_2",
+        appointmentId: "apt_1",
+        shopId: "shop_1",
+        shopName: "Cool Cuts",
+        paymentId: "pay_1",
         connectedAccountId: "acct_connected_1",
         amountCents: 7500,
       });
@@ -260,44 +257,40 @@ describe("Connect webhook — POST", () => {
 
       expect(res.status).toBe(200);
       expect(errorSpy).toHaveBeenCalledWith(
-        "Transfer failed — MANUAL_REVIEW_REQUIRED",
+        "Transfer reversed — MANUAL_REVIEW_REQUIRED",
         expect.objectContaining({
           transferId: "tr_test_1",
           amount: 7500,
           currency: "usd",
           destinationAccountId: "acct_connected_1",
-          failureMessage: "Insufficient funds",
-          failureCode: "insufficient_funds",
-          appointmentId: "apt_2",
-          shopId: "shop_2",
-          shopName: "Sharp Styles",
-          eventId: "evt_tf_1",
+          appointmentId: "apt_1",
+          shopId: "shop_1",
+          shopName: "Cool Cuts",
+          eventId: "evt_tr_1",
           action: "MANUAL_REVIEW_REQUIRED",
         })
       );
-      // console.warn should NOT be called for a failed transfer
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
-    it("uses 'unknown' fields when context is unresolvable", async () => {
+    it("logs error when context unresolvable", async () => {
       const transfer = makeTransfer();
-      const event = makeEvent("transfer.failed", "evt_tf_2", transfer);
+      const event = makeEvent("transfer.reversed", "evt_tr_2", transfer);
 
       mockConstructEvent.mockReturnValue(event);
-      mockReturning.mockResolvedValue([{ id: "evt_tf_2" }]);
+      mockReturning.mockResolvedValue([{ id: "evt_tr_2" }]);
       mockResolveTransferContext.mockResolvedValue(null);
 
       const res = await POST(buildRequest());
 
       expect(res.status).toBe(200);
       expect(errorSpy).toHaveBeenCalledWith(
-        "Transfer failed — MANUAL_REVIEW_REQUIRED",
+        "Transfer reversed but could not resolve appointment context",
         expect.objectContaining({
-          appointmentId: "unknown",
-          shopId: "unknown",
-          shopName: "unknown",
-          failureMessage: "unknown",
-          failureCode: "unknown",
+          transferId: "tr_test_1",
+          amount: 7500,
+          destinationAccountId: "acct_connected_1",
+          eventId: "evt_tr_2",
           action: "MANUAL_REVIEW_REQUIRED",
         })
       );
@@ -305,7 +298,7 @@ describe("Connect webhook — POST", () => {
 
     it("skips processing on duplicate event (dedup)", async () => {
       const transfer = makeTransfer();
-      const event = makeEvent("transfer.failed", "evt_tf_dup", transfer);
+      const event = makeEvent("transfer.reversed", "evt_tr_dup", transfer);
 
       mockConstructEvent.mockReturnValue(event);
       mockReturning.mockResolvedValue([]);
@@ -316,6 +309,82 @@ describe("Connect webhook — POST", () => {
       expect(await res.json()).toEqual({ received: true });
       expect(mockResolveTransferContext).not.toHaveBeenCalled();
       expect(errorSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // transfer.updated
+  // -----------------------------------------------------------------------
+  describe("transfer.updated", () => {
+    it("logs context on transfer update", async () => {
+      const transfer = makeTransfer();
+      const event = makeEvent("transfer.updated", "evt_tu_1", transfer);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_tu_1" }]);
+      mockResolveTransferContext.mockResolvedValue({
+        appointmentId: "apt_1",
+        shopId: "shop_1",
+        shopName: "Cool Cuts",
+        paymentId: "pay_1",
+        connectedAccountId: "acct_connected_1",
+        amountCents: 7500,
+      });
+
+      const res = await POST(buildRequest());
+
+      expect(res.status).toBe(200);
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Transfer updated",
+        expect.objectContaining({
+          transferId: "tr_test_1",
+          amount: 7500,
+          currency: "usd",
+          destinationAccountId: "acct_connected_1",
+          appointmentId: "apt_1",
+          shopId: "shop_1",
+          eventId: "evt_tu_1",
+        })
+      );
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it("uses 'unknown' fallbacks when context unresolvable", async () => {
+      const transfer = makeTransfer();
+      const event = makeEvent("transfer.updated", "evt_tu_2", transfer);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_tu_2" }]);
+      mockResolveTransferContext.mockResolvedValue(null);
+
+      const res = await POST(buildRequest());
+
+      expect(res.status).toBe(200);
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Transfer updated",
+        expect.objectContaining({
+          transferId: "tr_test_1",
+          appointmentId: "unknown",
+          shopId: "unknown",
+          eventId: "evt_tu_2",
+        })
+      );
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it("skips processing on duplicate event (dedup)", async () => {
+      const transfer = makeTransfer();
+      const event = makeEvent("transfer.updated", "evt_tu_dup", transfer);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([]);
+
+      const res = await POST(buildRequest());
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ received: true });
+      expect(mockResolveTransferContext).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
     });
   });
 

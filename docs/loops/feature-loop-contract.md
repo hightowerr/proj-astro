@@ -5,10 +5,13 @@ All inflight-payments specs (13 specs across 4 waves) are implemented, independe
 drift-audited with zero unresolved conflicts, and retrospective logged.
 
 ## Current state
-- Feature: inflight-payments (In-flight payments during Connect suspension)
-- Wave: ALL (1–4)
+- Feature: inflight-payments (Transfer event rethink — specs 14-19)
+- Wave: ALL (1–7)
 - Phase: COMPLETE
-- Specs in scope: docs/shaping/inflight-payments/ (01–13)
+- Specs in scope: docs/shaping/inflight-payments/ (14–19)
+- Prior waves (01–13): COMPLETE — 76 PASS / 0 FAIL, 8 evolution / 0 shortcut
+
+### Completed round (specs 01-13)
 - Verify: 76 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session.
 - Drift: 8 evolution / 0 shortcut (0% — well below 50% threshold)
 - Retro: 1 pattern extracted, 1 pattern updated
@@ -20,6 +23,9 @@ drift-audited with zero unresolved conflicts, and retrospective logged.
 - Wave 2: ✅ Specs 03, 04, 06, 08, 09 — core logic + P1 tests (5 parallel agents)
 - Wave 3: ✅ Specs 05, 10, 12 — UI completion + backend tests (3 parallel agents)
 - Wave 4: ✅ Specs 11, 13 — final tests (2 parallel agents)
+- Wave 5: ✅ Specs 14, 19 — dead code cleanup + docs (2 parallel agents)
+- Wave 6: ✅ Specs 15, 17 — transfer event handlers (1 agent — file contention)
+- Wave 7: ✅ Specs 16, 18 — handler tests (1 agent — file contention)
 - Blocked specs: none
 
 ## Timeline
@@ -34,7 +40,14 @@ drift-audited with zero unresolved conflicts, and retrospective logged.
 | 2026-07-03 | 4 | IMPLEMENT | — | 2 parallel agents. Card logic tests (16 tests, extracted 3 pure functions), integration tests (9 tests, 5 scenarios). |
 | 2026-07-03 | ALL | VERIFY | — | 76 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session. |
 | 2026-07-03 | ALL | DRIFT AUDIT | — | 8 evolution / 0 shortcut (0%). 3 root causes: data model discovery, mechanical necessity, testability. |
-| 2026-07-03 | ALL | RETRO | — | 1 pattern extracted (multi-table-spike), 1 pattern updated (spike-before-shape +1 item). Loop COMPLETE. |
+| 2026-07-03 | ALL | RETRO | — | 1 pattern extracted (multi-table-spike), 1 pattern updated (spike-before-shape +1 item). Specs 01-13 COMPLETE. |
+| 2026-07-03 | — | SHAPE (specs 14-19) | — | 6 new specs from transfer event rethink. 1 spike (transfer event types). 3 wave folders with 6 slice plans. |
+| 2026-07-03 | 5 | IMPLEMENT | — | 2 parallel agents. Dead code removed (18 lines handler + 80 lines tests). Spec 03 docs updated to PRIMARY framing. |
+| 2026-07-03 | 6 | IMPLEMENT | — | 1 agent (file contention). transfer.reversed + transfer.updated handlers added to connect-webhook. |
+| 2026-07-03 | 7 | IMPLEMENT | — | 1 agent (file contention). 6 new tests (3 per handler). 19 total tests, all passing. Zero type errors. |
+| 2026-07-03 | 5–7 | VERIFY | — | 31 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session. |
+| 2026-07-03 | 5–7 | DRIFT AUDIT | — | 0 divergences — all 6 specs match implementation exactly. |
+| 2026-07-03 | 5–7 | RETRO | — | 0 patterns extracted (all patterns already covered). 0 drift. Loop COMPLETE. |
 
 ## Prior features
 ### webhook-unaware — COMPLETE
@@ -55,7 +68,7 @@ drift-audited with zero unresolved conflicts, and retrospective logged.
 - Shape: docs/shaping/inflight-payments/shape/inflight-payments-shape.md
 - Slices: docs/shaping/inflight-payments/shape/inflight-payments-slices.md
 - Spike: docs/shaping/inflight-payments/shape/spike-codebase-analysis.md
-- Specs: docs/shaping/inflight-payments/ (01–13)
+- Specs: docs/shaping/inflight-payments/ (01–19)
 - Build order: docs/shaping/inflight-payments/BUILD-ORDER.md
 - Design brief: docs/shaping/inflight-payments/DESIGN-BRIEF.md
 - Design prototypes: Appointment Fee Breakdown.html, Dashboard Connect Card.html

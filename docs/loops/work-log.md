@@ -4,6 +4,32 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-03] verify+drift+retro | inflight-payments waves 5–7
+
+- **Picked up**: Phases 3-5 for specs 14-19 (verify in separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 31 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in fresh session.
+  - Drift: 0 divergences — all 6 specs match implementation exactly. No drift signals logged.
+  - Retro: 0 new patterns (spike-before-shape already covers "check Stripe TS types before assuming event exists"). No friction logged.
+  - Key learning: When a spike pre-resolves all unknowns and the implementation is straightforward (handlers modeled on existing patterns), zero drift is achievable. The 1 spike (transfer event types) prevented the exact error that created the `transfer.failed` dead code in the first place.
+- **Unresolved**: Ops — register `transfer.reversed` and `transfer.updated` on Connect webhook in Stripe Dashboard.
+
+---
+
+## [2026-07-03] shape+implement | inflight-payments waves 5–7 (specs 14-19)
+
+- **Picked up**: Transfer event rethink — `transfer.failed` is dead code, add real transfer event handlers, update cross-dep docs
+- **Result**: All 6 specs implemented across 3 waves:
+  - Wave 5 (2 parallel agents): `connect-webhook/route.ts` (−18 lines dead handler), `route.test.ts` (−80 lines dead tests), `03-detection-guard.md` (PRIMARY framing)
+  - Wave 6 (1 agent — file contention): `connect-webhook/route.ts` (+`transfer.reversed` handler with `MANUAL_REVIEW_REQUIRED`, +`transfer.updated` handler with informational logging)
+  - Wave 7 (1 agent — file contention): `route.test.ts` (+6 new tests: 3 per handler — happy path, unresolvable context, dedup)
+  - 1 spike run (transfer event types): confirmed `transfer.reversed`/`transfer.updated` fully typed in Stripe TS, no cast needed
+  - 6 new tests, 19 total in file, all passing. Zero new type errors.
+  - Deviations: none — spike pre-resolved all unknowns
+- **Unresolved**: Phase 3 VERIFY next (separate session per loop contract). Stripe Dashboard config needed: register `transfer.reversed` and `transfer.updated` on Connect webhook endpoint.
+
+---
+
 ## [2026-07-03] verify+drift+retro | inflight-payments all waves
 
 - **Picked up**: Phases 3-5 for inflight-payments feature (verify in separate session, drift audit, retro)
