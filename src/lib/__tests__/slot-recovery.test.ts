@@ -34,6 +34,7 @@ const makeAppointment = (
     paymentStatus: "paid",
     paymentRequired: true,
     financialOutcome: "settled",
+    transferHeld: false,
     noShowScore: null,
     noShowRisk: null,
     noShowComputedAt: null,

@@ -4,6 +4,51 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-03] verify+drift+retro | inflight-payments all waves
+
+- **Picked up**: Phases 3-5 for inflight-payments feature (verify in separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 76 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in fresh session. All acceptance criteria met.
+  - Drift: 8 divergences, all EVOLUTION (0 shortcuts, 0%). 3 root causes: data model discovery (D1-D2: stripePaymentIntentId on payments table), mechanical necessity (D3: usedConnect scoping), testability (D5, D8: pure function extraction for no-component-test-infra).
+  - Retro: 1 pattern extracted (multi-table-spike: verify column ownership during spike), 1 pattern updated (spike-before-shape +item 6: grep schema.ts for every column in spec queries).
+  - Key learning: Mixed backend+UI features benefit from 7-spike depth. The 3 critical findings (shop lookup, error helper, console.warn) prevented the exact same class of drift seen in webhook-unaware. Column ownership (which table has which field) is a new drift source — added to spike checklist.
+  - Evolution/shortcut ratio: 8/0 (0%)
+  - Patterns extracted: 1
+  - Friction logged: 0 (existing signals covered all friction encountered)
+- **Unresolved**: none
+
+---
+
+## [2026-07-03] implement | inflight-payments waves 1–4
+
+- **Picked up**: Phase 2 IMPLEMENT for all 4 waves (13 specs, 13 slices)
+- **Result**: All 13 slices implemented across 4 waves:
+  - Wave 1 (3 parallel): `stripe-refund.ts` (+`isReverseTransferFailedError` + fallback catch), `schema.ts` (+transferHeld column) + migration 0039, `connect-webhook/route.ts` (+PI cancellation sweep)
+  - Wave 2 (5 parallel): `webhook/route.ts` (+detection guard), `payment-card.tsx` (+transferHeld "Held" payout), new `transfer-held-card.tsx` (dashboard), `connect-webhook/route.ts` (+flag recent sweep), `stripe-refund.test.ts` (17 tests)
+  - Wave 3 (3 parallel): `payment-card.tsx` (+pause_circle helper text), `webhook/route.test.ts` (5 tests), `connect-webhook/route.test.ts` (9 tests)
+  - Wave 4 (2 parallel): `payment-card.test.ts` (16 logic tests), `inflight-payments-integration.test.ts` (9 integration tests)
+  - Deviations logged: 5 total — all EVOLUTION candidates (payments table query, in-flight PI status filter, usedConnect hoisting, appointmentId deep-link prop, pure function extraction for testability)
+  - 65 new tests, all passing. 1 pre-existing failure. Zero new type errors.
+- **Unresolved**: Phase 3 VERIFY next (separate session per loop contract).
+
+---
+
+## [2026-07-03] shape | inflight-payments
+
+- **Picked up**: Phase 1 SHAPE for inflight-payments feature ("In-flight payments during Connect suspension" from current-issues.md)
+- **Result**: Shaping complete.
+  - 13 specs created (01–13) from mental models analysis report. 4-phase BUILD-ORDER with dependency graph.
+  - Both design prototypes reviewed in detail (Appointment Fee Breakdown.html → "Held" tab, Dashboard Connect Card.html → None/1/3 held toggles). Specs 04-06 enriched with exact design tokens, icon names, copy.
+  - 7 spikes run against codebase. 3 critical findings incorporated: (1) webhook/route.ts has NO shop context — spec 03 needs direct shop lookup via stripeAccountId, (2) new `isReverseTransferFailedError()` helper needed following isAlreadyRefundedError pattern, (3) all logging must use console.warn (lint blocks console.info).
+  - Shape document with 11 requirements (R0–R10), single shape (orthogonal modifier + guard + sweep), fit check passing all.
+  - Slices document: 13 slices across 4 waves (1:1 spec-to-slice). No file contention within any wave — all slices within a wave can run fully parallel with worktrees.
+  - 13 individual slice implementation plans with acceptance criteria, file targets, visual checklists for UI slices.
+  - Signals applied: modifier-over-enum, extract-for-testability, spike-before-shape, design-prototype-as-source-of-truth, design-enriched-specs, agent-skips-visual-polish, no-console-info-lint, no-component-test-infra.
+  - Loop contract updated. Ready for Phase 2 IMPLEMENT Wave 1.
+- **Unresolved**: none — ready for Wave 1 IMPLEMENT
+
+---
+
 ## [2026-07-02] verify+drift+retro | webhook-unaware all waves
 
 - **Picked up**: Phases 3-5 for webhook-unaware feature (verify in separate session, drift audit, retro)

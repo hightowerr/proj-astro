@@ -28,6 +28,18 @@ const isAlreadyRefundedError = (error: unknown) => {
   );
 };
 
+export const isReverseTransferFailedError = (error: unknown) => {
+  const errorType = getStripeErrorType(error);
+  const errorMessage = getStripeErrorMessage(error);
+
+  return (
+    errorType === "StripeInvalidRequestError" &&
+    /transfer.*not found|no.*transfer.*reverse|cannot.*reverse.*transfer/i.test(
+      errorMessage ?? ""
+    )
+  );
+};
+
 const DISPUTED_CODES = ["charge_disputed", "cannot_refund_disputed_payment"];
 
 const isTestPaymentIntent = (paymentIntentId: string | null) =>
@@ -182,10 +194,11 @@ export async function processRefund({
     refundId = `re_test_${appointment.id.replace(/-/g, "").slice(0, 24)}`;
   } else {
     const stripe = getStripeClient();
+    let usedConnect = false;
 
     try {
       const intent = await stripe.paymentIntents.retrieve(payment.stripePaymentIntentId);
-      const usedConnect = Boolean(intent.transfer_data?.destination);
+      usedConnect = Boolean(intent.transfer_data?.destination);
 
       const refundParams: Stripe.RefundCreateParams = {
         payment_intent: payment.stripePaymentIntentId,
@@ -220,7 +233,30 @@ export async function processRefund({
         );
       }
 
-      if (isAlreadyRefundedError(error)) {
+      if (isReverseTransferFailedError(error) && usedConnect) {
+        // Fallback: retry refund without reverse_transfer when no transfer
+        // exists to reverse (e.g. connected account suspended mid-flight)
+        console.warn(
+          `[refund-fallback] Reverse transfer failed for appointment=${appointment.id} pi=${payment.stripePaymentIntentId}. Retrying without reverse_transfer — platform absorbs refund cost.`
+        );
+
+        const fallbackRefund = await stripe.refunds.create(
+          {
+            payment_intent: payment.stripePaymentIntentId,
+            amount: payment.amountCents,
+            metadata: {
+              appointmentId: appointment.id,
+              reason: "customer_cancellation",
+              fallback: "reverse_transfer_failed",
+            },
+          },
+          {
+            idempotencyKey: `refund-fallback-${appointment.id}`,
+          }
+        );
+
+        refundId = fallbackRefund.id;
+      } else if (isAlreadyRefundedError(error)) {
         const existingRefundId = await getExistingRefundIdFromPaymentIntent(
           payment.stripePaymentIntentId
         );

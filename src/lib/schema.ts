@@ -570,6 +570,7 @@ export const appointments = pgTable(
     financialOutcome: appointmentFinancialOutcomeEnum("financial_outcome")
       .default("unresolved")
       .notNull(),
+    transferHeld: boolean("transfer_held").default(false).notNull(),
     noShowScore: integer("no_show_score"),
     noShowRisk: noShowRiskEnum("no_show_risk"),
     noShowComputedAt: timestamp("no_show_computed_at", { withTimezone: true }),

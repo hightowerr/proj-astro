@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { getServerEnv } from "@/lib/env";
-import { processedStripeEvents, shops } from "@/lib/schema";
+import { appointments, processedStripeEvents, shops } from "@/lib/schema";
 import { getStripeClient } from "@/lib/stripe";
 import { resolveTransferContext } from "@/lib/stripe-utils";
 
@@ -83,6 +83,102 @@ export async function POST(req: Request) {
               updatedAt: new Date(),
             })
             .where(eq(shops.id, shop.id));
+
+          // Sweep: cancel in-flight PaymentIntents when shop is suspended.
+          // Prevents customers from completing payment with a stale clientSecret
+          // that would result in a charge-without-transfer.
+          if (newStatus === "suspended") {
+            const pendingPayments = await tx.query.payments.findMany({
+              where: (table, { and, eq: whereEq, isNotNull, inArray }) =>
+                and(
+                  whereEq(table.shopId, shop.id),
+                  isNotNull(table.stripePaymentIntentId),
+                  inArray(table.status, [
+                    "requires_payment_method",
+                    "requires_action",
+                    "processing",
+                  ]),
+                ),
+            });
+
+            const stripe = getStripeClient();
+            let cancelledCount = 0;
+
+            for (const payment of pendingPayments) {
+              if (!payment.stripePaymentIntentId) continue;
+              try {
+                await stripe.paymentIntents.cancel(
+                  payment.stripePaymentIntentId
+                );
+                cancelledCount++;
+                console.warn(
+                  "Cancelled in-flight PaymentIntent for suspended shop",
+                  {
+                    stripePaymentIntentId: payment.stripePaymentIntentId,
+                    shopId: shop.id,
+                    paymentId: payment.id,
+                  }
+                );
+              } catch (err) {
+                // PI may have already succeeded or been cancelled in a race window
+                console.warn(
+                  "Failed to cancel PaymentIntent during suspension sweep",
+                  {
+                    stripePaymentIntentId: payment.stripePaymentIntentId,
+                    shopId: shop.id,
+                    paymentId: payment.id,
+                    error:
+                      err instanceof Error ? err.message : String(err),
+                  }
+                );
+              }
+            }
+
+            console.warn("Suspension sweep complete", {
+              shopId: shop.id,
+              pendingPaymentsFound: pendingPayments.length,
+              paymentIntentsCancelled: cancelledCount,
+            });
+
+            // Sweep: flag recently-succeeded payments with transferHeld.
+            // Payments that completed in the race window between Stripe
+            // suspending the account and this webhook arriving should not
+            // have their transfer auto-created until the suspension is
+            // reviewed and resolved.
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+            const recentPaid = await tx.query.appointments.findMany({
+              columns: { id: true },
+              where: (table, { and: whereAnd, eq: whereEq, gt: whereGt }) =>
+                whereAnd(
+                  whereEq(table.shopId, shop.id),
+                  whereEq(table.paymentStatus, "paid"),
+                  whereEq(table.transferHeld, false),
+                  whereGt(table.updatedAt, oneHourAgo),
+                ),
+            });
+
+            if (recentPaid.length > 0) {
+              const recentPaidIds = recentPaid.map((a) => a.id);
+              await tx
+                .update(appointments)
+                .set({ transferHeld: true, updatedAt: new Date() })
+                .where(
+                  and(
+                    eq(appointments.shopId, shop.id),
+                    inArray(appointments.id, recentPaidIds),
+                  ),
+                );
+            }
+
+            console.warn(
+              "Flagged recent payments as transferHeld for suspended shop",
+              {
+                shopId: shop.id,
+                flaggedCount: recentPaid.length,
+              },
+            );
+          }
         }
       } else if (event.type === "transfer.created") {
         const transfer = event.data.object as Stripe.Transfer;

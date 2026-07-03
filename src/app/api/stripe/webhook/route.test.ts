@@ -26,9 +26,12 @@ import {
   user,
 } from "@/lib/schema";
 
+const { syncAppointmentCalendarEventMock } = vi.hoisted(() => ({
+  syncAppointmentCalendarEventMock: vi.fn(),
+}));
+
 let mockEvent: Stripe.Event | null = null;
 const fetchMock = vi.fn();
-const syncAppointmentCalendarEventMock = vi.fn();
 
 vi.mock("@/lib/queries/appointments", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/queries/appointments")>();
@@ -449,5 +452,175 @@ describe("Stripe webhook handler", () => {
         body: JSON.stringify({ slotOpeningId: fixture.slotOpeningId }),
       })
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Detection guard — transferHeld flag on suspended shops
+// ---------------------------------------------------------------------------
+
+describe("Detection guard — transferHeld", () => {
+  const stripeAccountId = "acct_guard_test_1";
+
+  /**
+   * Helper: create a payment + appointment fixture and set the shop's
+   * stripeAccountId + stripeOnboardingStatus so the detection guard has
+   * something to look up.
+   */
+  const createGuardFixture = async (
+    onboardingStatus: "complete" | "suspended" | "pending" | "not_started"
+  ) => {
+    const { paymentIntentId, appointmentId } =
+      await createPaymentAppointment();
+
+    // Retrieve the appointment to find its shopId
+    const appointment = await db.query.appointments.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, appointmentId),
+    });
+
+    if (!appointment) {
+      throw new Error("Appointment not found");
+    }
+
+    // Set stripeAccountId + onboarding status on the shop
+    await db
+      .update(shops)
+      .set({
+        stripeAccountId,
+        stripeOnboardingStatus: onboardingStatus,
+      })
+      .where(eq(shops.id, appointment.shopId));
+
+    return { paymentIntentId, appointmentId, shopId: appointment.shopId };
+  };
+
+  const fireSucceededEvent = async (
+    paymentIntentId: string,
+    transferDestination?: string
+  ) => {
+    const eventId = `evt_guard_${randomUUID()}`;
+    const intent: Record<string, unknown> = {
+      id: paymentIntentId,
+      status: "succeeded",
+    };
+
+    if (transferDestination) {
+      intent.transfer_data = { destination: transferDestination };
+    }
+
+    mockEvent = {
+      id: eventId,
+      type: "payment_intent.succeeded",
+      data: { object: intent },
+    } as unknown as Stripe.Event;
+
+    const req = new Request("http://localhost:3000/api/stripe/webhook", {
+      method: "POST",
+      headers: { "stripe-signature": "test" },
+      body: JSON.stringify({}),
+    });
+
+    return POST(req);
+  };
+
+  afterEach(async () => {
+    // Clear stripeAccountId to avoid unique-index collisions across tests
+    await db
+      .update(shops)
+      .set({ stripeAccountId: null })
+      .where(eq(shops.stripeAccountId, stripeAccountId));
+  });
+
+  it("shop not suspended (complete) — transferHeld stays false", async () => {
+    const { paymentIntentId, appointmentId } =
+      await createGuardFixture("complete");
+
+    const response = await fireSucceededEvent(
+      paymentIntentId,
+      stripeAccountId
+    );
+    expect(response.status).toBe(200);
+
+    const row = await db.query.appointments.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, appointmentId),
+    });
+
+    expect(row?.paymentStatus).toBe("paid");
+    expect(row?.transferHeld).toBe(false);
+  });
+
+  it("shop suspended — transferHeld set to true", async () => {
+    const { paymentIntentId, appointmentId } =
+      await createGuardFixture("suspended");
+
+    const response = await fireSucceededEvent(
+      paymentIntentId,
+      stripeAccountId
+    );
+    expect(response.status).toBe(200);
+
+    const row = await db.query.appointments.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, appointmentId),
+    });
+
+    expect(row?.paymentStatus).toBe("paid");
+    expect(row?.transferHeld).toBe(true);
+  });
+
+  it("shop pending — transferHeld stays false", async () => {
+    const { paymentIntentId, appointmentId } =
+      await createGuardFixture("pending");
+
+    const response = await fireSucceededEvent(
+      paymentIntentId,
+      stripeAccountId
+    );
+    expect(response.status).toBe(200);
+
+    const row = await db.query.appointments.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, appointmentId),
+    });
+
+    expect(row?.paymentStatus).toBe("paid");
+    expect(row?.transferHeld).toBe(false);
+  });
+
+  it("no connected account (no transfer_data) — guard skipped, no shop lookup", async () => {
+    const { paymentIntentId, appointmentId } =
+      await createGuardFixture("suspended");
+
+    // Fire event WITHOUT transfer_data — guard should be skipped entirely
+    const response = await fireSucceededEvent(paymentIntentId);
+    expect(response.status).toBe(200);
+
+    const row = await db.query.appointments.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, appointmentId),
+    });
+
+    // Payment still succeeds
+    expect(row?.paymentStatus).toBe("paid");
+    // But transferHeld stays false because guard was never reached
+    expect(row?.transferHeld).toBe(false);
+  });
+
+  it("order of operations — appointment marked paid before guard runs", async () => {
+    const { paymentIntentId, appointmentId } =
+      await createGuardFixture("suspended");
+
+    const response = await fireSucceededEvent(
+      paymentIntentId,
+      stripeAccountId
+    );
+    expect(response.status).toBe(200);
+
+    const row = await db.query.appointments.findFirst({
+      where: (table, { eq: whereEq }) => whereEq(table.id, appointmentId),
+    });
+
+    // Appointment is "paid" + "booked" (handlePaymentIntent ran first)
+    expect(row?.paymentStatus).toBe("paid");
+    expect(row?.status).toBe("booked");
+    // AND transferHeld is true (guard ran second, on the already-paid appointment)
+    expect(row?.transferHeld).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { appointments, payments } from "@/lib/schema";
 import { getStripeClient, stripeIsMocked } from "@/lib/stripe";
-import { processRefund } from "@/lib/stripe-refund";
+import { isReverseTransferFailedError, processRefund } from "@/lib/stripe-refund";
 import type Stripe from "stripe";
 
 const refundsCreateMock = vi.fn();
@@ -48,6 +48,7 @@ const makeAppointment = (): typeof appointments.$inferSelect => {
     paymentStatus: "paid",
     paymentRequired: true,
     financialOutcome: "unresolved",
+    transferHeld: false,
     noShowScore: null,
     noShowRisk: null,
     noShowComputedAt: null,
@@ -135,6 +136,7 @@ describe("processRefund", () => {
   });
 
   it("creates a new refund when none exists", async () => {
+    paymentIntentRetrieveMock.mockResolvedValue({} as Stripe.PaymentIntent);
     refundsCreateMock.mockResolvedValue({ id: "re_123" } as Stripe.Refund);
 
     const result = await processRefund({
@@ -187,6 +189,7 @@ describe("processRefund", () => {
   });
 
   it("handles Stripe rate limit error", async () => {
+    paymentIntentRetrieveMock.mockResolvedValue({} as Stripe.PaymentIntent);
     refundsCreateMock.mockRejectedValue({
       type: "StripeRateLimitError",
       message: "Too many requests",
@@ -229,6 +232,7 @@ describe("processRefund", () => {
   });
 
   it("uses idempotency key to prevent duplicate refunds", async () => {
+    paymentIntentRetrieveMock.mockResolvedValue({} as Stripe.PaymentIntent);
     refundsCreateMock.mockResolvedValue({ id: "re_123" } as Stripe.Refund);
 
     await processRefund({
@@ -265,6 +269,7 @@ describe("processRefund", () => {
 
   it("returns success when appointment was already cancelled concurrently", async () => {
     setupDbTransaction([]);
+    paymentIntentRetrieveMock.mockResolvedValue({} as Stripe.PaymentIntent);
     refundsCreateMock.mockResolvedValue({ id: "re_123" } as Stripe.Refund);
 
     const result = await processRefund({
@@ -278,5 +283,226 @@ describe("processRefund", () => {
       refundId: "re_123",
       amount: 5000,
     });
+  });
+});
+
+describe("isReverseTransferFailedError", () => {
+  it("returns true for Stripe error with 'no transfer to reverse' message", () => {
+    const error = {
+      type: "StripeInvalidRequestError",
+      message: "There is no transfer to reverse on this charge",
+    };
+
+    expect(isReverseTransferFailedError(error)).toBe(true);
+  });
+
+  it("returns true for Stripe error with 'transfer not found' message", () => {
+    const error = {
+      type: "StripeInvalidRequestError",
+      message: "The transfer associated with this charge was not found",
+    };
+
+    expect(isReverseTransferFailedError(error)).toBe(true);
+  });
+
+  it("returns false for Stripe error with 'charge_already_refunded' code", () => {
+    const error = {
+      type: "StripeInvalidRequestError",
+      code: "charge_already_refunded",
+      message: "Charge has already been refunded",
+    };
+
+    expect(isReverseTransferFailedError(error)).toBe(false);
+  });
+
+  it("returns false for non-Stripe error", () => {
+    const error = new Error("Something went wrong");
+
+    expect(isReverseTransferFailedError(error)).toBe(false);
+  });
+
+  it("returns false for Stripe error with unrelated message", () => {
+    const error = {
+      type: "StripeInvalidRequestError",
+      message: "Amount exceeds maximum refund amount",
+    };
+
+    expect(isReverseTransferFailedError(error)).toBe(false);
+  });
+});
+
+describe("processRefund — fallback retry logic", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupDbTransaction();
+  });
+
+  it("succeeds on first attempt with reverse_transfer — no retry", async () => {
+    paymentIntentRetrieveMock.mockResolvedValue({
+      transfer_data: { destination: "acct_connected_123" },
+    } as unknown as Stripe.PaymentIntent);
+
+    refundsCreateMock.mockResolvedValue({ id: "re_connect_123" } as Stripe.Refund);
+
+    const result = await processRefund({
+      appointment: makeAppointment(),
+      payment: makePayment(),
+      cutoffTime: new Date(),
+    });
+
+    expect(refundsCreateMock).toHaveBeenCalledTimes(1);
+    expect(refundsCreateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reverse_transfer: true,
+        refund_application_fee: true,
+      }),
+      expect.objectContaining({
+        idempotencyKey: "refund-appt-123",
+      })
+    );
+
+    expect(result).toEqual({
+      success: true,
+      refundId: "re_connect_123",
+      amount: 5000,
+    });
+  });
+
+  it("retries without reverse_transfer on no-transfer error", async () => {
+    paymentIntentRetrieveMock.mockResolvedValue({
+      transfer_data: { destination: "acct_connected_123" },
+    } as unknown as Stripe.PaymentIntent);
+
+    const reverseTransferError = {
+      type: "StripeInvalidRequestError",
+      message: "There is no transfer to reverse on this charge",
+    };
+
+    refundsCreateMock
+      .mockRejectedValueOnce(reverseTransferError)
+      .mockResolvedValueOnce({ id: "re_fallback_123" } as Stripe.Refund);
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const result = await processRefund({
+      appointment: makeAppointment(),
+      payment: makePayment(),
+      cutoffTime: new Date(),
+    });
+
+    expect(refundsCreateMock).toHaveBeenCalledTimes(2);
+
+    // Second call should NOT have reverse_transfer or refund_application_fee
+    const secondCallParams = refundsCreateMock.mock.calls[1]![0] as Stripe.RefundCreateParams;
+    expect(secondCallParams.reverse_transfer).toBeUndefined();
+    expect(secondCallParams.refund_application_fee).toBeUndefined();
+    const fallbackMeta = secondCallParams.metadata as Record<string, string> | undefined;
+    expect(fallbackMeta?.fallback).toBe("reverse_transfer_failed");
+
+    expect(result).toEqual({
+      success: true,
+      refundId: "re_fallback_123",
+      amount: 5000,
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[refund-fallback]")
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it("propagates error when fallback also fails", async () => {
+    paymentIntentRetrieveMock.mockResolvedValue({
+      transfer_data: { destination: "acct_connected_123" },
+    } as unknown as Stripe.PaymentIntent);
+
+    const reverseTransferError = {
+      type: "StripeInvalidRequestError",
+      message: "There is no transfer to reverse on this charge",
+    };
+
+    const fallbackError = {
+      type: "StripeInvalidRequestError",
+      message: "Some other invalid request error",
+    };
+
+    refundsCreateMock
+      .mockRejectedValueOnce(reverseTransferError)
+      .mockRejectedValueOnce(fallbackError);
+
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await expect(
+      processRefund({
+        appointment: makeAppointment(),
+        payment: makePayment(),
+        cutoffTime: new Date(),
+      })
+    ).rejects.toThrow();
+
+    expect(refundsCreateMock).toHaveBeenCalledTimes(2);
+
+    vi.restoreAllMocks();
+  });
+
+  it("does not retry on non-reverse-transfer Stripe error", async () => {
+    paymentIntentRetrieveMock.mockResolvedValue({
+      transfer_data: { destination: "acct_connected_123" },
+    } as unknown as Stripe.PaymentIntent);
+
+    refundsCreateMock.mockRejectedValue({
+      type: "StripeCardError",
+      message: "Card was declined",
+    });
+
+    await expect(
+      processRefund({
+        appointment: makeAppointment(),
+        payment: makePayment(),
+        cutoffTime: new Date(),
+      })
+    ).rejects.toThrow("Card refund failed. Please contact support.");
+
+    expect(refundsCreateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses 'refund-fallback-' idempotency key prefix on retry", async () => {
+    paymentIntentRetrieveMock.mockResolvedValue({
+      transfer_data: { destination: "acct_connected_123" },
+    } as unknown as Stripe.PaymentIntent);
+
+    refundsCreateMock
+      .mockRejectedValueOnce({
+        type: "StripeInvalidRequestError",
+        message: "There is no transfer to reverse on this charge",
+      })
+      .mockResolvedValueOnce({ id: "re_fallback_456" } as Stripe.Refund);
+
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await processRefund({
+      appointment: makeAppointment(),
+      payment: makePayment(),
+      cutoffTime: new Date(),
+    });
+
+    expect(refundsCreateMock).toHaveBeenCalledTimes(2);
+
+    // First call uses standard key
+    expect(refundsCreateMock.mock.calls[0]![1]).toEqual(
+      expect.objectContaining({
+        idempotencyKey: "refund-appt-123",
+      })
+    );
+
+    // Second call uses fallback key
+    expect(refundsCreateMock.mock.calls[1]![1]).toEqual(
+      expect.objectContaining({
+        idempotencyKey: "refund-fallback-appt-123",
+      })
+    );
+
+    vi.restoreAllMocks();
   });
 });

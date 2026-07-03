@@ -1,9 +1,10 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AllAppointmentsTable } from "@/components/dashboard/all-appointments-table";
 import { AttentionRequiredTable } from "@/components/dashboard/attention-required-table";
 import { ConnectCard } from "@/components/dashboard/connect-card";
+import { TransferHeldCard } from "@/components/dashboard/transfer-held-card";
 import { DailyLogFeed } from "@/components/dashboard/daily-log-feed";
 import { DashboardSearch } from "@/components/dashboard/dashboard-search";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
@@ -41,8 +42,19 @@ export default async function DashboardPage({
   }
 
   // Connect card gate queries — run in parallel, independent of view/period
-  const [hasServicesResult, hasAvailabilityResult, unprotectedCountResult] =
-    await Promise.all([
+  const transferHeldWhere = and(
+    eq(appointments.shopId, shop.id),
+    eq(appointments.transferHeld, true),
+    ne(appointments.financialOutcome, "refunded"),
+  );
+
+  const [
+    hasServicesResult,
+    hasAvailabilityResult,
+    unprotectedCountResult,
+    heldCountResult,
+    heldFirstResult,
+  ] = await Promise.all([
       db.query.eventTypes.findFirst({
         where: (t, { and, eq }) =>
           and(eq(t.shopId, shop.id), eq(t.isActive, true)),
@@ -62,7 +74,19 @@ export default async function DashboardPage({
             eq(appointments.status, "booked")
           )
         ),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(appointments)
+        .where(transferHeldWhere),
+      db
+        .select({ id: appointments.id })
+        .from(appointments)
+        .where(transferHeldWhere)
+        .limit(1),
     ]);
+
+  const heldTransferCount = heldCountResult[0]?.count ?? 0;
+  const heldFirstAppointmentId = heldFirstResult[0]?.id;
 
   const connectCardProps = {
     stripeOnboardingStatus: shop.stripeOnboardingStatus,
@@ -122,6 +146,7 @@ export default async function DashboardPage({
         <div className="max-w-7xl mx-auto space-y-16 px-12 pb-24 py-8">
           {pageHeader}
           <ConnectCard {...connectCardProps} />
+          <TransferHeldCard count={heldTransferCount} appointmentId={heldFirstAppointmentId} />
           <DailyLogFeed items={logItems} />
         </div>
       </div>
@@ -148,6 +173,8 @@ export default async function DashboardPage({
         {pageHeader}
 
         <ConnectCard {...connectCardProps} />
+
+        <TransferHeldCard count={heldTransferCount} appointmentId={heldFirstAppointmentId} />
 
         <SummaryCards
           totalUpcoming={totalUpcoming}
