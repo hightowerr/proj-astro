@@ -1,0 +1,24 @@
+# Build artifacts
+.next
+out
+build
+
+# Dev/test
+coverage
+playwright-report
+test-results
+tests
+.playwright-mcp
+.next-playwright
+
+# Documentation and non-deploy assets
+docs
+Prompts
+screenshots
+output
+scripts
+
+# Misc
+*.md
+.DS_Store
+*.pem

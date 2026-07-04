@@ -229,6 +229,34 @@ export async function POST(req: Request) {
           });
           appointmentToSyncCalendar = existingPayment?.appointmentId ?? null;
         }
+
+        // Detection guard: flag transfer as held if shop is suspended
+        if (intent.transfer_data?.destination) {
+          const shop = await tx.query.shops.findFirst({
+            where: (table, { eq: whereEq }) =>
+              whereEq(
+                table.stripeAccountId,
+                intent.transfer_data!.destination as string
+              ),
+          });
+
+          if (shop?.stripeOnboardingStatus === "suspended") {
+            const appointmentId =
+              appointmentToNotify ?? appointmentToSyncCalendar;
+            if (appointmentId) {
+              await tx
+                .update(appointments)
+                .set({ transferHeld: true, updatedAt: new Date() })
+                .where(eq(appointments.id, appointmentId));
+
+              console.warn(
+                "Payment succeeded but transfer held — shop %s suspended",
+                shop.id
+              );
+            }
+          }
+        }
+
         return;
       }
 

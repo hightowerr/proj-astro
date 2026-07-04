@@ -116,7 +116,15 @@ Address remaining current-issues from Stripe Connect design review. Refund state
   - **Wave 3 (Safety nets):** `console.warn` for unhandled connect-webhook events, 7 handler integration tests, ops checklist for Stripe Dashboard
   - **New files (4):** `stripe-utils.ts`, `stripe-utils.test.ts`, `appointments-metadata.test.ts`, `connect-webhook/route.test.ts`
   - **Modified files (3):** `connect-webhook/route.ts` (+transfer handlers, +unhandled else), `webhook/route.ts` (+unhandled else), `appointments.ts` (+`buildConnectPaymentMetadata()` extraction)
-  - **Spec 07 (ops):** BLOCKED on deployment — register `transfer.created`/`transfer.failed` in Stripe Dashboard after deploy
+  - **Spec 07 (ops):** BLOCKED on deployment — register `transfer.created` in Stripe Dashboard after deploy
+
+- **In-Flight Payments — Transfer Event Rethink** — 6 specs (14-19), 3 waves. Backend-only. IMPLEMENT COMPLETE — awaiting VERIFY.
+  - **Wave 5 (Cleanup + docs):** Removed `transfer.failed` dead code (18 lines handler + 80 lines tests). Updated spec 03 to PRIMARY detection framing.
+  - **Wave 6 (Handlers):** Added `transfer.reversed` handler (console.error + MANUAL_REVIEW_REQUIRED) and `transfer.updated` handler (console.warn, informational) to connect-webhook.
+  - **Wave 7 (Tests):** 6 new tests (3 per handler: happy path, unresolvable context, dedup). 19 total tests in file, all passing.
+  - **Modified files (2):** `connect-webhook/route.ts`, `connect-webhook/route.test.ts`
+  - **Modified docs (2):** `03-detection-guard.md`, `inflight-payments-shape.md`
+  - **Ops required:** Register `transfer.reversed` and `transfer.updated` on Connect webhook endpoint in Stripe Dashboard
 
 ---
 

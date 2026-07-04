@@ -1,65 +1,81 @@
 # Feature Loop Contract
 
 ## Goal
-All webhook-unaware specs (10 specs across 3 waves) are implemented, independently verified,
+All inflight-payments specs (13 specs across 4 waves) are implemented, independently verified,
 drift-audited with zero unresolved conflicts, and retrospective logged.
 
 ## Current state
-- Feature: webhook-unaware (Platform webhook unaware of Connect transfers)
-- Wave: ALL (1–3)
+- Feature: inflight-payments (Transfer event rethink — specs 14-19)
+- Wave: ALL (1–7)
 - Phase: COMPLETE
-- Specs in scope: docs/shaping/webhook-unaware/ (01–10)
-- Verify: 30 PASS / 0 FAIL / 3 BLOCKED (spec 07 — deployment)
-- Drift: 7 evolution / 0 shortcut (0% — well below 50% threshold)
-- Retro: 1 pattern, 1 friction signal, 1 pattern updated
-- Tests: 23 new tests (5 + 11 + 7), all passing. 3 pre-existing failures unchanged.
+- Specs in scope: docs/shaping/inflight-payments/ (14–19)
+- Prior waves (01–13): COMPLETE — 76 PASS / 0 FAIL, 8 evolution / 0 shortcut
+
+### Completed round (specs 01-13)
+- Verify: 76 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session.
+- Drift: 8 evolution / 0 shortcut (0% — well below 50% threshold)
+- Retro: 1 pattern extracted, 1 pattern updated
+- Tests: 45 new tests (verifier count), all passing. 1 pre-existing failure (messages.test.ts).
 - Type-check: zero new errors
 
-## Retro summary
-- **Patterns extracted (1):** extract-for-testability (pure function extraction for testing inline logic without mocks)
-- **Patterns updated (1):** spike-before-shape — added items 4-5: check lint rules/TS types will compile, check target column types
-- **Friction logged (1):** no-console-info-lint (CODEBASE — lint `no-console` blocks `console.info`, pollutes warn channel for observability logging)
-- **Drift analysis:** 7 evolutions, 0 shortcuts. 3 root causes: lint constraint, Stripe TS gap, column type. All discoverable pre-shape with expanded spikes.
-- **Key learning:** Backend-only features with no UI produce zero visual drift — all deviations trace to compile-time constraints (lint, types, column schemas). Expanding spike scope to include "will this compile?" and "what types does the target accept?" would have caught all 7 at shape time.
-
 ## Backlog
-- Wave 1: ✅ Specs 01, 04, 05 — foundations
-- Wave 2: ✅ Specs 02+03, 08, 10 — core handlers + foundation tests
-- Wave 3: ✅ Specs 06, 09 — safety nets + handler tests. Spec 07 (ops) BLOCKED on deployment.
-- Blocked specs: 07 (register events in Stripe Dashboard — requires deployment first)
+- Wave 1: ✅ Specs 01, 02, 07 — foundations (3 parallel agents)
+- Wave 2: ✅ Specs 03, 04, 06, 08, 09 — core logic + P1 tests (5 parallel agents)
+- Wave 3: ✅ Specs 05, 10, 12 — UI completion + backend tests (3 parallel agents)
+- Wave 4: ✅ Specs 11, 13 — final tests (2 parallel agents)
+- Wave 5: ✅ Specs 14, 19 — dead code cleanup + docs (2 parallel agents)
+- Wave 6: ✅ Specs 15, 17 — transfer event handlers (1 agent — file contention)
+- Wave 7: ✅ Specs 16, 18 — handler tests (1 agent — file contention)
+- Blocked specs: none
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |
 |------|------|-------|----------|-------|
-| 2026-07-01 | — | SHAPE | — | 10 specs, 3 waves, shape + spike + slices + 9 slice plans. No UI — all backend observability. |
-| 2026-07-01 | 1 | IMPLEMENT | — | 3 parallel agents (worktree). stripe-utils.ts (new), appointments.ts (+1 line), webhook/route.ts (+else branch). Clean. |
-| 2026-07-01 | 2 | IMPLEMENT | — | 3 parallel agents. connect-webhook handlers, 2 test files (16 tests). Deviations: console.info→console.warn (lint), buildConnectPaymentMetadata extraction. |
-| 2026-07-01 | 3 | IMPLEMENT | — | 1 direct + 1 agent. else branch in connect-webhook, handler test file (7 tests). Spec 07 (ops) documented, blocked on deploy. |
-| 2026-07-02 | ALL | VERIFY | — | 30 PASS / 0 FAIL / 3 BLOCKED (spec 07). Independent verifier in separate session. |
-| 2026-07-02 | ALL | DRIFT AUDIT | — | 7 evolution / 0 shortcut (0%). 4 specs patched (02, 03, 04, 09, 10). 3 root causes: lint constraint, Stripe TS gap, column type. |
-| 2026-07-02 | ALL | RETRO | — | 1 pattern extracted, 1 pattern updated, 1 friction logged. Loop COMPLETE. |
+| 2026-07-02 | — | SHAPE (specs) | — | 13 specs created from mental models analysis. BUILD-ORDER with 4-phase dependency graph. |
+| 2026-07-03 | — | SHAPE (designs) | — | Both design prototypes reviewed (Appointment Fee Breakdown + Dashboard Connect Card). Specs 04-06 enriched with exact design details. |
+| 2026-07-03 | — | SHAPE (spike+plans) | — | 7 spikes run. 3 critical findings: webhook needs shop lookup (spec 03), new error helper needed (spec 01), console.warn required. Shape doc, slices doc, 13 slice plans across 4 wave folders. |
+| 2026-07-03 | 1 | IMPLEMENT | — | 3 parallel agents (worktree). stripe-refund.ts (+isReverseTransferFailedError, fallback catch), schema.ts (+transferHeld), connect-webhook (+sweep cancel). Clean. |
+| 2026-07-03 | 2 | IMPLEMENT | — | 5 parallel agents. Detection guard (webhook/route.ts), card state (payment-card.tsx), dashboard card (new transfer-held-card.tsx), sweep flag (connect-webhook), refund tests (17 tests). |
+| 2026-07-03 | 3 | IMPLEMENT | — | 3 parallel agents. Helper text (payment-card.tsx), guard tests (5 tests), sweep tests (9 tests). |
+| 2026-07-03 | 4 | IMPLEMENT | — | 2 parallel agents. Card logic tests (16 tests, extracted 3 pure functions), integration tests (9 tests, 5 scenarios). |
+| 2026-07-03 | ALL | VERIFY | — | 76 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session. |
+| 2026-07-03 | ALL | DRIFT AUDIT | — | 8 evolution / 0 shortcut (0%). 3 root causes: data model discovery, mechanical necessity, testability. |
+| 2026-07-03 | ALL | RETRO | — | 1 pattern extracted (multi-table-spike), 1 pattern updated (spike-before-shape +1 item). Specs 01-13 COMPLETE. |
+| 2026-07-03 | — | SHAPE (specs 14-19) | — | 6 new specs from transfer event rethink. 1 spike (transfer event types). 3 wave folders with 6 slice plans. |
+| 2026-07-03 | 5 | IMPLEMENT | — | 2 parallel agents. Dead code removed (18 lines handler + 80 lines tests). Spec 03 docs updated to PRIMARY framing. |
+| 2026-07-03 | 6 | IMPLEMENT | — | 1 agent (file contention). transfer.reversed + transfer.updated handlers added to connect-webhook. |
+| 2026-07-03 | 7 | IMPLEMENT | — | 1 agent (file contention). 6 new tests (3 per handler). 19 total tests, all passing. Zero type errors. |
+| 2026-07-03 | 5–7 | VERIFY | — | 31 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session. |
+| 2026-07-03 | 5–7 | DRIFT AUDIT | — | 0 divergences — all 6 specs match implementation exactly. |
+| 2026-07-03 | 5–7 | RETRO | — | 0 patterns extracted (all patterns already covered). 0 drift. Loop COMPLETE. |
 
-## Prior feature (refund-state) — COMPLETE
-| Date | Wave | Phase | Duration | Notes |
-|------|------|-------|----------|-------|
-| 2026-07-01 | — | SHAPE | — | 10 specs, 3 waves, design prototype reviewed |
-| 2026-07-01 | 1–3 | IMPLEMENT | — | 3 waves sequential, typecheck clean |
-| 2026-07-01 | ALL | VERIFY | — | 31 PASS / 3 FAIL (test infra) / 0 BLOCKED |
-| 2026-07-01 | ALL | DRIFT AUDIT | — | 4 evolution / 1 shortcut (20%) |
-| 2026-07-01 | ALL | RETRO | — | 2 patterns, 1 friction. Loop COMPLETE |
+## Prior features
+### webhook-unaware — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-01 | — | SHAPE | 10 specs, 3 waves |
+| 2026-07-01 | 1–3 | IMPLEMENT | All 9 slices, 23 tests |
+| 2026-07-02 | ALL | VERIFY+DRIFT+RETRO | 30 PASS / 0 FAIL / 3 BLOCKED. 7 evolution / 0 shortcut. Loop COMPLETE. |
+
+### refund-state — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-01 | — | SHAPE | 10 specs, 3 waves |
+| 2026-07-01 | 1–3 | IMPLEMENT | 3 waves sequential |
+| 2026-07-01 | ALL | VERIFY+DRIFT+RETRO | 31 PASS / 3 FAIL (test infra). 4 evolution / 1 shortcut. Loop COMPLETE. |
 
 ## References
-- Shape: docs/shaping/webhook-unaware/shape/webhook-unaware-shape.md
-- Slices: docs/shaping/webhook-unaware/shape/webhook-unaware-slices.md
-- Spike: docs/shaping/webhook-unaware/shape/spike-codebase-analysis.md
-- Specs: docs/shaping/webhook-unaware/ (01–10)
-- Build order: docs/shaping/webhook-unaware/BUILD-ORDER.md
-- Verify: docs/shaping/webhook-unaware/shape/wave-all-verify.md
-- Drift: docs/signals/drift/webhook-unaware-all-waves.md
+- Shape: docs/shaping/inflight-payments/shape/inflight-payments-shape.md
+- Slices: docs/shaping/inflight-payments/shape/inflight-payments-slices.md
+- Spike: docs/shaping/inflight-payments/shape/spike-codebase-analysis.md
+- Specs: docs/shaping/inflight-payments/ (01–19)
+- Build order: docs/shaping/inflight-payments/BUILD-ORDER.md
+- Design brief: docs/shaping/inflight-payments/DESIGN-BRIEF.md
+- Design prototypes: Appointment Fee Breakdown.html, Dashboard Connect Card.html
 - Architecture: docs/context/architecture-context.md
 - Design system: docs/design-system/
 - Progress: docs/context/progress-tracker.md
 - Issues: docs/context/current-issues.md
 - Signals: docs/signals/
 - Work log: docs/loops/work-log.md
-- Mental models: mcp-go/Mental Models/WorkSpace/26-06-30_12-07-52_webhook_transfer_awareness/analysis-report.md
+- Mental models: mcp-go/Mental Models/WorkSpace/26-06-30_13-38-53_inflight_payment_connect_suspension/analysis_report.md

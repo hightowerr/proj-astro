@@ -11,6 +11,7 @@ type PaymentCardProps = {
   stripeOnboardingStatus?: string | null;
   isConnectPayment: boolean;
   depositSkipped: "connect_not_complete" | "policy_none" | null;
+  transferHeld?: boolean;
 };
 
 export type FeeState = "connect" | "waived" | "legacy" | "skipped" | "policy";
@@ -36,21 +37,57 @@ function formatGBP(cents: number): string {
   return `£${(cents / 100).toFixed(2)}`;
 }
 
+// ─── Extracted pure helpers for testability ─────────────────────────────────
+
+/** Determines the displayed payout value string. */
+export function resolvePayoutDisplay(
+  amountCents: number,
+  waived: boolean,
+  refunded: boolean,
+  transferHeld: boolean,
+): string {
+  const payoutHeld = !refunded && transferHeld;
+  if (payoutHeld) return "Held";
+  if (refunded) return formatGBP(0);
+  if (waived) return formatGBP(amountCents);
+  return formatGBP(amountCents - PLATFORM_FEE_CENTS);
+}
+
+/** Returns the Material Symbol icon name for the helper text line. */
+export function resolveHelperIcon(
+  refunded: boolean,
+  transferHeld: boolean,
+): string {
+  if (refunded) return "undo";
+  if (transferHeld) return "pause_circle";
+  return "north_east";
+}
+
+/** Returns the helper text copy for the payout status line. */
+export function resolveHelperText(
+  refunded: boolean,
+  transferHeld: boolean,
+): string {
+  if (refunded) return "Payout reversed to customer.";
+  if (transferHeld)
+    return "Payment received but transfer paused — Stripe is reviewing your account.";
+  return "Payout routed to your connected bank account.";
+}
+
 function FeeBreakdown({
   amountCents,
   waived,
   refunded = false,
+  transferHeld = false,
 }: {
   amountCents: number;
   waived: boolean;
   refunded?: boolean;
+  transferHeld?: boolean;
 }) {
   const deposit = formatGBP(amountCents);
-  const payout = refunded
-    ? formatGBP(0)
-    : waived
-      ? formatGBP(amountCents)
-      : formatGBP(amountCents - PLATFORM_FEE_CENTS);
+  const payoutHeld = !refunded && transferHeld;
+  const payoutDisplay = resolvePayoutDisplay(amountCents, waived, refunded, transferHeld);
 
   return (
     <div className="space-y-1 text-sm">
@@ -71,9 +108,9 @@ function FeeBreakdown({
         </span>
       </div>
       <div className="border-t border-dashed border-al-outline-variant" />
-      <div className="flex justify-between items-baseline" style={{ fontSize: "19px", fontWeight: 800, color: "var(--al-primary)" }}>
+      <div className="flex justify-between items-baseline" style={{ fontSize: "19px", fontWeight: 800, color: payoutHeld ? "var(--al-status-caution, #b45309)" : "var(--al-primary)" }}>
         <span>Your payout</span>
-        <span className="font-mono">{payout}</span>
+        <span className="font-mono">{payoutDisplay}</span>
       </div>
     </div>
   );
@@ -134,6 +171,7 @@ export function PaymentCard({
   stripeOnboardingStatus,
   isConnectPayment,
   depositSkipped,
+  transferHeld = false,
 }: PaymentCardProps) {
   const feeState = determineFeeState(amountCents, paymentRequired, isConnectPayment, depositSkipped);
   const refunded = financialOutcome === "refunded";
@@ -161,17 +199,15 @@ export function PaymentCard({
               Stripe Connect
             </span>
           </div>
-          <FeeBreakdown amountCents={amountCents} waived={feeState === "waived"} refunded={refunded} />
+          <FeeBreakdown amountCents={amountCents} waived={feeState === "waived"} refunded={refunded} transferHeld={transferHeld} />
           <p
             className="flex items-center gap-1 text-xs"
-            style={{ color: "var(--al-on-surface-variant)" }}
+            style={{ color: !refunded && transferHeld ? "var(--al-status-caution, #b45309)" : "var(--al-on-surface-variant)" }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: "14px" }} aria-hidden="true">
-              {refunded ? "undo" : "north_east"}
+              {resolveHelperIcon(refunded, transferHeld)}
             </span>
-            {refunded
-              ? "Payout reversed to customer."
-              : "Payout routed to your connected bank account."}
+            {resolveHelperText(refunded, transferHeld)}
           </p>
         </>
       )}
