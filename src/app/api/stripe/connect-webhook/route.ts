@@ -33,6 +33,10 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  // Stripe PI IDs to cancel after the transaction commits, so we don't hold
+  // DB connections open during external network calls.
+  let pendingCancellations: { stripePaymentIntentId: string; shopId: string; paymentId: string }[] = [];
+
   try {
     await db.transaction(async (tx) => {
       const inserted = await tx
@@ -84,7 +88,7 @@ export async function POST(req: Request) {
             })
             .where(eq(shops.id, shop.id));
 
-          // Sweep: cancel in-flight PaymentIntents when shop is suspended.
+          // Sweep: collect in-flight PaymentIntents to cancel after commit.
           // Prevents customers from completing payment with a stale clientSecret
           // that would result in a charge-without-transfer.
           if (newStatus === "suspended") {
@@ -101,44 +105,15 @@ export async function POST(req: Request) {
                 ),
             });
 
-            const stripe = getStripeClient();
-            let cancelledCount = 0;
-
-            for (const payment of pendingPayments) {
-              if (!payment.stripePaymentIntentId) continue;
-              try {
-                await stripe.paymentIntents.cancel(
-                  payment.stripePaymentIntentId
-                );
-                cancelledCount++;
-                console.warn(
-                  "Cancelled in-flight PaymentIntent for suspended shop",
-                  {
-                    stripePaymentIntentId: payment.stripePaymentIntentId,
-                    shopId: shop.id,
-                    paymentId: payment.id,
-                  }
-                );
-              } catch (err) {
-                // PI may have already succeeded or been cancelled in a race window
-                console.warn(
-                  "Failed to cancel PaymentIntent during suspension sweep",
-                  {
-                    stripePaymentIntentId: payment.stripePaymentIntentId,
-                    shopId: shop.id,
-                    paymentId: payment.id,
-                    error:
-                      err instanceof Error ? err.message : String(err),
-                  }
-                );
-              }
-            }
-
-            console.warn("Suspension sweep complete", {
-              shopId: shop.id,
-              pendingPaymentsFound: pendingPayments.length,
-              paymentIntentsCancelled: cancelledCount,
-            });
+            pendingCancellations = pendingPayments
+              .filter((p): p is typeof p & { stripePaymentIntentId: string } =>
+                Boolean(p.stripePaymentIntentId)
+              )
+              .map((p) => ({
+                stripePaymentIntentId: p.stripePaymentIntentId,
+                shopId: shop.id,
+                paymentId: p.id,
+              }));
 
             // Sweep: flag recently-succeeded payments with transferHeld.
             // Payments that completed in the race window between Stripe
@@ -262,6 +237,42 @@ export async function POST(req: Request) {
       error,
     });
     return Response.json({ error: "Webhook handler failed" }, { status: 500 });
+  }
+
+  // Cancel in-flight PaymentIntents AFTER commit so we don't hold DB
+  // connections open during Stripe network calls, and so a Stripe failure
+  // can't roll back the already-committed DB state.
+  if (pendingCancellations.length > 0) {
+    const stripe = getStripeClient();
+    let cancelledCount = 0;
+
+    for (const { stripePaymentIntentId, shopId, paymentId } of pendingCancellations) {
+      try {
+        await stripe.paymentIntents.cancel(stripePaymentIntentId);
+        cancelledCount++;
+        console.warn(
+          "Cancelled in-flight PaymentIntent for suspended shop",
+          { stripePaymentIntentId, shopId, paymentId }
+        );
+      } catch (err) {
+        // PI may have already succeeded or been cancelled in a race window
+        console.warn(
+          "Failed to cancel PaymentIntent during suspension sweep",
+          {
+            stripePaymentIntentId,
+            shopId,
+            paymentId,
+            error: err instanceof Error ? err.message : String(err),
+          }
+        );
+      }
+    }
+
+    console.warn("Suspension sweep complete", {
+      shopId: pendingCancellations[0]?.shopId,
+      pendingPaymentsFound: pendingCancellations.length,
+      paymentIntentsCancelled: cancelledCount,
+    });
   }
 
   return Response.json({ received: true });

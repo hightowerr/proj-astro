@@ -52,6 +52,7 @@ Prompts/
 Mental Models/WorkSpace/*
 
 .mcp.json
+*.code-workspace
 
 nul
 ```

@@ -246,7 +246,7 @@ export async function POST(req: Request) {
             if (appointmentId) {
               await tx
                 .update(appointments)
-                .set({ transferHeld: true })
+                .set({ transferHeld: true, updatedAt: new Date() })
                 .where(eq(appointments.id, appointmentId));
 
               console.warn(

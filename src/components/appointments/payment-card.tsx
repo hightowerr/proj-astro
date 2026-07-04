@@ -33,7 +33,7 @@ export function determineFeeState(
   return "skipped";
 }
 
-export function formatGBP(cents: number): string {
+function formatGBP(cents: number): string {
   return `£${(cents / 100).toFixed(2)}`;
 }
 

@@ -19,7 +19,6 @@ export default defineConfig(({ mode }) => {
         "tests/**", // Exclude Playwright E2E tests
         "**/test-results/**",
         "drizzle/**",
-        "src/app/api/stripe/webhook/route.test.ts", // Requires DB setup
       ],
       coverage: {
         provider: "v8",

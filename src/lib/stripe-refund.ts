@@ -240,22 +240,55 @@ export async function processRefund({
           `[refund-fallback] Reverse transfer failed for appointment=${appointment.id} pi=${payment.stripePaymentIntentId}. Retrying without reverse_transfer — platform absorbs refund cost.`
         );
 
-        const fallbackRefund = await stripe.refunds.create(
-          {
-            payment_intent: payment.stripePaymentIntentId,
-            amount: payment.amountCents,
-            metadata: {
-              appointmentId: appointment.id,
-              reason: "customer_cancellation",
-              fallback: "reverse_transfer_failed",
+        try {
+          const fallbackRefund = await stripe.refunds.create(
+            {
+              payment_intent: payment.stripePaymentIntentId,
+              amount: payment.amountCents,
+              metadata: {
+                appointmentId: appointment.id,
+                reason: "customer_cancellation",
+                fallback: "reverse_transfer_failed",
+              },
             },
-          },
-          {
-            idempotencyKey: `refund-fallback-${appointment.id}`,
-          }
-        );
+            {
+              idempotencyKey: `refund-fallback-${appointment.id}`,
+            }
+          );
 
-        refundId = fallbackRefund.id;
+          refundId = fallbackRefund.id;
+        } catch (fallbackError) {
+          const fbType = getStripeErrorType(fallbackError);
+          const fbMessage = getStripeErrorMessage(fallbackError);
+          const fbCode = (fallbackError as { code?: string }).code ?? "";
+
+          if (DISPUTED_CODES.includes(fbCode)) {
+            throw new Error(
+              "This payment is under dispute. Refunds are unavailable until the dispute is resolved."
+            );
+          } else if (isAlreadyRefundedError(fallbackError)) {
+            const existingRefundId = await getExistingRefundIdFromPaymentIntent(
+              payment.stripePaymentIntentId
+            );
+            if (existingRefundId) {
+              refundId = existingRefundId;
+            } else {
+              throw new Error("Refund exists on Stripe but could not be resolved");
+            }
+          } else if (fbType === "StripeRateLimitError") {
+            throw new Error("Too many requests. Please try again in a moment.");
+          } else if (fbType === "StripeCardError") {
+            throw new Error("Card refund failed. Please contact support.");
+          } else if (fbType === "StripeInvalidRequestError") {
+            throw new Error(
+              `Invalid refund request: ${fbMessage ?? "Unknown Stripe error"}`
+            );
+          } else if (fallbackError instanceof Error) {
+            throw new Error(`Refund failed: ${fallbackError.message}`);
+          } else {
+            throw new Error("Refund failed. Please try again or contact support.");
+          }
+        }
       } else if (isAlreadyRefundedError(error)) {
         const existingRefundId = await getExistingRefundIdFromPaymentIntent(
           payment.stripePaymentIntentId
