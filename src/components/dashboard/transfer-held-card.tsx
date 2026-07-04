@@ -3,7 +3,7 @@ import Link from "next/link";
 interface TransferHeldCardProps {
   count: number;
   /** When count === 1, link directly to the appointment detail page. */
-  appointmentId?: string;
+  appointmentId?: string | undefined;
 }
 
 export function TransferHeldCard({ count, appointmentId }: TransferHeldCardProps) {
