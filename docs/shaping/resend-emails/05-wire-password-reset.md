@@ -29,7 +29,7 @@ sendResetPassword: async ({ user, url }) => {
 
   const result = await sendEmail({
     to: user.email,
-    subject: "Reset your ShowUp password",
+    subject: "Reset your Astro password",
     html,
     text,
   })

@@ -15,29 +15,29 @@ None
 Same as `02-password-reset-email-template.md` — match connect reengagement template structure.
 
 ### Email Content
-- **Subject:** `Verify your ShowUp email`
+- **Subject:** `Verify your Astro email`
 - **Heading:** `Verify your email address`
-- **Body:** `Thanks for signing up for ShowUp. Click the button below to verify your email address.`
+- **Body:** `Thanks for signing up for Astro. Click the button below to verify your email address.`
 - **CTA button:** `Verify email →` (links to `${url}`)
 - **Fallback text:** `Or copy this link: ${url}`
 - **Expiry note:** `This link expires in 24 hours.`
-- **Footer:** `If you didn't create a ShowUp account, you can safely ignore this email.`
-- **Sign-off:** `— ShowUp`
+- **Footer:** `If you didn't create a Astro account, you can safely ignore this email.`
+- **Sign-off:** `— Astro`
 
 ### Plain Text Fallback
 ```
 Verify your email address
 
-Thanks for signing up for ShowUp. Click the link below to verify your email address.
+Thanks for signing up for Astro. Click the link below to verify your email address.
 
 Verify your email:
 ${url}
 
 This link expires in 24 hours.
 
-If you didn't create a ShowUp account, you can safely ignore this email.
+If you didn't create a Astro account, you can safely ignore this email.
 
-— ShowUp
+— Astro
 ```
 
 ## Files Changed

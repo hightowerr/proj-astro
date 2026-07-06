@@ -1,7 +1,7 @@
 # Spec: Production Environment Config
 
 ## Summary
-Set `EMAIL_FROM_ADDRESS` to `ShowUp <noreply@showup.dev>` in Vercel production environment. Dev/staging continues using Resend sandbox sender.
+Set `EMAIL_FROM_ADDRESS` to `Astro <noreply@showup.dev>` in Vercel production environment. Dev/staging continues using Resend sandbox sender.
 
 ## Type
 Infrastructure / Config
@@ -13,7 +13,7 @@ Infrastructure / Config
 
 ## Changes
 1. In Vercel dashboard → Settings → Environment Variables:
-   - Set `EMAIL_FROM_ADDRESS` = `ShowUp <noreply@showup.dev>` for **Production** environment
+   - Set `EMAIL_FROM_ADDRESS` = `Astro <noreply@showup.dev>` for **Production** environment
    - Keep `EMAIL_FROM_ADDRESS` = `onboarding@resend.dev` for **Preview** and **Development**
 2. Redeploy to pick up the new env var
 
@@ -21,8 +21,8 @@ Infrastructure / Config
 None (Vercel dashboard only)
 
 ## Acceptance
-- Production password reset emails arrive from `ShowUp <noreply@showup.dev>`
-- Production verification emails arrive from `ShowUp <noreply@showup.dev>`
+- Production password reset emails arrive from `Astro <noreply@showup.dev>`
+- Production verification emails arrive from `Astro <noreply@showup.dev>`
 - Dev/preview environments still use Resend sandbox sender
 - No code changes required — `sendEmail()` already reads `EMAIL_FROM_ADDRESS` at runtime
 

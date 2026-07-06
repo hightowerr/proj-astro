@@ -85,7 +85,7 @@ Both emails share an identical layout — only the copy differs. A single mockup
 ### Shared layout spec (match existing product emails)
 
 - **Width:** 600px max, `44px 56px` padding (desktop), `28px 24px` (mobile)
-- **Header:** "ShowUp" text logo — 22px, weight 800, `#001e40`
+- **Header:** "Astro" text logo — 22px, weight 800, `#001e40`
 - **Body text:** 15.5px, line-height 1.65, `#111827`
 - **CTA button:** `#001e40` bg, white text, 12px radius, `14px 36px` padding. Full-width on mobile
 - **Footer:** 12px, `#9ca3af`, separated by 1px `#e5e7eb` rule

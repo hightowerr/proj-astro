@@ -11,16 +11,12 @@ drift-audited with zero unresolved conflicts, and retrospective logged.
 - Specs in scope: docs/shaping/Re-engagement-email/ (01–04)
 - File: `src/app/api/jobs/connect-reengagement/route.ts` (4 string replacements)
 
-### Completed round (specs 01-13)
-- Verify: 76 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session.
-- Drift: 8 evolution / 0 shortcut (0% — well below 50% threshold)
-- Retro: 1 pattern extracted, 1 pattern updated
-- Tests: 45 new tests (verifier count), all passing. 1 pre-existing failure (messages.test.ts).
+### Completed round (specs 01-04)
+- Verify: 7 PASS / 4 FAIL (all pre-existing typography gaps, not regressions). Copy changes: 7/7 PASS.
+- Drift: 0 evolution / 0 shortcut / 4 pre-existing / 1 spec inconsistency. Zero drift from this change.
+- Retro: 0 patterns extracted, 0 friction logged. Pre-existing typography gaps logged to current-issues.md.
+- Tests: N/A (copy-only change, no new tests)
 - Type-check: zero new errors
-
-## Backlog
-- Wave 1: Specs 01, 02, 03, 04 — all copy changes (1 agent, sequential — file contention)
-- Blocked specs: none
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |

@@ -29,7 +29,7 @@ sendVerificationEmail: async ({ user, url }) => {
 
   const result = await sendEmail({
     to: user.email,
-    subject: "Verify your ShowUp email",
+    subject: "Verify your Astro email",
     html,
     text,
   })

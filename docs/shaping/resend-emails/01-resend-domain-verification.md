@@ -1,7 +1,7 @@
 # Spec: Resend Domain Verification
 
 ## Summary
-Verify `showup.dev` as a sender domain in Resend so production emails send from `ShowUp <noreply@showup.dev>`.
+Verify `showup.dev` as a sender domain in Resend so production emails send from `Astro <noreply@showup.dev>`.
 
 ## Type
 Infrastructure / DNS

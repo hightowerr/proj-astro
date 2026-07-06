@@ -119,7 +119,7 @@ export async function POST(req: Request) {
 </body>
 </html>`;
 
-        const text = `Hi ${firstName},\n\nYou began setting up deposits — finish in under 5 minutes.\n\nOnce set up, customer deposits will go directly to your bank account on every booking.\n\nComplete setup (this usually takes under 5 minutes):\n${setupUrl}\n\n— Astro\n\n---\nYou're receiving this because you began setting up deposit collection for your Astro account. This is a transactional notification — not a marketing email.`;
+        const text = `Hi ${firstName},\n\nYou began setting up deposits — finish in under 5 minutes.\n\nOnce set up, customer deposits will go directly to your bank account on every booking.\n\nComplete setup (this usually takes under 5 minutes):\n${setupUrl}\n\n— Astro\n\n---\nYou're receiving this because you began setting up deposit collection for your Astro account. This is a transactional account-setup message.`;
 
         const result = await sendEmail({
           to: shop.userEmail,
