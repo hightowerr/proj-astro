@@ -286,3 +286,36 @@ Append-only. Every agent reads the last 10 entries at session start for context.
   - current-issues.md: resolved item #13 (3 missing tokens)
   - Loop contract corrected: was pointing at booking page specs #08/#09, actually wave-3 shaping was for DS spec #04
 - **Unresolved**: none
+
+## [2026-07-05] verify+drift+retro | Re-engagement-email wave 1
+
+- **Picked up**: Phases 3-5 for Re-engagement-email feature (verify in separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 7 PASS / 4 FAIL (all pre-existing). Independent verifier in fresh session.
+    - Copy changes: 7/7 PASS — all 4 specs' text content matches exactly.
+    - Typography/structure: 0/4 PASS — all failures are pre-existing gaps from original spec 16 implementation (letter-spacing, max-width, font-size, brand footer). Not regressions from this change.
+    - Unchanged strings confirmed: subject line, CTA, nudge text, sign-off, advisory lock, timing window, dedup guard.
+    - Copy-only change confirmed: diff shows exactly 4 lines changed, all within string literals.
+    - Typecheck: clean.
+  - Drift: 0 evolution / 0 shortcut / 4 pre-existing / 1 spec inconsistency. Zero drift from this change.
+    - 4 pre-existing: typography values in original email template don't match design prototype.
+    - 1 spec inconsistency: spec 04 acceptance says "match HTML footer" but its own explicit template shows different wording. Implementation follows the explicit template (correct).
+  - Retro: 0 patterns extracted (copy-only fix, no reusable solutions). 0 friction logged. Pre-existing typography gaps logged to current-issues.md as single bundled issue.
+  - Key learning: Copy-only changes execute cleanly because scope is unambiguous. The typography failures highlight that the original email implementation (spec 16) had design-conformance gaps that the `agent-skips-visual-polish` friction signal already predicted.
+- **Unresolved**: Pre-existing email typography gaps tracked in current-issues.md. Bundle fix with a future email design-conformance pass.
+
+---
+
+## [2026-07-05] shape+implement | Re-engagement-email wave 1
+
+- **Picked up**: Re-engagement email copy fix — 4 specs (01-04), false premise in abandoned Connect email
+- **Result**: All 4 specs implemented in 1 wave (single agent, file contention):
+  - Shape: shape doc, slices doc, 1 wave plan. No spikes needed (copy-only fix).
+  - Spec 01: HTML headline "You started connecting your Stripe account — you're almost there." → "You began setting up deposits — finish in under 5 minutes."
+  - Spec 02: HTML body "Once verified" → "Once set up"
+  - Spec 03: HTML footer "you started Stripe Connect onboarding for your Astro account" → "you began setting up deposit collection for your Astro account"
+  - Spec 04: Plaintext mirrors all HTML changes (headline + body + footer)
+  - Subject line and CTA unchanged (already correct)
+  - Typecheck: clean. Lint: 0 new errors (188 pre-existing).
+  - Modified file: `src/app/api/jobs/connect-reengagement/route.ts` (4 string replacements)
+- **Unresolved**: Phase 3 VERIFY must run in a separate fresh session (per loop contract rule: NEVER self-verify)

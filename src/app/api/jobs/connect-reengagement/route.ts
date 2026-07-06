@@ -106,20 +106,20 @@ export async function POST(req: Request) {
       <span class="em-logo" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#001e40">Astro</span>
     </div>
     <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">Hi ${firstName},</p>
-    <p class="em-text" style="font-size:21px;font-weight:800;line-height:1.3;color:#111827">You started connecting your Stripe account — you're almost there.</p>
-    <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">Once verified, customer deposits will go directly to your bank account on every booking.</p>
+    <p class="em-text" style="font-size:21px;font-weight:800;line-height:1.3;color:#111827">You began setting up deposits — finish in under 5 minutes.</p>
+    <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">Once set up, customer deposits will go directly to your bank account on every booking.</p>
     <div style="text-align:center;margin:32px 0">
       <a href="${setupUrl}" class="em-cta" style="display:inline-block;padding:14px 36px;background:#001e40;color:#fff;text-decoration:none;border-radius:12px;font-size:15.5px;font-weight:700;min-height:50px">Complete setup →</a>
     </div>
     <p class="em-muted" style="font-size:13px;color:#6b7280">This usually takes under 5 minutes.</p>
     <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">— Astro</p>
     <hr class="em-hr" style="border:none;border-top:1px solid #e5e7eb;margin:32px 0">
-    <p class="em-foot" style="font-size:12px;color:#9ca3af;line-height:1.6">You're receiving this email because you started Stripe Connect onboarding for your Astro account. This is a transactional notification — not a marketing email. If you've already completed setup, you can disregard this message.</p>
+    <p class="em-foot" style="font-size:12px;color:#9ca3af;line-height:1.6">You're receiving this because you began setting up deposit collection for your Astro account. This is a transactional account-setup message. If you've already completed setup, you can disregard this message.</p>
   </div>
 </body>
 </html>`;
 
-        const text = `Hi ${firstName},\n\nYou started connecting your Stripe account — you're almost there.\n\nOnce verified, customer deposits will go directly to your bank account on every booking.\n\nComplete setup (this usually takes under 5 minutes):\n${setupUrl}\n\n— Astro\n\n---\nYou're receiving this email because you started Stripe Connect onboarding for your Astro account. This is a transactional notification — not a marketing email.`;
+        const text = `Hi ${firstName},\n\nYou began setting up deposits — finish in under 5 minutes.\n\nOnce set up, customer deposits will go directly to your bank account on every booking.\n\nComplete setup (this usually takes under 5 minutes):\n${setupUrl}\n\n— Astro\n\n---\nYou're receiving this because you began setting up deposit collection for your Astro account. This is a transactional account-setup message.`;
 
         const result = await sendEmail({
           to: shop.userEmail,

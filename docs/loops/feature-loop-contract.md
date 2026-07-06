@@ -1,55 +1,41 @@
 # Feature Loop Contract
 
 ## Goal
-All inflight-payments specs (13 specs across 4 waves) are implemented, independently verified,
+All Re-engagement-email specs (4 specs, 1 wave) are implemented, independently verified,
 drift-audited with zero unresolved conflicts, and retrospective logged.
 
 ## Current state
-- Feature: inflight-payments (Transfer event rethink — specs 14-19)
-- Wave: ALL (1–7)
+- Feature: Re-engagement-email (copy fix — false premise in abandoned Connect email)
+- Wave: 1 of 1
 - Phase: COMPLETE
-- Specs in scope: docs/shaping/inflight-payments/ (14–19)
-- Prior waves (01–13): COMPLETE — 76 PASS / 0 FAIL, 8 evolution / 0 shortcut
+- Specs in scope: docs/shaping/Re-engagement-email/ (01–04)
+- File: `src/app/api/jobs/connect-reengagement/route.ts` (4 string replacements)
 
-### Completed round (specs 01-13)
-- Verify: 76 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session.
-- Drift: 8 evolution / 0 shortcut (0% — well below 50% threshold)
-- Retro: 1 pattern extracted, 1 pattern updated
-- Tests: 45 new tests (verifier count), all passing. 1 pre-existing failure (messages.test.ts).
+### Completed round (specs 01-04)
+- Verify: 7 PASS / 4 FAIL (all pre-existing typography gaps, not regressions). Copy changes: 7/7 PASS.
+- Drift: 0 evolution / 0 shortcut / 4 pre-existing / 1 spec inconsistency. Zero drift from this change.
+- Retro: 0 patterns extracted, 0 friction logged. Pre-existing typography gaps logged to current-issues.md.
+- Tests: N/A (copy-only change, no new tests)
 - Type-check: zero new errors
-
-## Backlog
-- Wave 1: ✅ Specs 01, 02, 07 — foundations (3 parallel agents)
-- Wave 2: ✅ Specs 03, 04, 06, 08, 09 — core logic + P1 tests (5 parallel agents)
-- Wave 3: ✅ Specs 05, 10, 12 — UI completion + backend tests (3 parallel agents)
-- Wave 4: ✅ Specs 11, 13 — final tests (2 parallel agents)
-- Wave 5: ✅ Specs 14, 19 — dead code cleanup + docs (2 parallel agents)
-- Wave 6: ✅ Specs 15, 17 — transfer event handlers (1 agent — file contention)
-- Wave 7: ✅ Specs 16, 18 — handler tests (1 agent — file contention)
-- Blocked specs: none
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |
 |------|------|-------|----------|-------|
-| 2026-07-02 | — | SHAPE (specs) | — | 13 specs created from mental models analysis. BUILD-ORDER with 4-phase dependency graph. |
-| 2026-07-03 | — | SHAPE (designs) | — | Both design prototypes reviewed (Appointment Fee Breakdown + Dashboard Connect Card). Specs 04-06 enriched with exact design details. |
-| 2026-07-03 | — | SHAPE (spike+plans) | — | 7 spikes run. 3 critical findings: webhook needs shop lookup (spec 03), new error helper needed (spec 01), console.warn required. Shape doc, slices doc, 13 slice plans across 4 wave folders. |
-| 2026-07-03 | 1 | IMPLEMENT | — | 3 parallel agents (worktree). stripe-refund.ts (+isReverseTransferFailedError, fallback catch), schema.ts (+transferHeld), connect-webhook (+sweep cancel). Clean. |
-| 2026-07-03 | 2 | IMPLEMENT | — | 5 parallel agents. Detection guard (webhook/route.ts), card state (payment-card.tsx), dashboard card (new transfer-held-card.tsx), sweep flag (connect-webhook), refund tests (17 tests). |
-| 2026-07-03 | 3 | IMPLEMENT | — | 3 parallel agents. Helper text (payment-card.tsx), guard tests (5 tests), sweep tests (9 tests). |
-| 2026-07-03 | 4 | IMPLEMENT | — | 2 parallel agents. Card logic tests (16 tests, extracted 3 pure functions), integration tests (9 tests, 5 scenarios). |
-| 2026-07-03 | ALL | VERIFY | — | 76 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session. |
-| 2026-07-03 | ALL | DRIFT AUDIT | — | 8 evolution / 0 shortcut (0%). 3 root causes: data model discovery, mechanical necessity, testability. |
-| 2026-07-03 | ALL | RETRO | — | 1 pattern extracted (multi-table-spike), 1 pattern updated (spike-before-shape +1 item). Specs 01-13 COMPLETE. |
-| 2026-07-03 | — | SHAPE (specs 14-19) | — | 6 new specs from transfer event rethink. 1 spike (transfer event types). 3 wave folders with 6 slice plans. |
-| 2026-07-03 | 5 | IMPLEMENT | — | 2 parallel agents. Dead code removed (18 lines handler + 80 lines tests). Spec 03 docs updated to PRIMARY framing. |
-| 2026-07-03 | 6 | IMPLEMENT | — | 1 agent (file contention). transfer.reversed + transfer.updated handlers added to connect-webhook. |
-| 2026-07-03 | 7 | IMPLEMENT | — | 1 agent (file contention). 6 new tests (3 per handler). 19 total tests, all passing. Zero type errors. |
-| 2026-07-03 | 5–7 | VERIFY | — | 31 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in separate session. |
-| 2026-07-03 | 5–7 | DRIFT AUDIT | — | 0 divergences — all 6 specs match implementation exactly. |
-| 2026-07-03 | 5–7 | RETRO | — | 0 patterns extracted (all patterns already covered). 0 drift. Loop COMPLETE. |
+| 2026-07-04 | — | SHAPE (specs) | — | 4 specs created from mental models analysis. Build order with 2-phase dependency graph. |
+| 2026-07-04 | — | SHAPE (designs) | — | Design prototype reviewed (Email Connect Reengagement Standalone.html). 4 variants confirmed. Specs enriched with exact design details. |
+| 2026-07-05 | — | SHAPE (plan) | — | Shape doc, slices doc, 1 wave plan. No spikes needed (copy-only). |
+| 2026-07-05 | 1 | IMPLEMENT | — | 1 agent (file contention). 4 string replacements in route.ts. Typecheck clean. 0 new lint errors. |
+| 2026-07-05 | 1 | VERIFY | — | 7 PASS / 4 FAIL (all pre-existing typography gaps, not regressions). Copy changes: 7/7 PASS. |
+| 2026-07-05 | 1 | DRIFT AUDIT | — | 0 evolution / 0 shortcut / 4 pre-existing / 1 spec inconsistency. Zero drift from this change. |
+| 2026-07-05 | 1 | RETRO | — | 0 new patterns. 0 friction. Pre-existing typography gaps logged to current-issues.md. Loop COMPLETE. |
 
 ## Prior features
+### inflight-payments — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-02 | — | SHAPE | 13 specs + 6 transfer rethink specs, 7 waves |
+| 2026-07-03 | 1–7 | IMPLEMENT+VERIFY+DRIFT+RETRO | 107 PASS / 0 FAIL. 8 evolution / 0 shortcut. Loop COMPLETE. |
+
 ### webhook-unaware — COMPLETE
 | Date | Wave | Phase | Notes |
 |------|------|-------|-------|
@@ -65,17 +51,15 @@ drift-audited with zero unresolved conflicts, and retrospective logged.
 | 2026-07-01 | ALL | VERIFY+DRIFT+RETRO | 31 PASS / 3 FAIL (test infra). 4 evolution / 1 shortcut. Loop COMPLETE. |
 
 ## References
-- Shape: docs/shaping/inflight-payments/shape/inflight-payments-shape.md
-- Slices: docs/shaping/inflight-payments/shape/inflight-payments-slices.md
-- Spike: docs/shaping/inflight-payments/shape/spike-codebase-analysis.md
-- Specs: docs/shaping/inflight-payments/ (01–19)
-- Build order: docs/shaping/inflight-payments/BUILD-ORDER.md
-- Design brief: docs/shaping/inflight-payments/DESIGN-BRIEF.md
-- Design prototypes: Appointment Fee Breakdown.html, Dashboard Connect Card.html
+- Shape: docs/shaping/Re-engagement-email/shape/re-engagement-email-shape.md
+- Slices: docs/shaping/Re-engagement-email/shape/re-engagement-email-slices.md
+- Specs: docs/shaping/Re-engagement-email/ (01–04)
+- Build order: docs/shaping/Re-engagement-email/_build-order.md
+- Design prototype: docs/shaping/Re-engagement-email/Email Connect Reengagement Standalone.html
 - Architecture: docs/context/architecture-context.md
 - Design system: docs/design-system/
 - Progress: docs/context/progress-tracker.md
 - Issues: docs/context/current-issues.md
 - Signals: docs/signals/
 - Work log: docs/loops/work-log.md
-- Mental models: mcp-go/Mental Models/WorkSpace/26-06-30_13-38-53_inflight_payment_connect_suspension/analysis_report.md
+- Mental models: mcp-go/Mental Models/WorkSpace/26-06-30_14-24-05_reengagement_email_false_premise/analysis_report.md
