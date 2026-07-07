@@ -209,7 +209,7 @@ const getLatestTemplate = async (
     .limit(1);
 
   const existingTemplate = existing[0];
-  if (existingTemplate) {
+  if (existingTemplate && existingTemplate.version >= version) {
     return existingTemplate;
   }
 

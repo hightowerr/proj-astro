@@ -174,18 +174,20 @@ export async function POST(req: Request) {
       eventTypeBufferMinutes,
     });
     // Send confirmation SMS for free bookings (paid bookings get SMS via payment webhook)
-    if (!result.paymentRequired && result.appointment.status === "booked") {
-      try {
-        await sendBookingConfirmationSMS(result.appointment.id);
-      } catch (error) {
-        console.error("Failed to send booking confirmation SMS", {
-          appointmentId: result.appointment.id,
-          error,
-        });
-      }
-    }
+    const smsPromise =
+      !result.paymentRequired && result.appointment.status === "booked"
+        ? sendBookingConfirmationSMS(result.appointment.id).catch((error) => {
+            console.error("Failed to send booking confirmation SMS", {
+              appointmentId: result.appointment.id,
+              error,
+            });
+          })
+        : undefined;
 
-    const manageToken = await createManageToken(result.appointment.id);
+    const [manageToken] = await Promise.all([
+      createManageToken(result.appointment.id),
+      smsPromise,
+    ]);
     console.warn("[booking-create] success", {
       shopId: shop.id,
       appointmentId: result.appointment.id,
