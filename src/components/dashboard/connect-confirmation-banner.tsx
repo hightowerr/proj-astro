@@ -11,16 +11,14 @@ export function ConnectConfirmationBanner() {
   const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    let shouldShow = false;
+    let alreadySeen = false;
     try {
-      if (!sessionStorage.getItem(STORAGE_KEY)) {
-        sessionStorage.setItem(STORAGE_KEY, "1");
-        shouldShow = true;
-      }
+      alreadySeen = !!sessionStorage.getItem(STORAGE_KEY);
+      if (!alreadySeen) sessionStorage.setItem(STORAGE_KEY, "1");
     } catch {
-      // sessionStorage unavailable (e.g. SSR, private browsing)
+      // sessionStorage unavailable (e.g. private browsing) — show anyway
     }
-    if (!shouldShow) return;
+    if (alreadySeen) return;
     const id = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(id);
   }, []);

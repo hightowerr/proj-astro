@@ -10,7 +10,7 @@ describe("MCC mapping", () => {
   it("every businessType has a corresponding MCC entry", () => {
     for (const { value } of businessTypes) {
       expect(
-        value in MCC_BY_BUSINESS_TYPE,
+        Object.hasOwn(MCC_BY_BUSINESS_TYPE, value),
         `Missing MCC entry for businessType "${value}"`
       ).toBe(true);
     }

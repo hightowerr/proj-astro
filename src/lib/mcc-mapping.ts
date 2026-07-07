@@ -21,7 +21,6 @@ export function getMccForBusinessType(
   businessType: string | null | undefined
 ): string {
   if (!businessType) return DEFAULT_MCC;
-  return (
-    MCC_BY_BUSINESS_TYPE[businessType as BusinessTypeValue] ?? DEFAULT_MCC
-  );
+  if (!Object.hasOwn(MCC_BY_BUSINESS_TYPE, businessType)) return DEFAULT_MCC;
+  return MCC_BY_BUSINESS_TYPE[businessType as BusinessTypeValue];
 }
