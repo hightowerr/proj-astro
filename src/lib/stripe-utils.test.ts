@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type Stripe from "stripe";
 import { resolveTransferContext } from "./stripe-utils";
+import type Stripe from "stripe";
 
 // Hoist mock fns so vi.mock factories (which are hoisted) can reference them
 const {

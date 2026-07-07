@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { shops } from "@/lib/schema";

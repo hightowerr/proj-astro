@@ -2,6 +2,7 @@ import Link from "next/link";
 import { and, eq, sql } from "drizzle-orm";
 import { ConflictAlertBanner } from "@/components/conflicts/conflict-alert-banner";
 import { ReconcilePaymentsButton } from "@/components/payments/reconcile-button";
+import { db } from "@/lib/db";
 import {
   getBookingSettingsForShop,
   getOutcomeSummaryForShop,
@@ -10,9 +11,8 @@ import {
 } from "@/lib/queries/appointments";
 import { getConflictCount } from "@/lib/queries/calendar-conflicts";
 import { getShopByOwnerId } from "@/lib/queries/shops";
-import { requireAuth } from "@/lib/session";
-import { db } from "@/lib/db";
 import { appointments } from "@/lib/schema";
+import { requireAuth } from "@/lib/session";
 import { AppointmentsTable } from "./appointments-table";
 import type { SerializedAppointment } from "./appointments-table";
 
