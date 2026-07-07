@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { buildBookingBaseUrl } from "@/lib/booking-url";
 import { createManageToken } from "@/lib/manage-tokens";
+import { sendBookingConfirmationSMS } from "@/lib/messages";
 import { normalizePhoneNumber } from "@/lib/phone";
 import {
   createAppointment,
@@ -86,6 +87,18 @@ export async function POST(req: Request) {
       bookingBaseUrl,
       paymentsEnabled: true,
     });
+    // Send confirmation SMS for free bookings (paid bookings get SMS via payment webhook)
+    if (!result.paymentRequired && result.appointment.status === "booked") {
+      try {
+        await sendBookingConfirmationSMS(result.appointment.id);
+      } catch (error) {
+        console.error("Failed to send booking confirmation SMS", {
+          appointmentId: result.appointment.id,
+          error,
+        });
+      }
+    }
+
     const manageToken = await createManageToken(result.appointment.id);
 
     return Response.json({

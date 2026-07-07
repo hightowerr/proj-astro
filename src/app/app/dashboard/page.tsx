@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, eq, isNull, ne, or, sql } from "drizzle-orm";
 import { AllAppointmentsTable } from "@/components/dashboard/all-appointments-table";
 import { AttentionRequiredTable } from "@/components/dashboard/attention-required-table";
 import { ConnectCard } from "@/components/dashboard/connect-card";
@@ -70,8 +70,17 @@ export default async function DashboardPage({
         .where(
           and(
             eq(appointments.shopId, shop.id),
-            eq(appointments.depositSkipped, "connect_not_complete"),
-            eq(appointments.status, "booked")
+            eq(appointments.status, "booked"),
+            // Pre-migration fallback: depositSkipped IS NULL + paymentStatus = 'unpaid'
+            // captures bookings created before the column existed.
+            // Becomes inert once all pre-migration merchants complete Connect.
+            or(
+              eq(appointments.depositSkipped, "connect_not_complete"),
+              and(
+                isNull(appointments.depositSkipped),
+                eq(appointments.paymentStatus, "unpaid")
+              )
+            )
           )
         ),
       db

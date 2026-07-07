@@ -91,6 +91,10 @@ Address remaining current-issues from Stripe Connect design review. Refund state
 
 ---
 
+- **Kicksnare Migration** — 2 specs, 1 wave. Query fallback for pre-migration `depositSkipped = null` records. Dashboard shows correct Tier 2 amber card; appointments page shows correct unprotected count. No schema changes, no backfill. Self-expiring when Kicksnare completes Connect. Loop COMPLETE (2026-07-07, 10 PASS / 0 FAIL / 0 BLOCKED). 0 evolution / 0 shortcut. **Verification report**: `docs/shaping/ks-migration/shape/wave-1/wave-1-verify.md`.
+  - **Wave 1**: spec 01 (dashboard query fallback) + spec 02 (appointments query fallback) — parallel
+  - **Modified files (2):** `src/app/app/dashboard/page.tsx`, `src/app/app/appointments/page.tsx`
+
 - **Re-engagement Email Copy Fix** — 4 specs, 1 wave. Loop COMPLETE (2026-07-05). Copy-only: 4 string replacements in `connect-reengagement/route.ts`. Verify: 7 PASS / 4 FAIL (all pre-existing typography gaps, not regressions). Drift: 0 evolution / 0 shortcut. 4 pre-existing typography issues logged to current-issues.md. **Verification report**: `docs/shaping/Re-engagement-email/shape/wave-1/wave-1-verify.md`.
 
 - **Stripe Connect** — 17 specs, 4 waves, 13 slices. All implemented (0 TS errors). Verified (72 PASS / 2 FAIL LOW). Loop COMPLETE.
