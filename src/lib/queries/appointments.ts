@@ -44,9 +44,9 @@ import {
   shops,
   slotOpenings,
 } from "@/lib/schema";
-import type Stripe from "stripe";
 import { getStripeClient, normalizeStripePaymentStatus, stripeIsMocked } from "@/lib/stripe";
 import { applyTierPricingOverride, derivePaymentRequirement } from "@/lib/tier-pricing";
+import type Stripe from "stripe";
 
 const DEFAULT_PAYMENT_POLICY = {
   currency: "GBP",

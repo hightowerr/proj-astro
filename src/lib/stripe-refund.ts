@@ -1,5 +1,5 @@
-import Stripe from "stripe";
 import { and, eq, inArray, or } from "drizzle-orm";
+import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { appointmentEvents, appointments, payments } from "@/lib/schema";
 import { getStripeClient, stripeIsMocked } from "@/lib/stripe";

@@ -263,6 +263,7 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 12. **No `dynamic` with `ssr: false` in page/layout files.** `CLAUDE.md`
 13. **`smsOptIn: true` required for test bookings.** `CLAUDE.md`
 14. **Set `TWILIO_TEST_MODE=true` for E2E** — prevents real SMS charges. `src/lib/twilio.ts`
+15. **MCC derived from `shop.businessType` via lookup table** — never hardcode MCC values. `src/lib/mcc-mapping.ts` exports `getMccForBusinessType()`. Every `businessTypeSchema` value must have a corresponding entry — enforced by build-time test (`src/lib/mcc-mapping.test.ts`). When adding a new business vertical, update both `businessTypes` in `business-type-step.tsx` and `MCC_BY_BUSINESS_TYPE` in `mcc-mapping.ts`.
 
 ## 11. Codebase Quality Assessment
 

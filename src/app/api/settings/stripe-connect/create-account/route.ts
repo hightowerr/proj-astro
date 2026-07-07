@@ -1,7 +1,8 @@
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getClientEnv } from "@/lib/env";
+import { getMccForBusinessType } from "@/lib/mcc-mapping";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { shops } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
@@ -47,7 +48,7 @@ export async function POST() {
           transfers: { requested: true },
         },
         business_profile: {
-          mcc: "7241",
+          mcc: getMccForBusinessType(shop.businessType),
           url: `${appUrl}/book/${shop.slug}`,
         },
       });

@@ -134,6 +134,10 @@ Address remaining current-issues from Stripe Connect design review. Refund state
 
 - **Stripe Connect** — Loop COMPLETE. All 23 drift shortcuts fixed. Post-loop design review surfaced 15 issues (current-issues.md) and 3 roadmap items.
 - **Refund State** — Loop COMPLETE. 10 specs, 3 waves. Modifier approach — `refunded: boolean` on FeeBreakdown, no 6th FeeState. Visually verified via Playwright (seed data: `pnpm seed:payments`). 4 evolutions / 1 shortcut (20%).
+- **MCC Hardcoded Fix** — Feature loop COMPLETE. 10 PASS / 0 FAIL / 0 BLOCKED. 2 evolution / 0 shortcut (0%). Backend-only (no UI). Shaping: `docs/shaping/MCC-hardcoded/`. Verification: `docs/shaping/MCC-hardcoded/shape/wave-all-verify.md`.
+  - **Wave 1**: spec 01 (mcc-mapping module) — `src/lib/mcc-mapping.ts` (new)
+  - **Wave 2**: spec 02 (route integration) — `create-account/route.ts` (1 import + 1 line), spec 03 (schema guard test) — `src/lib/mcc-mapping.test.ts` (new, 6 tests)
+  - **Wave 3**: spec 04 (post-deploy audit script) — `scripts/audit-mcc.ts` (new). Run `npx tsx scripts/audit-mcc.ts` after deploying to production.
 
 ---
 

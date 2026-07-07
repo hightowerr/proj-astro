@@ -4,6 +4,44 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-06] implement | MCC-hardcoded wave 3 (spec 04)
+
+- **Picked up**: Spec 04 — post-deploy audit script
+- **Result**: `scripts/audit-mcc.ts` implemented. Type-check clean. Queries shops with Stripe accounts, retrieves MCC via Stripe API, compares against `getMccForBusinessType()`, logs results. Read-only, one-time use.
+- **Unresolved**: Run after deploying to production: `npx tsx scripts/audit-mcc.ts`
+
+---
+
+## [2026-07-06] verify+drift+retro | MCC-hardcoded waves 1–2
+
+- **Picked up**: Phases 3-5 for MCC-hardcoded feature (verify in separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 10 PASS / 0 FAIL / 0 BLOCKED. Independent verifier in fresh session. All acceptance criteria met.
+  - Drift: 2 divergences, both EVOLUTION (0 shortcuts, 0%). D1: exported `MCC_BY_BUSINESS_TYPE` (spec's own Option 2). D2: extra "valid 4-digit codes" test (data integrity).
+  - Retro: 0 new patterns (extract-for-testability already covers pure function extraction). 0 friction.
+  - Key learning: When the problem is a 1-to-1 data routing fix with a single shape and no UI, the loop overhead is minimal — all phases complete in a single session except verify. Spec quality was high enough that implementation had zero surprises and drift was only additive.
+  - Evolution/shortcut ratio: 2/0 (0%)
+  - Patterns extracted: 0
+  - Friction logged: 0
+- **Unresolved**: Spec 04 (post-deploy audit script) deferred until deployment to production.
+
+---
+
+## [2026-07-06 15:25] shape+implement | MCC-hardcoded waves 1–2
+
+- **Picked up**: Phase 1 SHAPE + Phase 2 IMPLEMENT for MCC-hardcoded feature (derive MCC from shop.businessType instead of hardcoding 7241)
+- **Result**: Shape complete. Waves 1-2 implemented:
+  - Shape: shape doc, slices doc, 3 wave plans. 3 spikes confirmed (query returns businessType, type import works, vitest aliases work). Single shape (lookup table), no alternatives.
+  - Wave 1 (1 slice): `src/lib/mcc-mapping.ts` — new module with `MCC_BY_BUSINESS_TYPE`, `DEFAULT_MCC`, `getMccForBusinessType()`. Type-check clean.
+  - Wave 2 (2 parallel slices): `create-account/route.ts` (1 import + 1 line change), `src/lib/mcc-mapping.test.ts` (6 tests, all passing). Type-check clean.
+  - 0 new type errors. 6 new tests. 0 regressions (2 pre-existing failures in connect-webhook suspension sweep — unrelated).
+  - Deviations: none — straightforward mapping, no surprises.
+  - New files (2): `src/lib/mcc-mapping.ts`, `src/lib/mcc-mapping.test.ts`
+  - Modified files (1): `create-account/route.ts`
+- **Unresolved**: Phase 3 VERIFY next (separate session per loop contract). Spec 04 (post-deploy audit script) deferred until deployment.
+
+---
+
 ## [2026-07-03] verify+drift+retro | inflight-payments waves 5–7
 
 - **Picked up**: Phases 3-5 for specs 14-19 (verify in separate session, drift audit, retro)
