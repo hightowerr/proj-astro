@@ -12,9 +12,9 @@ import {
 import { sendTwilioSms } from "@/lib/twilio";
 
 const BOOKING_TEMPLATE_KEY = "booking_confirmation";
-const DEFAULT_TEMPLATE_VERSION = 1;
+const DEFAULT_TEMPLATE_VERSION = 2;
 const DEFAULT_TEMPLATE_BODY =
-  "Booked with {{shop_name}}: {{date}} at {{time}} ({{timezone}}). Paid {{amount}}. Policy: see booking link. {{manage_link}}Reply STOP to opt out.";
+  "Booked with {{shop_name}}: {{date}} at {{time}} ({{timezone}}). {{paid_line}}Policy: see booking link. {{manage_link}}Reply STOP to opt out.";
 const REMINDER_TEMPLATE_KEY = "appointment_reminder_24h";
 const DEFAULT_REMINDER_TEMPLATE_VERSION = 1;
 const DEFAULT_REMINDER_TEMPLATE_BODY =
@@ -209,7 +209,7 @@ const getLatestTemplate = async (
     .limit(1);
 
   const existingTemplate = existing[0];
-  if (existingTemplate) {
+  if (existingTemplate && existingTemplate.version >= version) {
     return existingTemplate;
   }
 
@@ -287,15 +287,15 @@ export const sendBookingConfirmationSMS = async (appointmentId: string) => {
     timeStyle: "short",
   });
 
-  const amountLabel = payment
-    ? formatCurrency(payment.amountCents, payment.currency)
-    : "amount unavailable";
+  const paidLine = payment
+    ? `Paid ${formatCurrency(payment.amountCents, payment.currency)}. `
+    : "";
   const renderedBody = renderTemplate(template.bodyTemplate, {
     shop_name: shop?.name ?? "your shop",
     date: dateFormatter.format(appointment.startsAt),
     time: timeFormatter.format(appointment.startsAt),
     timezone,
-    amount: amountLabel,
+    paid_line: paidLine,
     manage_link: appointment.bookingUrl
       ? `Manage: ${appointment.bookingUrl} `
       : "",
@@ -317,16 +317,6 @@ export const sendBookingConfirmationSMS = async (appointmentId: string) => {
     renderedBody,
     retryCount: 0,
   };
-
-  if (!payment) {
-    await db.insert(messageLog).values({
-      ...baseLog,
-      status: "failed",
-      errorCode: "payment_missing",
-      errorMessage: "Payment record missing",
-    });
-    return;
-  }
 
   if (!prefs?.smsOptIn) {
     console.warn("[booking-sms] consent_missing", {

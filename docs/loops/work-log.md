@@ -4,6 +4,35 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-07] all phases | ks-migration wave 1
+
+- **Picked up**: Full loop (SHAPE → IMPLEMENT → VERIFY → DRIFT AUDIT → RETRO) for ks-migration feature (pre-Connect appointments query fallback for Kicksnare)
+- **Result**: Loop COMPLETE.
+  - Shape: shape doc, slices doc, 1 wave plan. 0 spikes (all edge cases pre-verified in issue analysis). Single shape (query fallback), 3 alternatives rejected (backfill, do nothing, simplified query).
+  - Implement: Wave 1 (2 parallel slices): `dashboard/page.tsx` + `appointments/page.tsx`. Both add `OR (isNull(depositSkipped) AND paymentStatus = 'unpaid')` to unprotected count query. Import `isNull`, `or` from drizzle-orm. Comment added. `pnpm check` clean. 0 deviations.
+  - Verify: 10/10 PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session. Edge case safety confirmed.
+  - Drift: 0 divergences. Implementation matches both specs exactly.
+  - Retro: 0 new patterns. 0 friction. 0 drift.
+  - Modified files (2): `src/app/app/dashboard/page.tsx`, `src/app/app/appointments/page.tsx`
+  - Evolution/shortcut ratio: 0/0
+  - Key learning: When the issue analysis is thorough enough to serve as a shape document (evaluated 4 alternatives, verified edge cases, specified exact code changes), the loop executes in one pass with zero drift. The mental models analysis pre-resolved every unknown.
+- **Unresolved**: none
+
+---
+
+## [2026-07-07] shape+implement | confirmation-SMS waves 1–2
+
+- **Picked up**: Phase 1 SHAPE + Phase 2 IMPLEMENT for confirmation-SMS feature (free bookings get confirmation SMS)
+- **Result**: Shape complete. Waves 1-2 implemented:
+  - Shape: shape doc, slices doc, 3 wave plans. 0 spikes (all code paths mapped from prior exploration). Single shape (conditional `paidLine`), no alternatives.
+  - Wave 1 (1 slice, atomic): `src/lib/messages.ts` — `DEFAULT_TEMPLATE_VERSION` 1→2, `Paid {{amount}}` → `{{paid_line}}`, removed `!payment` bail-out, replaced `amountLabel` with `paidLine` conditional. `pnpm check` clean.
+  - Wave 2 (2 parallel slices): `api/bookings/create/route.ts` + `api/appointments/route.ts` — both add `sendBookingConfirmationSMS()` for `!paymentRequired && status === "booked"` with try/catch. `pnpm check` clean.
+  - 0 deviations. 0 new type errors. 0 regressions.
+  - Modified files (3): `src/lib/messages.ts`, `src/app/api/bookings/create/route.ts`, `src/app/api/appointments/route.ts`
+- **Unresolved**: Phase 3 VERIFY must run in a separate session (non-negotiable: implementing agents do not verify their own work). Then DRIFT AUDIT + RETRO.
+
+---
+
 ## [2026-07-06] implement | MCC-hardcoded wave 3 (spec 04)
 
 - **Picked up**: Spec 04 — post-deploy audit script

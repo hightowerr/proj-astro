@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { ConflictAlertBanner } from "@/components/conflicts/conflict-alert-banner";
 import { ReconcilePaymentsButton } from "@/components/payments/reconcile-button";
 import { db } from "@/lib/db";
@@ -119,8 +119,17 @@ export default async function AppointmentsPage() {
           .where(
             and(
               eq(appointments.shopId, shop.id),
-              eq(appointments.depositSkipped, "connect_not_complete"),
-              eq(appointments.status, "booked")
+              eq(appointments.status, "booked"),
+              // Pre-migration fallback: depositSkipped IS NULL + paymentStatus = 'unpaid'
+              // captures bookings created before the column existed.
+              // Becomes inert once all pre-migration merchants complete Connect.
+              or(
+                eq(appointments.depositSkipped, "connect_not_complete"),
+                and(
+                  isNull(appointments.depositSkipped),
+                  eq(appointments.paymentStatus, "unpaid")
+                )
+              )
             )
           )
       : Promise.resolve([{ count: 0 }]),

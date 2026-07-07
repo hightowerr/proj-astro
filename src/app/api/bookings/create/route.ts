@@ -6,6 +6,7 @@ import {
   validateBookingConflict,
 } from "@/lib/calendar-conflicts";
 import { createManageToken } from "@/lib/manage-tokens";
+import { sendBookingConfirmationSMS } from "@/lib/messages";
 import { normalizePhoneNumber } from "@/lib/phone";
 import {
   createAppointment,
@@ -172,7 +173,21 @@ export async function POST(req: Request) {
       eventTypeDepositCents,
       eventTypeBufferMinutes,
     });
-    const manageToken = await createManageToken(result.appointment.id);
+    // Send confirmation SMS for free bookings (paid bookings get SMS via payment webhook)
+    const smsPromise =
+      !result.paymentRequired && result.appointment.status === "booked"
+        ? sendBookingConfirmationSMS(result.appointment.id).catch((error) => {
+            console.error("Failed to send booking confirmation SMS", {
+              appointmentId: result.appointment.id,
+              error,
+            });
+          })
+        : undefined;
+
+    const [manageToken] = await Promise.all([
+      createManageToken(result.appointment.id),
+      smsPromise,
+    ]);
     console.warn("[booking-create] success", {
       shopId: shop.id,
       appointmentId: result.appointment.id,
