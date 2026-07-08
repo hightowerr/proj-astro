@@ -20,7 +20,7 @@ export interface TierPricingResult {
 }
 
 /**
- * Platform-wide minimum deposit in pence.
+ * Platform-wide minimum deposit in minor currency units (cents/pence).
  * TRIPWIRE: When multi-currency ships (roadmap.md), this must become
  * currency-aware. JPY has no subunit: ¥100 ≈ 50p. Also review if the
  * platform fee changes from flat 50p to percentage-based.

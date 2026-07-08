@@ -14,7 +14,7 @@
 | Slice | Spec | File | Change |
 |-------|------|------|--------|
 | 3 | 02 | `src/lib/queries/appointments.ts` | Add `PLATFORM_MINIMUM_DEPOSIT_CENTS` import. Create `clampedDepositCents` const after `finalDepositCents`. Use it in `derivePaymentRequirement()` call and `policyVersions` insert. |
-| 4 | 03 | `src/lib/tier-pricing.test.ts` | New file. 9 unit tests covering sub-floor, at-floor, above-floor, zero, null, `paymentMode=none`, `full_prepay`. |
+| 4 | 03 | `src/lib/__tests__/tier-pricing.test.ts` | New file. 9 unit tests covering sub-floor, at-floor, above-floor, zero, null, `paymentMode=none`, `full_prepay`. |
 
 Slices 3 + 4 are fully independent — different files, zero shared state. Can run in parallel.
 

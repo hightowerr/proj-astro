@@ -23,7 +23,7 @@
 | Spec | Description | Files | Est. |
 |------|-------------|-------|------|
 | 02 | Clamp `finalDepositCents` in `createAppointment()` before policy version snapshot | `src/lib/queries/appointments.ts` (modified) | S |
-| 03 | 9 unit tests for floor enforcement boundaries | `src/lib/tier-pricing.test.ts` (new) | S |
+| 03 | 9 unit tests for floor enforcement boundaries | `src/lib/__tests__/tier-pricing.test.ts` (new) | S |
 
 ## Critical Path
 
@@ -95,6 +95,6 @@ No change needed — the floor is downstream of tier assignment. Tier scoring is
 |------|-------------|------|
 | `src/lib/tier-pricing.ts` | Modified (constant + function logic + tripwire comment) | 01, 04 |
 | `src/lib/queries/appointments.ts` | Modified (1 import addition + ~5 lines clamp logic) | 02 |
-| `src/lib/tier-pricing.test.ts` | New (9 unit tests) | 03 |
+| `src/lib/__tests__/tier-pricing.test.ts` | New (9 unit tests) | 03 |
 
 **Total: 2 modified files, 1 new file, ~15 lines of production code, ~50 lines of tests.**
