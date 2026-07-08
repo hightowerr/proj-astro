@@ -1,0 +1,5 @@
+- Date: 2026-07-08
+- Spec: P0 — Query gap (docs/shaping/connect-guard/P0-query-gap.md)
+- What diverged: P0 spec only specified adding `stripeOnboardingStatus` to the `findLatestOpenOffer` shop select and `OpenOffer` interface. Implementation also added `name` (both to the query and the interface).
+- Classification: EVOLUTION
+- Why: F2 spec referenced `shop.name ?? shop.slug` for SMS copy but didn't identify the query gap for `name`. Adding it in P0 was the correct place — the query is the single source for all shop fields used in `acceptOffer`. Splitting it into a separate change would have been unnecessary churn.

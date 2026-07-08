@@ -166,6 +166,7 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 2. Validate shop slug, slot time, customer phone (libphonenumber)
 3. Upsert customer by (shopId, phone), load or compute tier score
 4. Apply tier pricing override → determine `paymentRequired` + `amountCents`
+4b. Clamp deposit to platform floor (£1) if sub-minimum after tier/event-type overrides
 5. Create Stripe payment intent (if payment required) → store in `payments`
 6. Insert `appointments` (status: pending) + `appointmentEvents` (type: created) in transaction
 7. Generate manage token (SHA256 hash stored, raw returned once)
@@ -189,6 +190,8 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 3. Order by tier priority (top→neutral→risk), then score DESC
 4. Send SMS offer to first eligible customer, create `slotOffers` (status: sent)
 5. Customer replies "YES" via SMS → `POST /api/twilio/inbound` → accept offer, create appointment
+5b. Derive `paymentsEnabled` from `shop.stripeOnboardingStatus === "complete"`. If Connect incomplete, booking is created as free (no PaymentIntent).
+5c. Recovery SMS branches on `paymentRequired`: paid bookings get payment link, free bookings get confirmation-only text.
 6. If no response → cron `expire-offers` marks sent→expired → loops to next customer
 
 ### Outcome Resolution
@@ -264,6 +267,8 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 13. **`smsOptIn: true` required for test bookings.** `CLAUDE.md`
 14. **Set `TWILIO_TEST_MODE=true` for E2E** — prevents real SMS charges. `src/lib/twilio.ts`
 15. **MCC derived from `shop.businessType` via lookup table** — never hardcode MCC values. `src/lib/mcc-mapping.ts` exports `getMccForBusinessType()`. Every `businessTypeSchema` value must have a corresponding entry — enforced by build-time test (`src/lib/mcc-mapping.test.ts`). When adding a new business vertical, update both `businessTypes` in `business-type-step.tsx` and `MCC_BY_BUSINESS_TYPE` in `mcc-mapping.ts`.
+16. **`paymentsEnabled` must be derived from Connect status** — every caller of `createAppointment()` must set `paymentsEnabled: shop.stripeOnboardingStatus === "complete"`. Never hardcode `true`. The function's default (`?? true`) is a safety net, not a correct value. Tripwire comment at `src/lib/queries/appointments.ts:828`. `src/lib/slot-recovery.ts` (acceptOffer).
+17. **Platform minimum deposit floor** — deposits between 1p and 99p are clamped to 100p (£1). Enforced at two points: `finalDepositCents` in `createAppointment()` (before policy snapshot) and `derivePaymentRequirement()` in `tier-pricing.ts` (belt-and-suspenders). Zero-amount deposits (from `topDepositWaived`) bypass the floor. Constant: `PLATFORM_MINIMUM_DEPOSIT_CENTS` exported from `src/lib/tier-pricing.ts`. Tripwire: review when multi-currency ships (JPY has no subunit) or if platform fee changes from flat 50p to percentage-based.
 
 ## 11. Codebase Quality Assessment
 

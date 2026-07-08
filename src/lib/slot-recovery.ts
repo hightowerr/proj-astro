@@ -10,6 +10,7 @@ import {
   fetchCalendarEventsWithCache,
   isAllDayEvent,
 } from "@/lib/google-calendar-cache";
+import { sendBookingConfirmationSMS } from "@/lib/messages";
 import { createAppointment, getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { acquireLock, isInCooldown, releaseLock, setCooldown } from "@/lib/redis";
 import {
@@ -376,7 +377,9 @@ export interface OpenOffer {
   };
   shop: {
     id: string;
+    name: string;
     slug: string;
+    stripeOnboardingStatus: string | null;
   };
 }
 
@@ -396,7 +399,9 @@ export async function findLatestOpenOffer(phone: string): Promise<OpenOffer | nu
       },
       shop: {
         id: shops.id,
+        name: shops.name,
         slug: shops.slug,
+        stripeOnboardingStatus: shops.stripeOnboardingStatus,
       },
     })
     .from(slotOffers)
@@ -527,7 +532,7 @@ export async function acceptOffer(
       source: "slot_recovery",
       sourceSlotOpeningId: slotOpening.id,
       bookingBaseUrl,
-      paymentsEnabled: true,
+      paymentsEnabled: shop.stripeOnboardingStatus === "complete",
     });
     console.warn("[slot-recovery] booking created", {
       slotOpeningId: slotOpening.id,
@@ -577,18 +582,35 @@ export async function acceptOffer(
     }
 
     const paymentUrl = `${bookingBaseUrl}?appointment=${booking.appointment.id}`;
-    const message = `Booking confirmed! Complete payment: ${paymentUrl}`;
+    const date = slotOpening.startsAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    const time = slotOpening.startsAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const shopName = shop.name ?? shop.slug;
+
+    const smsBody = booking.paymentRequired
+      ? `Booked with ${shopName}: ${date} at ${time}. Deposit: ${paymentUrl} Reply STOP to opt out.`
+      : `Booked with ${shopName}: ${date} at ${time}. Reply STOP to opt out.`;
 
     try {
       await sendTwilioSms({
         to: customer.phone,
-        body: message,
+        body: smsBody,
       });
     } catch (error) {
       console.error(
         `Failed to send slot recovery confirmation SMS for appointment ${booking.appointment.id}:`,
         error
       );
+    }
+
+    if (!booking.paymentRequired) {
+      try {
+        await sendBookingConfirmationSMS(booking.appointment.id);
+      } catch (error) {
+        console.error(
+          `Failed to send standard confirmation SMS for slot-recovery appointment ${booking.appointment.id}:`,
+          error
+        );
+      }
     }
 
     await setCooldown(customer.id, 24 * 60 * 60);
