@@ -91,6 +91,12 @@ Address remaining current-issues from Stripe Connect design review. Refund state
 
 ---
 
+- **No Minimum Deposit Floor** — 4 specs, 2 waves. Platform minimum deposit floor (£1 / 100p). Dual enforcement: clamp `finalDepositCents` in `createAppointment()` before policy snapshot + belt-and-suspenders in `derivePaymentRequirement()`. No schema changes, no UI changes. `PLATFORM_MINIMUM_DEPOSIT_CENTS = 100` exported from `tier-pricing.ts`. Zero-amount deposits (`topDepositWaived`) bypass floor. Loop COMPLETE (2026-07-07, 16 PASS / 0 FAIL / 0 BLOCKED). 1 evolution / 0 shortcut. **Verification report**: `docs/shaping/no-minimum/shape/wave-all-verify.md`.
+  - **Wave 1**: spec 01 (floor constant + derive clamp) + spec 04 (tripwire docs) — sequential (same file)
+  - **Wave 2**: spec 02 (appointment clamp) + spec 03 (9 floor unit tests) — parallel
+  - **Modified files (2):** `src/lib/tier-pricing.ts`, `src/lib/queries/appointments.ts`
+  - **Modified test file (1):** `src/lib/__tests__/tier-pricing.test.ts` (9 new tests, 22 total passing)
+
 - **Kicksnare Migration** — 2 specs, 1 wave. Query fallback for pre-migration `depositSkipped = null` records. Dashboard shows correct Tier 2 amber card; appointments page shows correct unprotected count. No schema changes, no backfill. Self-expiring when Kicksnare completes Connect. Loop COMPLETE (2026-07-07, 10 PASS / 0 FAIL / 0 BLOCKED). 0 evolution / 0 shortcut. **Verification report**: `docs/shaping/ks-migration/shape/wave-1/wave-1-verify.md`.
   - **Wave 1**: spec 01 (dashboard query fallback) + spec 02 (appointments query fallback) — parallel
   - **Modified files (2):** `src/app/app/dashboard/page.tsx`, `src/app/app/appointments/page.tsx`

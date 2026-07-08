@@ -4,6 +4,35 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-07] shape+implement | no-minimum waves 1–2
+
+- **Picked up**: Phase 1 SHAPE + Phase 2 IMPLEMENT for no-minimum feature (platform minimum deposit floor — £1 clamp, dual enforcement)
+- **Result**: Shape complete. Waves 1-2 implemented:
+  - Shape: shape doc, slices doc, 4 specs, build order. 0 spikes (all code paths verified from mental models analysis). Single shape (dual-point floor clamp), 3 alternatives rejected (per-merchant column, per-input-point validation, console.warn).
+  - Wave 1 (2 sequential slices, same file): `src/lib/tier-pricing.ts` — exported `PLATFORM_MINIMUM_DEPOSIT_CENTS = 100` with tripwire JSDoc, modified `derivePaymentRequirement()` (`const` → `let`, floor clamp for `amountCents > 0 && < 100`). `pnpm check` clean.
+  - Wave 2 (2 parallel slices): `src/lib/queries/appointments.ts` (import constant + `clampedDepositCents` before policy snapshot + use in `derivePaymentRequirement` and `policyVersions` insert) + `src/lib/__tests__/tier-pricing.test.ts` (9 new floor tests: sub-floor 1p/50p/99p, at-floor, above-floor, zero, null, paymentMode=none, full_prepay). 22 total tests passing. `pnpm check` clean.
+  - 0 deviations. 0 new type errors. 0 regressions.
+  - Modified files (2): `src/lib/tier-pricing.ts`, `src/lib/queries/appointments.ts`
+  - Modified test file (1): `src/lib/__tests__/tier-pricing.test.ts`
+- **Unresolved**: Phase 3 VERIFY must run in a separate session (non-negotiable: implementing agents do not verify their own work). Then DRIFT AUDIT + RETRO.
+
+---
+
+## [2026-07-07] verify+drift+retro | no-minimum waves 1–2
+
+- **Picked up**: Phases 3-5 for no-minimum feature (verify in separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 16/16 PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session. All acceptance criteria met. All critical invariants confirmed.
+  - Drift: 1 divergence (EVOLUTION, 0 shortcuts, 0%). D1: test file path `__tests__/tier-pricing.test.ts` vs spec's `tier-pricing.test.ts` — used existing project convention.
+  - Retro: 0 new patterns (mental-models-as-shape already demonstrated by ks-migration). 0 friction.
+  - Key learning: When mental models analysis pre-resolves all unknowns and the feature is small (~15 lines production code), the entire 5-phase loop completes with zero surprises and zero shortcuts. The dual-enforcement pattern (chokepoint + belt-and-suspenders) is a good template for future platform invariants.
+  - Evolution/shortcut ratio: 1/0 (0%)
+  - Patterns extracted: 0
+  - Friction logged: 0
+- **Unresolved**: Architecture context updates (invariant #16, booking flow step 4b) queued in `_build-order.md` — apply as part of next architecture review.
+
+---
+
 ## [2026-07-07] all phases | ks-migration wave 1
 
 - **Picked up**: Full loop (SHAPE → IMPLEMENT → VERIFY → DRIFT AUDIT → RETRO) for ks-migration feature (pre-Connect appointments query fallback for Kicksnare)

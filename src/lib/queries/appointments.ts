@@ -45,7 +45,11 @@ import {
   slotOpenings,
 } from "@/lib/schema";
 import { getStripeClient, normalizeStripePaymentStatus, stripeIsMocked } from "@/lib/stripe";
-import { applyTierPricingOverride, derivePaymentRequirement } from "@/lib/tier-pricing";
+import {
+  applyTierPricingOverride,
+  derivePaymentRequirement,
+  PLATFORM_MINIMUM_DEPOSIT_CENTS,
+} from "@/lib/tier-pricing";
 import type Stripe from "stripe";
 
 const DEFAULT_PAYMENT_POLICY = {
@@ -859,9 +863,17 @@ export const createAppointment = async (input: {
             ? input.eventTypeDepositCents
             : tierPricing.depositAmountCents;
 
+        // Platform floor: clamp sub-minimum deposits before policy snapshot
+        const clampedDepositCents =
+          finalDepositCents !== null &&
+          finalDepositCents > 0 &&
+          finalDepositCents < PLATFORM_MINIMUM_DEPOSIT_CENTS
+            ? PLATFORM_MINIMUM_DEPOSIT_CENTS
+            : finalDepositCents;
+
         const derived = derivePaymentRequirement({
           paymentMode: tierPricing.paymentMode,
-          depositAmountCents: finalDepositCents,
+          depositAmountCents: clampedDepositCents,
         });
         paymentRequired = derived.paymentRequired;
         amountCents = derived.amountCents;
@@ -873,7 +885,7 @@ export const createAppointment = async (input: {
             shopId: input.shopId,
             currency: policy.currency,
             paymentMode: tierPricing.paymentMode,
-            depositAmountCents: finalDepositCents,
+            depositAmountCents: clampedDepositCents,
             cancelCutoffMinutes: policy.cancelCutoffMinutes,
             refundBeforeCutoff: policy.refundBeforeCutoff,
             resolutionGraceMinutes: policy.resolutionGraceMinutes,
