@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyTierPricingOverride,
   derivePaymentRequirement,
+  PLATFORM_MINIMUM_DEPOSIT_CENTS,
   type BasePolicy,
   type TierOverrides,
 } from "@/lib/tier-pricing";
@@ -136,5 +137,67 @@ describe("derivePaymentRequirement", () => {
       paymentRequired: false,
       amountCents: 0,
     });
+  });
+});
+
+describe("PLATFORM_MINIMUM_DEPOSIT_CENTS", () => {
+  it("equals 100 (£1)", () => {
+    expect(PLATFORM_MINIMUM_DEPOSIT_CENTS).toBe(100);
+  });
+});
+
+describe("derivePaymentRequirement floor enforcement", () => {
+  it("clamps sub-minimum deposit to platform floor", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "deposit", depositAmountCents: 50 })
+    ).toEqual({ paymentRequired: true, amountCents: 100 });
+  });
+
+  it("clamps 1p deposit to platform floor", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "deposit", depositAmountCents: 1 })
+    ).toEqual({ paymentRequired: true, amountCents: 100 });
+  });
+
+  it("clamps 99p deposit to platform floor", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "deposit", depositAmountCents: 99 })
+    ).toEqual({ paymentRequired: true, amountCents: 100 });
+  });
+
+  it("does not clamp zero deposit (waived path)", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "deposit", depositAmountCents: 0 })
+    ).toEqual({ paymentRequired: false, amountCents: 0 });
+  });
+
+  it("does not clamp deposits at floor", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "deposit", depositAmountCents: 100 })
+    ).toEqual({ paymentRequired: true, amountCents: 100 });
+  });
+
+  it("does not clamp deposits above floor", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "deposit", depositAmountCents: 500 })
+    ).toEqual({ paymentRequired: true, amountCents: 500 });
+  });
+
+  it("returns no payment for paymentMode=none even with sub-floor amount", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "none", depositAmountCents: 50 })
+    ).toEqual({ paymentRequired: false, amountCents: 0 });
+  });
+
+  it("returns no payment for null deposit", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "deposit", depositAmountCents: null })
+    ).toEqual({ paymentRequired: false, amountCents: 0 });
+  });
+
+  it("clamps sub-floor full_prepay amount", () => {
+    expect(
+      derivePaymentRequirement({ paymentMode: "full_prepay", depositAmountCents: 75 })
+    ).toEqual({ paymentRequired: true, amountCents: 100 });
   });
 });
