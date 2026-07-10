@@ -425,6 +425,17 @@ Review docs/signals/drift/ entries from this wave.
 - Legitimate evolutions → update docs/context/architecture-context.md
 - Shortcuts → add to docs/context/current-issues.md as tech debt
 
+### 3b. Apply queued architecture updates
+Check the build order / specs for any "Architecture Context Updates Needed" sections
+(invariants, key flow changes, env vars, new routes, cron jobs, etc.).
+These are planned updates documented during SHAPE — not drift.
+Apply them to the relevant context files now:
+- New invariants → append to docs/context/architecture-context.md § Invariants
+- Flow changes → update docs/context/architecture-context.md § Key Flows
+- New env vars → update docs/context/architecture-context.md § Environment & Config
+- New routes → update docs/context/architecture-context.md § Non-Obvious Routes
+If no queued updates exist, skip this step.
+
 ### 4. Shaping improvements
 What spikes were wasted? → Note for future spike selection
 What was shaped well? → Extract as a shaping heuristic

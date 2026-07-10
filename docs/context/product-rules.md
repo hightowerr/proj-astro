@@ -15,6 +15,7 @@ Customer behavior determines their priority for slot recovery and pricing.
 ## Slot Recovery System
 Automatically tries to fill slots when a future paid appointment is cancelled.
 * **Priority Order:** Top Tier → Neutral/Default → Risk Tier.
+* **Connect Guard:** Slot recovery follows the same Connect guard as standard bookings. `paymentsEnabled` is derived from `shop.stripeOnboardingStatus === "complete"`. A non-Connect shop's slot recovery creates a free booking, not a paid one.
 * **Status Flow:** * `pending` (customer receives SMS)
   * `accepted` (customer books it)
   * `expired` (offer TTL ran out)

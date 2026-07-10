@@ -825,6 +825,10 @@ export const createAppointment = async (input: {
       }
       await upsertCustomerContactPrefs(tx, contactPrefsInput);
 
+      // TRIPWIRE: paymentsEnabled defaults to true. Any new caller MUST derive this
+      // from shop.stripeOnboardingStatus === "complete". Hardcoding true bypasses the
+      // Connect guard and can route deposits to the platform account instead of the
+      // merchant. See: docs/shaping/connect-guard/F1-money-routing.md
       const paymentsEnabled = input.paymentsEnabled ?? true;
       let policyVersion: typeof policyVersions.$inferSelect | null = null;
       let paymentRequired = false;

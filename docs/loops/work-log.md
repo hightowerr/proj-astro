@@ -4,6 +4,34 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-08] implement | connect-guard waves 1–2
+
+- **Picked up**: Phase 2 IMPLEMENT for connect-guard feature (slot recovery Connect guard bypass — money routing + SMS fix). Waves 1–2.
+- **Result**: Waves 1–2 implemented:
+  - Wave 1 (3 parallel slices, same session): P0 (`slot-recovery.ts` — added `stripeOnboardingStatus` + `name` to `findLatestOpenOffer` shop select + `OpenOffer` interface), F2 (`slot-recovery.ts` — branched SMS on `booking.paymentRequired`, date/time formatting, `Booked with` opening, `Reply STOP` compliance suffix), T1 (`appointments.ts` — tripwire comment above `paymentsEnabled ?? true`). `pnpm check` clean after each slice.
+  - Wave 2 (1 slice): F1 (`slot-recovery.ts` — replaced `paymentsEnabled: true` with `shop.stripeOnboardingStatus === "complete"`). `pnpm check` clean.
+  - 1 deviation: P0 also added `name` field to query + `OpenOffer` interface (not in P0 spec, needed by F2's SMS copy which references `shop.name`). EVOLUTION — F2 spec assumed the field was available.
+  - Modified files (2): `src/lib/slot-recovery.ts`, `src/lib/queries/appointments.ts`
+- **Unresolved**: Phase 3 VERIFY must run in a separate session (non-negotiable: implementing agents do not verify their own work). Then DRIFT AUDIT + RETRO.
+- **Update**: F3 unblocked — `sendBookingConfirmationSMS` already shipped with confirmation-SMS feature. Implemented: import from `@/lib/messages`, added `!booking.paymentRequired` guard with fire-and-forget try/catch after F2's inline SMS. `pnpm check` clean. 0 deviations. All 5 specs (P0, F1, F2, F3, T1) now implemented.
+
+---
+
+## [2026-07-08] verify+drift+retro | connect-guard waves 1–2
+
+- **Picked up**: Phases 3-5 for connect-guard feature (verify, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 19/19 PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session. All acceptance criteria met.
+  - Drift: 1 divergence (EVOLUTION, 0 shortcuts, 0%). D1: P0 added `name` field to query + `OpenOffer` interface — needed by F2's SMS copy (`shop.name ?? shop.slug`). Spec P0 updated.
+  - Retro: Architecture context updates applied (invariant #17: paymentsEnabled derivation, slot recovery flow steps 5b/5c, product rule: Connect guard). Issue marked RESOLVED in current-issues.md. 0 new patterns. 0 friction.
+  - Evolution/shortcut ratio: 1/0 (0%)
+  - Patterns extracted: 0
+  - Friction logged: 0
+  - Key learning: F3's external dependency (`sendBookingConfirmationSMS`) was assumed unshipped but had already landed with confirmation-SMS. Checking existing exports before deferring specs avoids unnecessary blocking. The full 5-spec feature shipped in a single session because all code paths were pre-verified by mental models analysis.
+- **Unresolved**: none
+
+---
+
 ## [2026-07-07] shape+implement | no-minimum waves 1–2
 
 - **Picked up**: Phase 1 SHAPE + Phase 2 IMPLEMENT for no-minimum feature (platform minimum deposit floor — £1 clamp, dual enforcement)

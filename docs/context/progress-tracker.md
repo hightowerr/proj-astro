@@ -148,6 +148,9 @@ Address remaining current-issues from Stripe Connect design review. Refund state
   - **Wave 1**: spec 01 (mcc-mapping module) — `src/lib/mcc-mapping.ts` (new)
   - **Wave 2**: spec 02 (route integration) — `create-account/route.ts` (1 import + 1 line), spec 03 (schema guard test) — `src/lib/mcc-mapping.test.ts` (new, 6 tests)
   - **Wave 3**: spec 04 (post-deploy audit script) — `scripts/audit-mcc.ts` (new). Run `npx tsx scripts/audit-mcc.ts` after deploying to production.
+- **Connect Guard** — Feature loop COMPLETE. 19 PASS / 0 FAIL / 0 BLOCKED. 1 evolution / 0 shortcut (0%). Backend-only (no UI). Shaping: `docs/shaping/connect-guard/`. Verification: `docs/shaping/connect-guard/wave-all-verify.md`.
+  - **Wave 1**: P0 (query gap — `stripeOnboardingStatus` + `name` added to `findLatestOpenOffer`), F2 (SMS branching on `paymentRequired`), T1 (tripwire comment on `appointments.ts`)
+  - **Wave 2**: F1 (money routing — `paymentsEnabled` derived from Connect status), F3 (standard SMS via `sendBookingConfirmationSMS` for free bookings)
 
 ---
 
