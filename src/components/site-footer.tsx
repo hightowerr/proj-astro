@@ -18,7 +18,7 @@ export function SiteFooter() {
     >
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4">
         <Link href="/" className="text-xl font-bold" style={{ color: "var(--color-text-primary)" }}>
-          Astro
+          ShowUp
         </Link>
 
         <div className="flex flex-wrap justify-center gap-x-8 gap-y-2">
@@ -34,7 +34,7 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>© 2025 Astro. All rights reserved.</p>
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>© 2025 ShowUp. All rights reserved.</p>
       </div>
     </footer>
   );

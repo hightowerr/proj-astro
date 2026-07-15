@@ -4,6 +4,45 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-14] all phases | rebrand waves 1–2
+
+- **Picked up**: Full loop completion for rebrand feature. Wave 1 phases 3-5 + Wave 2 phases 2-5.
+- **Result**: Loop COMPLETE.
+  - **Wave 1**: Verify 12/12 PASS (independent agent, previous session). Drift: 0 conflicts with Wave 2 specs, 4 evolution / 0 shortcuts. Retro: architecture updates applied (ui-context.md brand names, code-standards.md brand convention).
+  - **Wave 2**: Implement — 3 specs (P3-app-copy: 2 tooltips, P3-email-rebrand: 5 strings + 4 typography fixes + brand footer, P4-internal-docs: 7 strings). `pnpm check` clean. Verify: 20/20 PASS (independent agent). Drift: 0 divergences. Retro: current-issues.md rebrand + typography fix moved to Resolved.
+  - Total: 32/32 PASS across both waves. 4 evolution / 0 shortcuts (0%).
+  - Modified files (Wave 2): `src/app/app/appointments/page.tsx`, `src/components/payments/tier-policy-form.tsx`, `src/app/api/jobs/connect-reengagement/route.ts`, `docs/context/project-overview.md`
+  - Patterns extracted: 0
+  - Friction logged: 0
+  - Key learning: Shaping phase should include grep audit for brand references — manual file review missed 4 references that post-sweep grep caught (Wave 1). Wave 2 was trivial once Wave 1 established the pattern. Bundling the typography fix with the email rebrand was the right call — same file, same PR, no extra coordination cost.
+- **Unresolved**: none. `auth-origins.test.ts` has `astro.example.com` fixture URLs — excluded from scope (test data). Loop COMPLETE.
+
+- **Picked up**: Phases 3-5 for rebrand Wave 1 (verify in separate session, drift audit, retro)
+- **Result**: Wave 1 COMPLETE.
+  - Verify: 12/12 PASS. 0 FAIL. 0 INCONCLUSIVE. Independent verifier (previous session) + independent re-verification (this session). All acceptance criteria met. Playwright visual checks passed (landing, mobile drawer, login, register). BookingNav verified by code review (no valid shop slug in dev DB).
+  - Drift: 0 conflicts with remaining specs. All 3 Wave 2 spec line numbers verified accurate. 4 deviations from Wave 1 (all EVOLUTION, documented by implementer): additional brand references found by post-sweep grep. P4 spec inaccuracy noted: `auth-origins.test.ts` has 3 `astro.example.com` fixture URLs, not "0 matches" as claimed.
+  - Retro: Architecture context updates applied — ui-context.md (brand names table), code-standards.md (brand convention section). current-issues.md rebrand entry updated with Wave 1 status. No new patterns (sweep replacement is standard). 0 friction.
+  - Evolution/shortcut ratio: 4/0 (0%)
+  - Patterns extracted: 0
+  - Friction logged: 0
+  - Key learning: Shaping missed 4 brand references (demo URLs in features-carousel, page.tsx descriptions, onboarding URL) that post-sweep grep caught. Future rebrand-style specs should include a grep audit step in the shaping phase, not just a manual file-by-file review.
+- **Unresolved**: Wave 2 (P3-app-copy, P3-email-rebrand + typography fix, P4-internal-docs) ready for IMPLEMENT.
+
+---
+
+## [2026-07-13] shape+implement | rebrand wave 1
+
+- **Picked up**: Rebrand "Astro" → "ShowUp" — full feature loop. Phase 1 (SHAPE) + Phase 2 (IMPLEMENT) for Wave 1.
+- **Result**: Shape + implement complete.
+  - Shape: shape doc, slices doc, wave-1 plan. No spikes needed (all string replacements). Single shape (A: sweep replacement). 7 requirements, all satisfied. Relevant signals applied: `cascading-rename-breakage`, `single-file-sweep`, `agent-skips-visual-polish`.
+  - Implement: 25 replacements across 13 files (originally planned 21 across 11). Single sweep agent + 3 manual fixes for new finds. `pnpm check` clean. Post-sweep grep: 0 "Astro"/"ASTRO" in Wave 1 scope.
+  - 4 deviations (all EVOLUTION): `features-carousel.tsx` demo URL (`astro.app/book` → `showup.dev/book`), `page.tsx` 2× feature card descriptions, `shop-details-step.tsx` onboarding demo URL (`astro.com/book/` → `showup.dev/book/`). All found by post-sweep grep, not in original specs.
+  - Also fixed: coder agent used `showup.app` instead of `showup.dev` for features-carousel URL — corrected manually.
+  - Loop contract, progress tracker updated.
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session (NEVER self-verify). Wave 2 (P3-app-copy, P3-email-rebrand + typography fix, P4-internal-docs) pending after Wave 1 ships.
+
+---
+
 ## [2026-07-08] implement | connect-guard waves 1–2
 
 - **Picked up**: Phase 2 IMPLEMENT for connect-guard feature (slot recovery Connect guard bypass — money routing + SMS fix). Waves 1–2.

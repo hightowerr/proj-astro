@@ -108,7 +108,7 @@ export default function HeroSection() {
 
           <motion.div variants={itemVariants}>
             <p className="max-w-lg text-lg leading-relaxed text-text-muted">
-              Astro protects your income with smart client scoring, automated deposits, and
+              ShowUp protects your income with smart client scoring, automated deposits, and
               instant slot recovery.
             </p>
           </motion.div>

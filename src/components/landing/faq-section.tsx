@@ -7,7 +7,7 @@ import { ChevronDown } from "lucide-react";
 const FAQ_ITEMS = [
   {
     q: "What happens if a client no-shows?",
-    a: "Astro retains the deposit automatically and updates the client's reliability score. Two or more no-shows within 90 days flags them as a risk client, so you can decide whether to accept future bookings from them.",
+    a: "ShowUp retains the deposit automatically and updates the client's reliability score. Two or more no-shows within 90 days flags them as a risk client, so you can decide whether to accept future bookings from them.",
   },
   {
     q: "Can clients cancel and get a refund?",
@@ -23,11 +23,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "Can I cancel anytime?",
-    a: "Astro is month-to-month, no contracts. Cancel from your account settings at any time. Your data is exported on request.",
+    a: "ShowUp is month-to-month, no contracts. Cancel from your account settings at any time. Your data is exported on request.",
   },
   {
-    q: "Which calendar and payment apps does Astro work with?",
-    a: "Astro integrates with Google Calendar and processes payments via Stripe. SMS confirmations go out through Twilio. Additional integrations are on the roadmap.",
+    q: "Which calendar and payment apps does ShowUp work with?",
+    a: "ShowUp integrates with Google Calendar and processes payments via Stripe. SMS confirmations go out through Twilio. Additional integrations are on the roadmap.",
   },
 ] as const;
 
@@ -47,7 +47,7 @@ export default function FaqSection() {
             FAQ
           </span>
           <h2 className="mt-4 mb-4 text-4xl font-bold text-white">Common questions</h2>
-          <p className="text-lg text-text-muted">Everything you need to know about Astro.</p>
+          <p className="text-lg text-text-muted">Everything you need to know about ShowUp.</p>
         </div>
 
         <div className="divide-y divide-white/10">

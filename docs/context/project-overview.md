@@ -1,16 +1,16 @@
-# Product Definition: Astro
+# Product Definition: ShowUp
 
 > This is document #1 in the mandatory reading order. It defines the business constraints that `architecture-context.md` implements, `code-standards.md` enforces, and `ai-workflow-rules.md` governs.
 
 ## 1. Product Identity
 
-- **Product name:** Astro
+- **Product name:** ShowUp
 - **Tagline:** "Stop losing money to no-shows"
 - **Type:** B2B SaaS — subscription web application
-- **Regulatory status:** None. No FCA, HIPAA, or PCI-DSS obligations on Astro itself. Payment card handling is fully delegated to Stripe (PCI-compliant). SMS opt-out compliance (TCPA/CTIA) handled via Twilio's STOP/START keyword processing.
-- **Pricing:** $49/month (monthly) or ~$39/month (annual, 20% discount). Single plan ("Astro Pro"). 14-day free trial, no credit card required.
+- **Regulatory status:** None. No FCA, HIPAA, or PCI-DSS obligations on ShowUp itself. Payment card handling is fully delegated to Stripe (PCI-compliant). SMS opt-out compliance (TCPA/CTIA) handled via Twilio's STOP/START keyword processing.
+- **Pricing:** $49/month (monthly) or ~$39/month (annual, 20% discount). Single plan ("ShowUp Pro"). 14-day free trial, no credit card required.
 
-**Commercial proposition:** Astro protects service businesses from revenue loss caused by no-shows and late cancellations. It scores customers on reliability, enforces tier-based deposit policies, and automatically re-sells cancelled slots via SMS offers — turning booking chaos into predictable income.
+**Commercial proposition:** ShowUp protects service businesses from revenue loss caused by no-shows and late cancellations. It scores customers on reliability, enforces tier-based deposit policies, and automatically re-sells cancelled slots via SMS offers — turning booking chaos into predictable income.
 
 ## 2. Target Audience
 
@@ -76,11 +76,11 @@
 |---|----------|-----|
 | 1 | Blog / content marketing | Content update frequency doesn't justify a publishing system. Landing page is sufficient for SEO. |
 | 2 | Client portal / customer accounts | Customers interact via tokenized links, not accounts. Adding accounts adds auth complexity for a population that books infrequently. |
-| 3 | CRM / customer relationship management | Astro tracks reliability, not relationships. CRM features (notes, tags, campaigns) would dilute the no-show prevention focus. |
+| 3 | CRM / customer relationship management | ShowUp tracks reliability, not relationships. CRM features (notes, tags, campaigns) would dilute the no-show prevention focus. |
 | 4 | Historical performance analytics | Dashboard shows current-state metrics. Time-series analytics (trends, cohort analysis) are premature before PMF. |
 | 5 | Multi-location / franchise support | Single-shop model. Multi-tenant would require org hierarchy, permissions, and cross-shop reporting. Revisit after 100+ paying shops. |
 | 6 | In-app chat or messaging | SMS and email are the communication channels. Real-time chat adds infrastructure cost for minimal no-show prevention value. |
-| 7 | Marketplace / discovery | Astro is a tool for existing businesses, not a booking marketplace. Customers arrive via the shop's direct link. |
+| 7 | Marketplace / discovery | ShowUp is a tool for existing businesses, not a booking marketplace. Customers arrive via the shop's direct link. |
 | 8 | Re-engagement campaigns | Landing page mentions "win back clients on autopilot" but this is aspirational — not implemented. Revisit after core loop is validated. |
 | 9 | Mobile app | Web-first. The dashboard is responsive. A native app would double maintenance surface for the same features. |
 | 10 | Internationalization / i18n | English only. Multi-language would require template translation, locale-aware formatting, and translated UI. Revisit for non-English markets. |

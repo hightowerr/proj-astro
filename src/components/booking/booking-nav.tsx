@@ -28,7 +28,7 @@ export function BookingNav() {
       {/* ── Left: Brand mark + brand name ── */}
       <Link
         href="/"
-        aria-label="Astro homepage"
+        aria-label="ShowUp homepage"
         style={{
           display: "flex",
           alignItems: "center",
@@ -71,7 +71,7 @@ export function BookingNav() {
             color: "var(--al-primary)",
           }}
         >
-          ASTRO
+          SHOWUP
         </span>
       </Link>
 

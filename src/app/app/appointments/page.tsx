@@ -291,7 +291,7 @@ export default async function AppointmentsPage() {
               </div>
               <div className="text-base font-extrabold text-al-primary">No slots recovered yet</div>
               <div className="al-lede mt-1.5 max-w-[380px] mx-auto">
-                When a customer cancels, Astro offers their slot to another customer on the waitlist.
+                When a customer cancels, ShowUp offers their slot to another customer on the waitlist.
               </div>
             </div>
           ) : (

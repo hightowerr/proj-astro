@@ -60,8 +60,8 @@ export function SiteHeader() {
 
       <header className={`fixed top-0 z-50 w-full ${headerClass}`} role="banner">
         <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="text-xl font-bold text-[var(--color-text-primary)]" aria-label="Astro homepage">
-            Astro
+          <Link href="/" className="text-xl font-bold text-[var(--color-text-primary)]" aria-label="ShowUp homepage">
+            ShowUp
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
@@ -133,7 +133,7 @@ export function SiteHeader() {
                 className="rounded-md text-xl font-bold text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]"
                 onClick={() => setDrawerOpen(false)}
               >
-                Astro
+                ShowUp
               </Link>
               <button
                 type="button"

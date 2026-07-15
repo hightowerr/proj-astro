@@ -52,7 +52,7 @@ export default function PricingSection() {
         </div>
 
         <div className="rounded-2xl border border-primary/20 bg-bg-dark-secondary p-8 shadow-2xl lg:p-10">
-          <p className="mb-4 text-sm font-semibold tracking-widest text-primary uppercase">Astro Pro</p>
+          <p className="mb-4 text-sm font-semibold tracking-widest text-primary uppercase">ShowUp Pro</p>
           <div className="mb-2 flex items-end gap-2">
             <span aria-live="polite" className="text-6xl font-bold text-white">
               ${price}

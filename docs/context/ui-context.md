@@ -1,7 +1,16 @@
-# Astro Design System Audit
+# ShowUp Design System Audit
 *"The Modern Atelier" — Atelier Light theme · audited against actual implementation, June 2026*
 
 > Scope: `colors_and_type.css` (token source of truth) + 6 page apps (`appointments`, `availability`, `customers`, `conflicts`, `payment-policy`, `reminders`) rendered through `design-canvas.jsx` artboards, with a `tweaks-panel.jsx` control layer. This documents what the code *does*, not what the brief wishes.
+
+## Brand Names
+
+| Context | Value |
+|---------|-------|
+| Product display name | ShowUp |
+| Uppercase / wordmark | SHOWUP |
+| Plan name | ShowUp Pro |
+| CSS token prefix | `--al-*` (Atelier Light — unrelated to product name, does not change) |
 
 ---
 

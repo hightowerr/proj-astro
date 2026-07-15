@@ -21,7 +21,7 @@ const SLIDES: Slide[] = [
     label: "No-Show Protection",
     title: "Stop no-shows before they cost you",
     description:
-      "Astro flags high-risk clients automatically based on their booking history. Deposits are collected upfront so a no-show never means lost revenue.",
+      "ShowUp flags high-risk clients automatically based on their booking history. Deposits are collected upfront so a no-show never means lost revenue.",
     bullets: [
       "Risk tier assigned based on 90-day history",
       "Deposit held on cancellation after cutoff",
@@ -204,7 +204,7 @@ const MarketingScreen = (
 
     <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs leading-relaxed text-gray-600">
       We miss you, [Name]! Book your next appointment -&gt;{" "}
-      <span className="text-teal-600">astro.app/book</span>
+      <span className="text-teal-600">showup.dev/book</span>
     </div>
 
     <div className="mt-3 grid grid-cols-3 gap-2">

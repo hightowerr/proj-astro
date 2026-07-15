@@ -22,7 +22,7 @@ const steps: Step[] = [
   {
     number: "02",
     Icon: ShieldCheck,
-    title: "Astro protects your schedule",
+    title: "ShowUp protects your schedule",
     description:
       "Risk clients are flagged automatically. Late cancellations keep your deposit - your time is never wasted.",
   },
@@ -31,7 +31,7 @@ const steps: Step[] = [
     Icon: RefreshCw,
     title: "Cancelled slots fill themselves",
     description:
-      "When someone cancels, Astro offers the slot to your best available clients. Your calendar stays full without you lifting a finger.",
+      "When someone cancels, ShowUp offers the slot to your best available clients. Your calendar stays full without you lifting a finger.",
   },
 ];
 
@@ -48,7 +48,7 @@ export default function HowItWorks() {
           <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold tracking-widest text-primary uppercase">
             How it works
           </span>
-          <h2 className="mt-4 mb-4 text-4xl font-bold text-white">How Astro works</h2>
+          <h2 className="mt-4 mb-4 text-4xl font-bold text-white">How ShowUp works</h2>
           <p className="mx-auto max-w-2xl text-lg text-text-muted">
             From booking to protected revenue - completely automated.
           </p>

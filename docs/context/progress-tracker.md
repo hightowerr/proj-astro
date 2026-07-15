@@ -6,13 +6,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Refund State — Feature loop COMPLETE. 31 PASS / 3 FAIL (test infra) / 0 BLOCKED. All 3 refund variants visually verified via Playwright with seed data.
+Rebrand "Astro" → "ShowUp" — COMPLETE. All 10 specs implemented and verified across 2 waves (32/32 PASS). 4 evolution / 0 shortcuts. Re-engagement email typography fix bundled with Wave 2.
 
 ---
 
 ## Current Goal
 
-Address remaining current-issues from Stripe Connect design review. Refund state is shipped.
+Complete rebrand across all user-facing surfaces. Wave 1 (P0+P1+P2) ships as one PR. Wave 2 (P3+P4) follows.
 
 ---
 
@@ -96,6 +96,10 @@ Address remaining current-issues from Stripe Connect design review. Refund state
   - **Wave 2**: spec 02 (appointment clamp) + spec 03 (9 floor unit tests) — parallel
   - **Modified files (2):** `src/lib/tier-pricing.ts`, `src/lib/queries/appointments.ts`
   - **Modified test file (1):** `src/lib/__tests__/tier-pricing.test.ts` (9 new tests, 22 total passing)
+
+- **Rebrand "Astro" → "ShowUp"** — Wave 1 IMPLEMENTED (2026-07-13). 25 replacements across 13 files. 3 deviations (all EVOLUTION — additional occurrences found by post-sweep grep not in original specs): `page.tsx` (2 feature card descriptions), `shop-details-step.tsx` (demo URL `astro.com/book/` → `showup.dev/book/`), `features-carousel.tsx` (`astro.app/book` → `showup.dev/book`). `pnpm check` clean. Awaiting VERIFY (Phase 3). Wave 2: P3-app-copy, P3-email-rebrand (+ typography fix), P4-internal-docs.
+  - **Wave 1**: P0-metadata, P1×4, P2×2 (7 specs) + 3 new-find fixes — single sweep
+  - **Modified files (13):** `layout.tsx`, `site-header.tsx`, `auth-brand-bar.tsx`, `booking-nav.tsx`, `site-footer.tsx`, `sign-in-button.tsx`, `hero-section.tsx`, `faq-section.tsx`, `how-it-works.tsx`, `features-carousel.tsx`, `pricing-section.tsx`, `page.tsx`, `shop-details-step.tsx`
 
 - **Kicksnare Migration** — 2 specs, 1 wave. Query fallback for pre-migration `depositSkipped = null` records. Dashboard shows correct Tier 2 amber card; appointments page shows correct unprotected count. No schema changes, no backfill. Self-expiring when Kicksnare completes Connect. Loop COMPLETE (2026-07-07, 10 PASS / 0 FAIL / 0 BLOCKED). 0 evolution / 0 shortcut. **Verification report**: `docs/shaping/ks-migration/shape/wave-1/wave-1-verify.md`.
   - **Wave 1**: spec 01 (dashboard query fallback) + spec 02 (appointments query fallback) — parallel

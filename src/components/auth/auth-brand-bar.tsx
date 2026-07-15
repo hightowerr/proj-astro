@@ -8,7 +8,7 @@ export function AuthBrandBar() {
           href="/"
           className="font-manrope text-xl font-bold tracking-tighter text-primary"
         >
-          Astro
+          ShowUp
         </Link>
         {/* BOUNDARY: auth-redesign-v1 ships a brand-only auth bar with no nav or marketing links. */}
         <span className="font-manrope hidden text-sm font-medium tracking-wide text-muted-foreground md:block">
