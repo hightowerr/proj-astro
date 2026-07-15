@@ -1,56 +1,66 @@
 # Feature Loop Contract
 
 ## Goal
-All connect-guard specs (5 specs, 2 waves + 1 deferred) are implemented, independently verified,
+All rebrand specs (10 specs, 2 waves) are implemented, independently verified,
 drift-audited with zero unresolved conflicts, and retrospective logged.
-Financial safety (correct deposit routing) ships by end of Wave 2.
+Every user-facing surface reads "ShowUp" (not "Astro") by end of Wave 1.
 
 ## Current state
-- Feature: connect-guard (slot recovery Connect guard bypass — money routing + SMS fix)
-- Wave: 2 of 2
+- Feature: rebrand ("Astro" → "ShowUp" across all user-facing surfaces)
+- Feature: rebrand ("Astro" → "ShowUp" across all user-facing surfaces)
+- Wave: COMPLETE (2 of 2)
 - Phase: COMPLETE
-- Specs in scope: docs/shaping/connect-guard/ (P0, F1, F2, F3, T1)
-- Wave 1 specs: P0 (query gap), F2 (SMS branching), T1 (tripwire comment) — IMPLEMENTED
-- Wave 2 specs: F1 (money routing) — IMPLEMENTED
-- Wave 2 (cont): F3 (SMS cross-dep) — IMPLEMENTED (external dep `sendBookingConfirmationSMS` already shipped with confirmation-SMS feature)
+- Specs in scope: docs/shaping/rebrand/ (P0, P1×4, P2×2, P3×2, P4)
+- Wave 1: COMPLETE — 12/12 PASS, 4 evolution / 0 shortcuts
+- Wave 2: COMPLETE — 20/20 PASS, 0 evolution / 0 shortcuts
 
 ## Backlog
-- Waves remaining: 0
+- Waves remaining: none
 - Blocked specs: none
-- Design review pending: F2 SMS copy (free-path text) — designer sign-off needed
+- Design review: APPROVED (2026-07-13) — mock-ups received for booking nav wordmark + email brand footer
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |
 |------|------|-------|----------|-------|
-| 2026-07-08 | — | SHAPE | — | Specs derived from mental models analysis (12 models, all converge). 5 specs created, build order defined, 3 phases. 0 spikes needed (all code paths verified from analysis). 4 alternatives rejected (enforce in createAppointment, block offers for non-Connect, reopen slot, change default to required). |
-| 2026-07-08 | 1 | IMPLEMENT | — | 3 parallel slices: P0 (query gap — added `stripeOnboardingStatus` + `name` to `findLatestOpenOffer` shop select + `OpenOffer` interface), F2 (SMS branching — branched on `booking.paymentRequired`, date/time formatting, `Reply STOP` compliance), T1 (tripwire comment on `appointments.ts:828`). `pnpm check` clean after each slice. 1 deviation: P0 also added `name` field (needed by F2). |
-| 2026-07-08 | 2 | IMPLEMENT | — | 1 slice: F1 (money routing — replaced `paymentsEnabled: true` with `shop.stripeOnboardingStatus === "complete"`). `pnpm check` clean. 0 deviations. |
-| 2026-07-08 | 2 | IMPLEMENT | — | 1 slice: F3 (SMS cross-dep — added `sendBookingConfirmationSMS` call for `!paymentRequired` branch, fire-and-forget with try/catch, `messageDedup` prevents double-send). External dep already shipped (confirmation-SMS feature). `pnpm check` clean. 0 deviations. |
-| 2026-07-08 | 1–2 | VERIFY | — | 19/19 PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session. All acceptance criteria met. |
-| 2026-07-08 | 1–2 | DRIFT AUDIT | — | 1 divergence: P0 added `name` field (EVOLUTION — needed by F2 SMS copy). 0 shortcuts. Spec P0 updated. |
-| 2026-07-08 | 1–2 | RETRO | — | Architecture context updates applied: invariant #17 (paymentsEnabled derivation), slot recovery flow steps 5b/5c, product rule (Connect guard). Issue marked RESOLVED. 0 new patterns. 0 friction. Loop COMPLETE. |
+| 2026-07-13 | — | SHAPE | — | 10 specs created from current-issues.md analysis. BUILD-ORDER + DESIGN-BRIEF written. Mock-ups received and approved. Verified 35 occurrences across 15 files (original estimate was 28/14). Shape doc, slices doc, wave-1 plan created. No spikes needed. |
+| 2026-07-13 | 1 | IMPLEMENT | — | Single sweep: 25 replacements across 13 files. `pnpm check` clean. 4 deviations (all EVOLUTION): (1) `features-carousel.tsx` had `astro.app/book` URL not in spec → fixed to `showup.dev/book`, (2) `page.tsx` had 2 feature card descriptions with "Astro" not in spec → fixed, (3) `shop-details-step.tsx` had `astro.com/book/` demo URL not in spec → fixed to `showup.dev/book/`. Post-sweep grep confirms 0 "Astro"/"ASTRO" in Wave 1 scope. |
+| 2026-07-14 | 1 | VERIFY+DRIFT+RETRO | — | Verification: 12/12 PASS (independent agent). Drift audit: 0 conflicts with Wave 2 specs. All remaining spec line numbers verified accurate. P4 spec inaccuracy noted (auth-origins.test.ts fixture URLs). 4 evolution / 0 shortcuts (0%). Retro: architecture updates applied (ui-context.md brand names, code-standards.md brand convention). No new patterns, no friction. |
+| 2026-07-14 | 2 | IMPLEMENT | — | 3 specs implemented: P3-app-copy (2 tooltip replacements), P3-email-rebrand (5 string replacements + typography fix: headline letter-spacing, body max-width, footer font-size/color + brand footer "SHOWUP · Stop losing money to no-shows."), P4-internal-docs (7 replacements in project-overview.md). `pnpm check` clean. Post-sweep grep: 0 "Astro" in src/ except auth-origins.test.ts fixture URLs (excluded). |
+| 2026-07-14 | 2 | VERIFY+DRIFT+RETRO | — | Verification: 20/20 PASS (independent agent). Drift: 0 divergences. Retro: current-issues.md rebrand + typography fix marked RESOLVED. Loop COMPLETE. |
 
 ## Dependency graph
 ```
-T1 (tripwire) ──────────────────────────── (independent)
-
-P0 (query gap) ──► F1 (money routing) ──┐
-                                         ├──► F3 (SMS cross-dep) [deferred]
-              F2 (SMS branching) ────────┘
+P0 (metadata) ──────────────────┐
+P1-site-header ─────────────────┤
+P1-auth-brand ──────────────────┤
+P1-booking-nav ─────────────────┼──► [PR #1: P0+P1+P2] ──► P3-app-copy
+P1-site-footer ─────────────────┤                      ──► P3-email-rebrand (+ typography fix)
+P2-auth-cta ────────────────────┤                      ──► P4-internal-docs
+P2-landing-copy ────────────────┘
 ```
 
 ## Critical path
-P0 → F1 → F3 (3 specs sequential; F3 also blocked on external issue)
-Shortest path to financial safety: P0 → F1 (2 specs)
+Phase 1 (any spec) → P3-email-rebrand + typography fix (2 phases; email is bottleneck due to cross-dep)
+Shortest path to brand consistency: Wave 1 alone (one PR, 21 replacements)
 
 ## Architecture context updates (apply in RETRO)
-Queued in `docs/shaping/connect-guard/BUILD-ORDER.md`:
-1. architecture-context.md: new invariant (#16 — paymentsEnabled derivation), slot recovery flow update, SMS branching note
-2. current-issues.md: mark "Slot recovery bypasses Connect guard" resolved
-3. product-rules.md: slot recovery follows same Connect guard as standard bookings
-4. progress-tracker.md: mark connect-guard complete, note F3 deferred
+Queued in `docs/shaping/rebrand/BUILD-ORDER.md`:
+1. project-overview.md: "Astro" → "ShowUp", "Astro Pro" → "ShowUp Pro" (7 replacements — this IS spec P4)
+2. current-issues.md: mark "Full rebrand" resolved after Wave 1 ships
+3. ui-context.md: product display name "ShowUp", uppercase "SHOWUP", plan name "ShowUp Pro"
+4. code-standards.md: add brand name convention
 
 ## Prior features
+### rebrand — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-13–14 | 1–2 | ALL | 32/32 PASS. 4 evolution / 0 shortcut. Loop COMPLETE. |
+
+### connect-guard — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-08 | 1–2 | ALL | 19/19 PASS. 1 evolution / 0 shortcut. Loop COMPLETE. |
+
 ### no-minimum — COMPLETE
 | Date | Wave | Phase | Notes |
 |------|------|-------|-------|
@@ -91,12 +101,14 @@ Queued in `docs/shaping/connect-guard/BUILD-ORDER.md`:
 | 2026-07-01 | 1–3 | ALL | 31 PASS / 3 FAIL (test infra). 4 evolution / 1 shortcut. Loop COMPLETE. |
 
 ## References
-- Specs: docs/shaping/connect-guard/ (P0, F1, F2, F3, T1)
-- Build order: docs/shaping/connect-guard/BUILD-ORDER.md
+- Specs: docs/shaping/rebrand/ (P0, P1×4, P2×2, P3×2, P4)
+- Build order: docs/shaping/rebrand/BUILD-ORDER.md
+- Design brief: docs/shaping/rebrand/DESIGN-BRIEF.md
+- Mock-ups: docs/shaping/rebrand/Rebrand Mockups.html
 - Architecture: docs/context/architecture-context.md
 - Design system: docs/design-system/
 - Progress: docs/context/progress-tracker.md
 - Issues: docs/context/current-issues.md
 - Signals: docs/signals/
 - Work log: docs/loops/work-log.md
-- Mental models: mcp-go/Mental Models/WorkSpace/26-06-30_22-28-37_slot_recovery_bypasses_connect_guard/analysis-report.md
+- Mental models: mcp-go/Mental Models/WorkSpace/26-07-07_07-28-58_astro_to_showup_dev_rebrand/analysis-report.md

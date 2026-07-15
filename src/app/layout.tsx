@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Astro",
+  title: "ShowUp",
   description: "Stop losing money to no-shows. Smart booking for beauty professionals.",
 };
 

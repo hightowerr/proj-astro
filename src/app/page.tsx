@@ -17,7 +17,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl space-y-24 px-4 sm:px-6 lg:px-8">
           <FeatureSection
             title="Know your clients before they walk in"
-            description="Astro scores every client on show-up history, cancellation patterns, and deposit behaviour. Risk clients are flagged before they cost you money."
+            description="ShowUp scores every client on show-up history, cancellation patterns, and deposit behaviour. Risk clients are flagged before they cost you money."
             imageSrc="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80"
             imageAlt="Stylist reviewing client booking details"
             imagePosition="right"
@@ -38,7 +38,7 @@ export default function Home() {
 
           <FeatureSection
             title="Never lose revenue when someone cancels"
-            description="When a booking is cancelled, Astro automatically offers the slot to your best available clients in priority order. Your calendar fills itself."
+            description="When a booking is cancelled, ShowUp automatically offers the slot to your best available clients in priority order. Your calendar fills itself."
             imageSrc="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800&q=80"
             imageAlt="Busy salon with fully booked schedule"
             imagePosition="left"

@@ -919,7 +919,7 @@ export function TierPolicyForm({ action, initial }: TierPolicyFormProps) {
                 lineHeight: 1.5,
               }}
             >
-              When a customer cancels, Astro can text the open slot to nearby
+              When a customer cancels, ShowUp can text the open slot to nearby
               customers. Choose who is left out.
             </span>
           </div>

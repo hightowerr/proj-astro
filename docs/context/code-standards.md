@@ -21,6 +21,12 @@
 - Keep route handlers focused on a single responsibility.
 - Long-running work belongs in background tasks, not in request handlers.
 
+## Brand Name
+
+- Product name is **ShowUp** (camelCase S). Uppercase form: **SHOWUP**. Plan name: **ShowUp Pro**.
+- The CSS token prefix `--al-*` (Atelier Light) is unrelated to the product name and does not change.
+- Internal artifacts (`proj-astro` directory, Vercel deployment URLs) do not need renaming.
+
 ## Styling
 
 - Use CSS custom property tokens defined in `globals.css` — no raw Tailwind color classes like `zinc-*` or hardcoded hex values.

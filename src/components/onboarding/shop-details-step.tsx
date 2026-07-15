@@ -171,7 +171,7 @@ export function ShopDetailsStep({
             <span className="text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">Public link</span>
             <div className="h-px flex-1 bg-border/40" />
             <p className="text-xs font-mono text-muted-foreground font-medium">
-              astro.com/book/<span className="text-primary font-bold">{shopSlug || "your-slug"}</span>
+              showup.dev/book/<span className="text-primary font-bold">{shopSlug || "your-slug"}</span>
             </p>
           </div>
         </div>

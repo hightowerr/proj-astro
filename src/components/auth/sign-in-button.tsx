@@ -133,7 +133,7 @@ export function SignInButton() {
       </button>
 
       <p className="text-center text-sm text-muted-foreground">
-        New to Astro?{" "}
+        New to ShowUp?{" "}
         <Link href="/register" className="font-bold text-primary hover:underline">
           Create an account
         </Link>
