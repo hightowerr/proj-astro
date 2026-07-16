@@ -13,10 +13,16 @@ export default async function StripeConnectPage() {
   }
 
   let payoutsEnabled = true;
-  if (shop.stripeAccountId) {
-    const stripe = getStripeClient();
-    const account = await stripe.accounts.retrieve(shop.stripeAccountId);
-    payoutsEnabled = account.payouts_enabled ?? true;
+  if (shop.stripeAccountId && shop.stripeOnboardingStatus === "complete") {
+    try {
+      const stripe = getStripeClient();
+      const account = await stripe.accounts.retrieve(shop.stripeAccountId);
+      payoutsEnabled = account.payouts_enabled ?? true;
+    } catch (error) {
+      console.error("[settings/stripe-connect] Failed to retrieve payouts_enabled", {
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
   }
 
   return (
