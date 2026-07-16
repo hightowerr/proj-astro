@@ -1,23 +1,19 @@
 # Feature Loop Contract
 
 ## Goal
-All rebrand specs (10 specs, 2 waves) are implemented, independently verified,
-drift-audited with zero unresolved conflicts, and retrospective logged.
-Every user-facing surface reads "ShowUp" (not "Astro") by end of Wave 1.
+Payouts-not-surfaced: surface live `payoutsEnabled` status on Stripe Connect settings page. 3 specs, 1 wave.
 
 ## Current state
-- Feature: rebrand ("Astro" → "ShowUp" across all user-facing surfaces)
-- Feature: rebrand ("Astro" → "ShowUp" across all user-facing surfaces)
-- Wave: COMPLETE (2 of 2)
+- Feature: payouts-not-surfaced
+- Wave: 1 of 1
 - Phase: COMPLETE
-- Specs in scope: docs/shaping/rebrand/ (P0, P1×4, P2×2, P3×2, P4)
-- Wave 1: COMPLETE — 12/12 PASS, 4 evolution / 0 shortcuts
-- Wave 2: COMPLETE — 20/20 PASS, 0 evolution / 0 shortcuts
+- Specs in scope: docs/shaping/payouts-not-surfaced/ (P1, P2, P3)
+- Build order: 3 specs, 2 phases, linear critical path (P1 → P2 → P3)
 
 ## Backlog
-- Waves remaining: none
+- Waves remaining: none (1 wave, all specs implemented)
 - Blocked specs: none
-- Design review: APPROVED (2026-07-13) — mock-ups received for booking nav wordmark + email brand footer
+- Design review: design prototype reviewed — `Payments Stripe Connect.html` provides exact tokens and copy
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |
@@ -27,6 +23,9 @@ Every user-facing surface reads "ShowUp" (not "Astro") by end of Wave 1.
 | 2026-07-14 | 1 | VERIFY+DRIFT+RETRO | — | Verification: 12/12 PASS (independent agent). Drift audit: 0 conflicts with Wave 2 specs. All remaining spec line numbers verified accurate. P4 spec inaccuracy noted (auth-origins.test.ts fixture URLs). 4 evolution / 0 shortcuts (0%). Retro: architecture updates applied (ui-context.md brand names, code-standards.md brand convention). No new patterns, no friction. |
 | 2026-07-14 | 2 | IMPLEMENT | — | 3 specs implemented: P3-app-copy (2 tooltip replacements), P3-email-rebrand (5 string replacements + typography fix: headline letter-spacing, body max-width, footer font-size/color + brand footer "SHOWUP · Stop losing money to no-shows."), P4-internal-docs (7 replacements in project-overview.md). `pnpm check` clean. Post-sweep grep: 0 "Astro" in src/ except auth-origins.test.ts fixture URLs (excluded). |
 | 2026-07-14 | 2 | VERIFY+DRIFT+RETRO | — | Verification: 20/20 PASS (independent agent). Drift: 0 divergences. Retro: current-issues.md rebrand + typography fix marked RESOLVED. Loop COMPLETE. |
+| 2026-07-15 | 1 | SHAPE | — | payouts-not-surfaced: 3 specs (P1, P2, P3) + build-order aligned with design prototype (`Payments Stripe Connect.html`). 6 discrepancies fixed (label text, info box tokens, copy). No spikes needed. |
+| 2026-07-15 | 1 | IMPLEMENT | — | 3 specs implemented sequentially (P1→P2→P3). P1: server-side `stripe.accounts.retrieve()` + prop. P2: conditional status row (green/neutral dot). P3: info box with design prototype tokens. `pnpm check` clean after each slice. 0 deviations. Modified files (2): `stripe-connect/page.tsx`, `stripe-connect-card.tsx`. |
+| 2026-07-16 | 1 | VERIFY+DRIFT+RETRO | — | Verification: 14/14 PASS (independent agent). 4 Playwright + 10 code review. Drift: 0 divergences — all 3 specs match implementation exactly. Retro: architecture updates applied (invariant #18: no DB persistence for volatile Stripe flags; ui-context.md: ConnectedView info box pattern). 0 patterns, 0 friction. Loop COMPLETE. |
 
 ## Dependency graph
 ```
@@ -51,6 +50,11 @@ Queued in `docs/shaping/rebrand/BUILD-ORDER.md`:
 4. code-standards.md: add brand name convention
 
 ## Prior features
+### payouts-not-surfaced — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-15–16 | 1 | ALL | 14/14 PASS. 0 evolution / 0 shortcut. Loop COMPLETE. |
+
 ### rebrand — COMPLETE
 | Date | Wave | Phase | Notes |
 |------|------|-------|-------|

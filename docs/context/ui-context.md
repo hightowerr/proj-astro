@@ -250,6 +250,21 @@ OutcomePill// dot + label, no bg : settled/voided/unresolved
 RecoveryStatus // icon + label, tinted bg : open #c97a2a / filled #0e7a55 / expired neutral
 ```
 
+### ConnectedView info box (conditional process state)
+```jsx
+// Rendered when payoutsEnabled=false in ConnectedView (stripe-connect-card.tsx)
+// Subtler than VerifyingView's info box: --al-surface-container (not -low), --al-on-surface-variant icon (not --al-primary)
+<div className="flex items-start rounded-xl"
+  style={{ background: "var(--al-surface-container)", padding: "14px 16px", gap: "11px", marginTop: "16px" }}
+  aria-live="polite">
+  <span className="material-symbols-outlined shrink-0"
+    style={{ fontSize: "20px", color: "var(--al-on-surface-variant)" }} aria-hidden>info</span>
+  <p style={{ fontSize: "13.5px", lineHeight: "1.55", color: "var(--al-on-surface-variant)", margin: 0 }}>
+    Process explanation copy here.
+  </p>
+</div>
+```
+
 ### Brand-signature micro-interactions
 - **Capacity dial** (`reminders`): 3 dots + mono `X/3` that flip navy→amber at the cap.
 - **Hatched closed-day fill** (`availability`): `repeating-linear-gradient(135deg,…)` + line-through on disabled `<input type=time>`.

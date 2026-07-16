@@ -34,7 +34,7 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>© 2025 ShowUp. All rights reserved.</p>
+        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>© {new Date().getFullYear()} ShowUp. All rights reserved.</p>
       </div>
     </footer>
   );

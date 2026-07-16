@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
       fileParallelism: false,
       globals: true,
       environment: "node",
-      include: ["src/**/*.{test,spec}.{js,ts}"],
+      include: ["src/**/*.{test,spec}.{js,ts,tsx}"],
       exclude: [
         "node_modules/**",
         "dist/**",

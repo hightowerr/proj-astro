@@ -17,12 +17,12 @@ A merchant can be `complete` (`charges_enabled=true`, `details_submitted=true`) 
 1. Add `payoutsEnabled?: boolean` to `StripeConnectCardProps` (defaults to `true` for backwards compat).
 2. Thread `payoutsEnabled` from `StripeConnectCard` through to `ConnectedView` props.
 3. Replace the hardcoded "Payouts enabled" row (lines 378-398) with a conditional:
-   - `payoutsEnabled === true` — green dot + "Active" (current display, now truthful)
-   - `payoutsEnabled === false` — neutral dot (`var(--al-outline-variant)`) + "Verifying" in `var(--al-on-surface-variant)` (process language, not error language)
+   - `payoutsEnabled === true` — green dot (`var(--al-status-positive)`) + "Payouts enabled" in `var(--al-on-surface)` (current display, now truthful)
+   - `payoutsEnabled === false` — neutral dot (`var(--al-outline-variant)`) + "Payouts verifying" in `var(--al-on-surface-variant)` (process language, not error language)
 
 ### Constraints
 
-- **"Verifying" not "Disabled"** — nothing has failed. Stripe is completing a process.
+- **"Payouts verifying" not "Disabled"** — nothing has failed. Stripe is completing a process.
 - **Neutral dot, not amber/red** — this is a process state, not an error or warning.
 - **No time estimate** — "usually 1-3 days" creates a new trust contract that could break.
 
@@ -32,8 +32,8 @@ A merchant can be `complete` (`charges_enabled=true`, `details_submitted=true`) 
 
 ## Acceptance criteria
 
-- When `payoutsEnabled=true`: green dot + "Active" (identical to current display).
-- When `payoutsEnabled=false`: neutral-colored dot + "Verifying" text.
+- When `payoutsEnabled=true`: green dot (`--al-status-positive`) + "Payouts enabled" in `--al-on-surface` (identical to current display).
+- When `payoutsEnabled=false`: neutral dot (`--al-outline-variant`) + "Payouts verifying" in `--al-on-surface-variant`.
 - Prop defaults to `true` — no visual regression if prop is omitted.
 - No changes to Charges enabled row or any other row.
 

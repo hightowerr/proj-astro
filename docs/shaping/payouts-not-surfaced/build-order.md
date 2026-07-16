@@ -53,8 +53,8 @@ This is a **data-driven status correction**, not a new UI pattern. The visual ch
 
 | Change | Location | Current | Proposed | Pattern source |
 |--------|----------|---------|----------|----------------|
-| Payouts status dot | ConnectedView, "Payouts enabled" row | Always green dot + "Active" | Conditional: green/"Active" when true, neutral dot (`--al-outline-variant`) + "Verifying" when false | Existing row pattern, same structure |
-| Info box | ConnectedView, below account details card | None | Info box when `payoutsEnabled=false` | Exact clone of VerifyingView info box (lines 243-261) |
+| Payouts status row | ConnectedView, "Payouts enabled" row | Always green dot + "Payouts enabled" | Conditional: green dot + "Payouts enabled" (`--al-on-surface`) when true, neutral dot (`--al-outline-variant`) + "Payouts verifying" (`--al-on-surface-variant`) when false | Existing row pattern, same structure |
+| Info box | ConnectedView, below account details card | None | Info box when `payoutsEnabled=false` | Design prototype style (differs from VerifyingView): `--al-surface-container` bg, `--al-on-surface-variant` icon (20px), `14px 16px` padding, `11px` gap |
 
 ### Pages / Components Impacted
 
@@ -65,10 +65,10 @@ This is a **data-driven status correction**, not a new UI pattern. The visual ch
 
 ### What the Designer Needs to Review
 
-1. **Neutral dot color for "Verifying" state** — spec proposes `var(--al-outline-variant)` for the dot and `var(--al-on-surface-variant)` for the text. Confirm this reads as "in progress" not "broken" or "missing."
-2. **Info box placement** — sits between the account details card and the "Open Stripe Dashboard" button. Confirm spacing and visual weight are appropriate.
+1. **Design prototype reviewed** — `Payments Stripe Connect.html` provides the exact connected-state payouts UI with interactive state toggling ("Payouts verifying" tab). All tokens and copy confirmed from prototype.
+2. **Info box placement** — sits between the account details card and the "Open Stripe Dashboard" button, with `margin-top: 16px`.
 3. **No mockup needed for the green/Active state** — it's identical to the current hardcoded display.
-4. **No new icons, colors, or typography** — everything uses existing design tokens and the VerifyingView info box pattern.
+4. **Info box differs from VerifyingView** — intentionally uses `--al-surface-container` (not `-low`) and `--al-on-surface-variant` icon (not `--al-primary`). The connected-state info box is subtler.
 
 ### What Does NOT Change
 
@@ -92,7 +92,7 @@ These updates should be applied to `docs/context/` files **during Phase 5 (RETRO
 
 ### `docs/context/ui-context.md`
 
-1. **ConnectedView info box pattern**: Document that `ConnectedView` now supports a conditional info box (same pattern as `VerifyingView`). This establishes a reusable pattern: when a connected account has a non-error process state to communicate, use the `rounded-xl p-4` info box with `--al-surface-container-low` background, `info` icon in `--al-primary`, text in `--al-on-surface-variant`.
+1. **ConnectedView info box pattern**: Document that `ConnectedView` now supports a conditional info box. Style differs from VerifyingView: `--al-surface-container` background, `--al-on-surface-variant` icon, `14px 16px` padding. This subtler variant is appropriate for non-error process states in an otherwise-connected context.
 
 ### `docs/context/progress-tracker.md`
 
