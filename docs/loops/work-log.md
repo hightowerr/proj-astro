@@ -4,6 +4,32 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-16] verify+drift+retro | payouts-not-surfaced wave 1
+
+- **Picked up**: Phases 3-5 for payouts-not-surfaced feature (verify in separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 14/14 PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session. 4 criteria via Playwright (pre-connect state, auth/redirect guards), 10 via code review (connected-state conditional logic). Connected-state Playwright blocked (no Stripe Connect account in test DB).
+  - Drift: 0 divergences — all 3 specs (P1, P2, P3) match implementation exactly. No remaining unimplemented specs (wave 1 of 1).
+  - Retro: Architecture updates applied — invariant #18 (no DB persistence for volatile Stripe flags, `payouts_enabled` fetched live via `stripe.accounts.retrieve()`), ui-context.md (ConnectedView info box recipe). current-issues.md entry moved to Resolved. progress-tracker.md updated.
+  - Evolution/shortcut ratio: 0/0
+  - Patterns extracted: 0 (no novel solutions — standard conditional rendering)
+  - Friction logged: 0
+  - Key learning: When shaping aligns specs with design prototype before implementation (6 discrepancies fixed pre-IMPLEMENT), implementation achieves 0 deviations and verification is pure confirmation. The pre-alignment step is the highest-leverage shaping activity for UI features.
+- **Unresolved**: 3 pre-existing test failures discovered during verification (messages, connect-webhook, twilio inbound) — logged to current-issues.md, all independent of this feature.
+
+---
+
+## [2026-07-15] shape+implement | payouts-not-surfaced wave 1
+
+- **Picked up**: Shape alignment + Phase 2 IMPLEMENT for payouts-not-surfaced feature (surface `payoutsEnabled` on Stripe Connect settings page).
+- **Result**: Shape aligned + implement complete.
+  - Shape: 3 existing specs (P1, P2, P3) + build-order aligned with design prototype (`Payments Stripe Connect.html`). 6 discrepancies fixed before implementation: label text ("Active" → "Payouts enabled"/"Payouts verifying"), info box background (`--al-surface-container-low` → `--al-surface-container`), icon color (`--al-primary` → `--al-on-surface-variant`), copy text, spacing tokens. No spikes needed (2 files, linear chain).
+  - Implement: 3 specs implemented sequentially (P1→P2→P3). P1: added `getStripeClient` import + `stripe.accounts.retrieve()` server-side + `payoutsEnabled` prop. P2: conditional status row — green dot/"Payouts enabled" when true, neutral dot/"Payouts verifying" when false. P3: info box with design prototype tokens (`--al-surface-container` bg, `--al-on-surface-variant` icon 20px, copy per prototype). `pnpm check` clean after each slice. 0 deviations.
+  - Modified files (2): `src/app/app/settings/stripe-connect/page.tsx`, `src/components/settings/stripe-connect-card.tsx`
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session (NEVER self-verify). Then DRIFT AUDIT + RETRO.
+
+---
+
 ## [2026-07-14] all phases | rebrand waves 1–2
 
 - **Picked up**: Full loop completion for rebrand feature. Wave 1 phases 3-5 + Wave 2 phases 2-5.

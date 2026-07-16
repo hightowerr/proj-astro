@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { StripeConnectCard } from "@/components/settings/stripe-connect-card";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { requireAuth } from "@/lib/session";
+import { getStripeClient } from "@/lib/stripe";
 
 export default async function StripeConnectPage() {
   const session = await requireAuth();
@@ -9,6 +10,19 @@ export default async function StripeConnectPage() {
 
   if (!shop) {
     redirect("/app");
+  }
+
+  let payoutsEnabled = true;
+  if (shop.stripeAccountId && shop.stripeOnboardingStatus === "complete") {
+    try {
+      const stripe = getStripeClient();
+      const account = await stripe.accounts.retrieve(shop.stripeAccountId);
+      payoutsEnabled = account.payouts_enabled ?? true;
+    } catch (error) {
+      console.error("[settings/stripe-connect] Failed to retrieve payouts_enabled", {
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
   }
 
   return (
@@ -26,6 +40,7 @@ export default async function StripeConnectPage() {
         <StripeConnectCard
           initialStatus={shop.stripeOnboardingStatus}
           stripeAccountId={shop.stripeAccountId}
+          payoutsEnabled={payoutsEnabled}
         />
       </main>
     </div>

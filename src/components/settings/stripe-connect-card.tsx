@@ -10,6 +10,7 @@ type View = "start" | "redirect" | "pending" | "verifying" | "connected" | "susp
 type StripeConnectCardProps = {
   initialStatus: OnboardingStatus;
   stripeAccountId: string | null;
+  payoutsEnabled?: boolean;
 };
 
 function deriveView(status: OnboardingStatus): View {
@@ -268,11 +269,13 @@ function ConnectedView({
   onOpenDashboard,
   isLoadingDashboard,
   celebrate,
+  payoutsEnabled = true,
 }: {
   stripeAccountId: string;
   onOpenDashboard: () => void;
   isLoadingDashboard: boolean;
   celebrate?: boolean;
+  payoutsEnabled?: boolean;
 }) {
   return (
     <>
@@ -385,14 +388,22 @@ function ConnectedView({
           <span className="flex items-center gap-1.5">
             <span
               className="h-2 w-2 rounded-full"
-              style={{ background: "var(--al-status-positive)" }}
+              style={{
+                background: payoutsEnabled
+                  ? "var(--al-status-positive)"
+                  : "var(--al-outline-variant)",
+              }}
               aria-hidden
             />
             <span
               className="text-xs font-semibold"
-              style={{ color: "var(--al-status-positive)" }}
+              style={{
+                color: payoutsEnabled
+                  ? "var(--al-on-surface)"
+                  : "var(--al-on-surface-variant)",
+              }}
             >
-              Active
+              {payoutsEnabled ? "Payouts enabled" : "Payouts verifying"}
             </span>
           </span>
         </div>
@@ -412,6 +423,41 @@ function ConnectedView({
           </span>
         </div>
       </div>
+
+      {!payoutsEnabled && (
+        <div
+          className="flex items-start rounded-xl"
+          style={{
+            background: "var(--al-surface-container)",
+            padding: "14px 16px",
+            gap: "11px",
+            marginTop: "16px",
+          }}
+          aria-live="polite"
+        >
+          <span
+            className="material-symbols-outlined shrink-0"
+            style={{
+              fontSize: "20px",
+              color: "var(--al-on-surface-variant)",
+            }}
+            aria-hidden
+          >
+            info
+          </span>
+          <p
+            style={{
+              fontSize: "13.5px",
+              lineHeight: "1.55",
+              color: "var(--al-on-surface-variant)",
+              margin: 0,
+            }}
+          >
+            Stripe is verifying your payout details — this usually takes a few
+            minutes. You can still accept deposits in the meantime.
+          </p>
+        </div>
+      )}
 
       <Button
         variant="outline"
@@ -533,6 +579,7 @@ function SuspendedView({
 export function StripeConnectCard({
   initialStatus,
   stripeAccountId,
+  payoutsEnabled = true,
 }: StripeConnectCardProps) {
   const searchParams = useSearchParams();
   const [view, setView] = useState<View>(() => deriveView(initialStatus));
@@ -665,6 +712,7 @@ export function StripeConnectCard({
           onOpenDashboard={handleOpenDashboard}
           isLoadingDashboard={isLoadingDashboard}
           celebrate={celebrate}
+          payoutsEnabled={payoutsEnabled}
         />
       )}
       {view === "suspended" && (

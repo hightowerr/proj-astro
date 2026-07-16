@@ -210,7 +210,7 @@ All shaping work in this phase MUST follow the `/shaping` skill's methodology:
 - Identify technical unknowns from the shape
 - Spin up parallel agents to run spikes
 - Save findings as docs/shaping/<feature>/shape/spike-<topic>.md
-- Update shape document with spike findings
+- Update shape document(s) with spike findings
 
 ### 3. Breadboard
 - Evaluate shape options against [speed / risk / simplicity]

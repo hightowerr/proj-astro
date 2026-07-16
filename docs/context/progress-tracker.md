@@ -6,13 +6,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Rebrand "Astro" → "ShowUp" — COMPLETE. All 10 specs implemented and verified across 2 waves (32/32 PASS). 4 evolution / 0 shortcuts. Re-engagement email typography fix bundled with Wave 2.
+Payouts Not Surfaced — COMPLETE. 3 specs, 1 wave (14/14 PASS). 0 evolution / 0 shortcuts. Server-side `stripe.accounts.retrieve()` + conditional ConnectedView UI.
 
 ---
 
 ## Current Goal
 
-Complete rebrand across all user-facing surfaces. Wave 1 (P0+P1+P2) ships as one PR. Wave 2 (P3+P4) follows.
+No active feature. All prior features (payouts-not-surfaced, rebrand, connect-guard, no-minimum, ks-migration, confirmation-SMS, MCC-hardcoded, re-engagement-email, inflight-payments, webhook-unaware, refund-state) are COMPLETE. See **Next Up** for candidate work.
 
 ---
 
@@ -90,6 +90,10 @@ Complete rebrand across all user-facing surfaces. Wave 1 (P0+P1+P2) ships as one
 - Icon a11y fix in `profile/page.tsx`: added `aria-hidden="true"` to `MsIcon` span so screen readers won't announce raw glyph names. 0 TS errors, 0 lint errors.
 
 ---
+
+- **Payouts Not Surfaced** — 3 specs, 1 wave. Surface live `payoutsEnabled` from Stripe API on Connect settings page. Feature loop COMPLETE (2026-07-16, 14/14 PASS). 0 evolution / 0 shortcuts. Shaping: `docs/shaping/payouts-not-surfaced/`. Verification: `docs/shaping/payouts-not-surfaced/shape/wave-1/wave-1-verify.md`.
+  - **Wave 1**: P1 (server-side `stripe.accounts.retrieve()` + prop), P2 (conditional status row), P3 (info box when `payoutsEnabled=false`) — sequential (linear chain)
+  - **Modified files (2):** `src/app/app/settings/stripe-connect/page.tsx`, `src/components/settings/stripe-connect-card.tsx`
 
 - **No Minimum Deposit Floor** — 4 specs, 2 waves. Platform minimum deposit floor (£1 / 100p). Dual enforcement: clamp `finalDepositCents` in `createAppointment()` before policy snapshot + belt-and-suspenders in `derivePaymentRequirement()`. No schema changes, no UI changes. `PLATFORM_MINIMUM_DEPOSIT_CENTS = 100` exported from `tier-pricing.ts`. Zero-amount deposits (`topDepositWaived`) bypass floor. Loop COMPLETE (2026-07-07, 16 PASS / 0 FAIL / 0 BLOCKED). 1 evolution / 0 shortcut. **Verification report**: `docs/shaping/no-minimum/shape/wave-all-verify.md`.
   - **Wave 1**: spec 01 (floor constant + derive clamp) + spec 04 (tripwire docs) — sequential (same file)
