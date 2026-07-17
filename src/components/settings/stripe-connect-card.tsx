@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 type OnboardingStatus = "not_started" | "pending" | "complete" | "suspended";
-type View = "start" | "redirect" | "pending" | "verifying" | "connected" | "suspended";
+type View = "start" | "redirect" | "pending" | "verifying" | "still-verifying" | "connected" | "suspended";
 
 type StripeConnectCardProps = {
   initialStatus: OnboardingStatus;
@@ -258,6 +258,72 @@ function VerifyingView() {
           style={{ color: "var(--al-on-surface-variant)" }}
         >
           Stripe is verifying your details — this usually takes a few minutes.
+        </p>
+      </div>
+    </>
+  );
+}
+
+function StillVerifyingView() {
+  return (
+    <>
+      <h2
+        className="font-manrope font-extrabold"
+        style={{
+          fontSize: "22px",
+          letterSpacing: "-0.01em",
+          color: "var(--al-primary)",
+        }}
+      >
+        Almost there
+      </h2>
+
+      <p
+        style={{
+          fontSize: "15px",
+          lineHeight: 1.6,
+          color: "var(--al-on-surface-variant)",
+          maxWidth: "42ch",
+          margin: "8px 0 30px",
+        }}
+      >
+        Complete your Stripe verification to start collecting deposits.
+      </p>
+
+      <ProgressSteps activeStep={1} />
+
+      <div
+        className="flex items-start"
+        style={{
+          background: "var(--al-surface-container)",
+          borderRadius: "12px",
+          padding: "14px 16px",
+          gap: "11px",
+          marginTop: "28px",
+        }}
+        aria-live="polite"
+      >
+        <span
+          className="material-symbols-outlined shrink-0"
+          style={{
+            fontSize: "20px",
+            color: "var(--al-on-surface-variant)",
+          }}
+          aria-hidden
+        >
+          info
+        </span>
+        <p
+          style={{
+            fontSize: "13.5px",
+            lineHeight: "1.55",
+            color: "var(--al-on-surface-variant)",
+            margin: 0,
+          }}
+        >
+          Stripe is still reviewing your details. This can take up to a few
+          hours. We&apos;ll update your dashboard when it&apos;s ready — you
+          can close this page.
         </p>
       </div>
     </>
@@ -610,6 +676,9 @@ export function StripeConnectCard({
 
       if (pollCountRef.current > 12) {
         if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+        // eslint-disable-next-line no-console
+        console.info("[stripe-connect] Poll exhausted after 12 attempts — transitioning to still-verifying");
+        setView("still-verifying");
         return;
       }
 
@@ -677,7 +746,7 @@ export function StripeConnectCard({
 
   const isConnected = view === "connected";
   const isSuspended = view === "suspended";
-  const hasAccent = view === "pending" || view === "verifying" || isConnected || isSuspended;
+  const hasAccent = view === "pending" || view === "verifying" || view === "still-verifying" || isConnected || isSuspended;
   const accentColor = isConnected
     ? "var(--al-status-positive)"
     : isSuspended
@@ -706,6 +775,7 @@ export function StripeConnectCard({
       {view === "redirect" && <RedirectView />}
       {view === "pending" && <PendingView onConnect={handleConnect} />}
       {view === "verifying" && <VerifyingView />}
+      {view === "still-verifying" && <StillVerifyingView />}
       {view === "connected" && stripeAccountId && (
         <ConnectedView
           stripeAccountId={stripeAccountId}

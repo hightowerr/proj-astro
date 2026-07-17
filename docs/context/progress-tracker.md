@@ -148,6 +148,10 @@ No active feature. All prior features (payouts-not-surfaced, rebrand, connect-gu
 
 ---
 
+- **Auto-Poll Fallback** — Loop COMPLETE (2026-07-16, ALL PASS). 5 specs, 1 wave. `"still-verifying"` View state added at poll exhaustion (attempt 13). Static progress dot (no animation), muted info box with prototype-aligned tokens. `console.info` telemetry. 0 evolution / 0 shortcuts. Single file: `stripe-connect-card.tsx` (+71 lines). Verification: `docs/shaping/auto-poll-fallback/shape/wave-1-verify.md`.
+
+---
+
 ## In Progress
 
 - **Stripe Connect** — Loop COMPLETE. All 23 drift shortcuts fixed. Post-loop design review surfaced 15 issues (current-issues.md) and 3 roadmap items.

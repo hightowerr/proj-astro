@@ -4,6 +4,33 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-16] verify+drift+retro | auto-poll-fallback
+
+- **Picked up**: Phases 3-5 for auto-poll-fallback feature (verify from separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: ALL PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session. All acceptance criteria met via code review + Playwright (computed styles, snapshot, animation state). Non-blocking note: `console.info` triggers eslint `no-console` warning (spec mandates `info`).
+  - Drift: 0 divergences — all 5 specs match implementation exactly. No remaining unimplemented specs (1 wave).
+  - Retro: current-issues.md "Auto-poll timeout" moved to Resolved. progress-tracker.md updated. No new architecture invariants (UI-only fix, no backend). No architecture-context.md changes needed.
+  - Evolution/shortcut ratio: 0/0
+  - Patterns extracted: 0 (design-prototype-as-source-of-truth already documented, reapplied here)
+  - Friction logged: 0
+  - Key learning: Prototype alignment before implementation continues to produce 0-deviation results. The `single-file-sweep` pattern is correct for features concentrated in one file — 3 logical waves collapsed into 1 sequential pass with no coordination overhead.
+- **Unresolved**: none. Loop COMPLETE.
+
+---
+
+## [2026-07-16] shape+implement | auto-poll-fallback
+
+- **Picked up**: Full SHAPE alignment + Phase 2 IMPLEMENT for auto-poll-fallback feature (add `"still-verifying"` view state at poll exhaustion in `StripeConnectCard`).
+- **Result**: Shape aligned + implement complete.
+  - Shape: 5 specs already created. Design prototype (`Stripe Connect Still Verifying (standalone) (1).html`) loaded in Playwright — 4 token discrepancies found vs spec 03 (title 22px not 24px, info margin-top 28px not 24px, info text 13.5px/1.55 not 14px/1.625, info icon 20px). Spec 03 updated with prototype-exact tokens per `design-prototype-as-source-of-truth` signal. No spikes needed.
+  - Implement: All 5 specs implemented in single sweep (single-file feature, `single-file-sweep` pattern). Wave 1 (type), Wave 2 (transition + component + border), Wave 3 (render wiring). `pnpm check` clean after each wave. 0 deviations.
+  - Modified files (1): `src/components/settings/stripe-connect-card.tsx` (+71 lines)
+  - Signals applied: `design-prototype-as-source-of-truth`, `single-file-sweep`, `agent-skips-visual-polish` (mitigated by prototype alignment)
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session (NEVER self-verify). Then DRIFT AUDIT + RETRO.
+
+---
+
 ## [2026-07-16] verify+drift+retro | payouts-not-surfaced wave 1
 
 - **Picked up**: Phases 3-5 for payouts-not-surfaced feature (verify in separate session, drift audit, retro)

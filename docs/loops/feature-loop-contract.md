@@ -1,14 +1,14 @@
 # Feature Loop Contract
 
 ## Goal
-Payouts-not-surfaced: surface live `payoutsEnabled` status on Stripe Connect settings page. 3 specs, 1 wave.
+Dispute visibility: webhook handlers for dispute detection, merchant notification email, payment card disputed modifier. 7 specs, 3 waves.
 
 ## Current state
-- Feature: payouts-not-surfaced
-- Wave: 1 of 1
-- Phase: COMPLETE
-- Specs in scope: docs/shaping/payouts-not-surfaced/ (P1, P2, P3)
-- Build order: 3 specs, 2 phases, linear critical path (P1 → P2 → P3)
+- Feature: dispute-visibility
+- Wave: — (not started)
+- Phase: SHAPE (specs + build order written, awaiting IMPLEMENT)
+- Specs in scope: docs/shaping/dispute-visibility/specs/ (01–07)
+- Build order: docs/shaping/dispute-visibility/_build-order.md
 
 ## Backlog
 - Waves remaining: none (1 wave, all specs implemented)
@@ -50,6 +50,11 @@ Queued in `docs/shaping/rebrand/BUILD-ORDER.md`:
 4. code-standards.md: add brand name convention
 
 ## Prior features
+### auto-poll-fallback — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-16 | 1 | ALL | ALL PASS. 0 evolution / 0 shortcut. Single-file sweep. Loop COMPLETE. |
+
 ### payouts-not-surfaced — COMPLETE
 | Date | Wave | Phase | Notes |
 |------|------|-------|-------|
