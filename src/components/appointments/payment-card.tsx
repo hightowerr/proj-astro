@@ -45,7 +45,9 @@ export function resolvePayoutDisplay(
   waived: boolean,
   refunded: boolean,
   transferHeld: boolean,
+  disputed = false,
 ): string {
+  if (disputed) return "Disputed";
   const payoutHeld = !refunded && transferHeld;
   if (payoutHeld) return "Held";
   if (refunded) return formatGBP(0);
@@ -57,7 +59,9 @@ export function resolvePayoutDisplay(
 export function resolveHelperIcon(
   refunded: boolean,
   transferHeld: boolean,
+  disputed = false,
 ): string {
+  if (disputed) return "gavel";
   if (refunded) return "undo";
   if (transferHeld) return "pause_circle";
   return "north_east";
@@ -67,7 +71,9 @@ export function resolveHelperIcon(
 export function resolveHelperText(
   refunded: boolean,
   transferHeld: boolean,
+  disputed = false,
 ): string {
+  if (disputed) return "This deposit is under dispute. Respond via your Stripe Dashboard.";
   if (refunded) return "Payout reversed to customer.";
   if (transferHeld)
     return "Payment received but transfer paused — Stripe is reviewing your account.";
@@ -79,15 +85,17 @@ function FeeBreakdown({
   waived,
   refunded = false,
   transferHeld = false,
+  disputed = false,
 }: {
   amountCents: number;
   waived: boolean;
   refunded?: boolean;
   transferHeld?: boolean;
+  disputed?: boolean;
 }) {
   const deposit = formatGBP(amountCents);
   const payoutHeld = !refunded && transferHeld;
-  const payoutDisplay = resolvePayoutDisplay(amountCents, waived, refunded, transferHeld);
+  const payoutDisplay = resolvePayoutDisplay(amountCents, waived, refunded, transferHeld, disputed);
 
   return (
     <div className="space-y-1 text-sm">
@@ -108,9 +116,9 @@ function FeeBreakdown({
         </span>
       </div>
       <div className="border-t border-dashed border-al-outline-variant" />
-      <div className="flex justify-between items-baseline" style={{ fontSize: "19px", fontWeight: 800, color: payoutHeld ? "var(--al-status-caution, #b45309)" : "var(--al-primary)" }}>
+      <div className="flex justify-between items-baseline" style={{ fontSize: "19px", fontWeight: 800, color: disputed ? "var(--al-error-soft, #a8294a)" : payoutHeld ? "var(--al-status-caution, #b45309)" : "var(--al-primary)" }}>
         <span>Your payout</span>
-        <span className="font-mono">{payoutDisplay}</span>
+        <span className="font-mono">{disputed ? <em>{payoutDisplay}</em> : payoutDisplay}</span>
       </div>
     </div>
   );
@@ -175,6 +183,7 @@ export function PaymentCard({
 }: PaymentCardProps) {
   const feeState = determineFeeState(amountCents, paymentRequired, isConnectPayment, depositSkipped);
   const refunded = financialOutcome === "refunded";
+  const disputed = financialOutcome === "disputed";
 
   return (
     <div className="rounded-lg border p-4 space-y-3">
@@ -199,15 +208,15 @@ export function PaymentCard({
               Stripe Connect
             </span>
           </div>
-          <FeeBreakdown amountCents={amountCents} waived={feeState === "waived"} refunded={refunded} transferHeld={transferHeld} />
+          <FeeBreakdown amountCents={amountCents} waived={feeState === "waived"} refunded={refunded} transferHeld={transferHeld} disputed={disputed} />
           <p
             className="flex items-center gap-1 text-xs"
-            style={{ color: !refunded && transferHeld ? "var(--al-status-caution, #b45309)" : "var(--al-on-surface-variant)" }}
+            style={{ color: disputed ? "var(--al-error-soft, #a8294a)" : !refunded && transferHeld ? "var(--al-status-caution, #b45309)" : "var(--al-on-surface-variant)" }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: "14px" }} aria-hidden="true">
-              {resolveHelperIcon(refunded, transferHeld)}
+              {resolveHelperIcon(refunded, transferHeld, disputed)}
             </span>
-            {resolveHelperText(refunded, transferHeld)}
+            {resolveHelperText(refunded, transferHeld, disputed)}
           </p>
         </>
       )}

@@ -73,7 +73,7 @@ A multi-tenant appointment booking and no-show risk management system for servic
 | `/api/jobs/offer-loop` | Uses `x-internal-secret` (not `x-cron-secret`) | Called internally by other jobs, not by Vercel Cron | `src/app/api/jobs/offer-loop/route.ts` |
 | `/manage/[token]/*` | Token-based auth, no session required | Customer self-service via hashed manage token | `src/app/api/manage/[token]/cancel/route.ts` |
 | `/api/stripe/webhook` | Stripe signature validation, dedup via `processedStripeEvents` | Idempotent; triggers calendar sync + SMS + offer loop on payment success | `src/app/api/stripe/webhook/route.ts` |
-| `/api/stripe/connect-webhook` | Connect-specific webhook, separate signing secret (`STRIPE_CONNECT_WEBHOOK_SECRET`) | Handles `account.updated` for Connect onboarding status sync | `src/app/api/stripe/connect-webhook/route.ts` |
+| `/api/stripe/connect-webhook` | Connect-specific webhook, separate signing secret (`STRIPE_CONNECT_WEBHOOK_SECRET`) | Handles `account.updated`, `transfer.created`, `transfer.reversed`, `transfer.updated`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed` | `src/app/api/stripe/connect-webhook/route.ts` |
 | `/api/settings/stripe-connect/*` | Connect account lifecycle (create, status, dashboard, refresh) | Express account creation, Account Link generation, status polling | `src/app/api/settings/stripe-connect/*/route.ts` |
 | `/api/twilio/inbound` | HMAC-SHA1 signature validation, returns TwiML XML | "YES" accepts slot offer; "STOP" opts out of SMS | `src/app/api/twilio/inbound/route.ts` |
 | `/app/app/page.tsx` | Shows `OnboardingFlow` if shop is null, else `AtelierDashboard` | Conditional rendering based on shop existence | `src/app/app/page.tsx` |
@@ -210,6 +210,15 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 4. Assign tier: `≥80 + 0 recent voids = top`, `≤39 or ≥2 recent voids = risk`, else `neutral`
 5. Tier affects pricing (risk pays more, top may be waived) and slot recovery eligibility
 
+### Dispute Handling
+
+1. Customer's card issuer opens dispute → Stripe fires `charge.dispute.created`
+2. Connect webhook looks up payment via `stripePaymentIntentId`
+3. Sets `financialOutcome: "disputed"`, inserts `"dispute_opened"` event
+4. Sends notification email to shop owner (after DB commit) with Express Dashboard link
+5. `charge.dispute.updated` → `console.warn` with status changes
+6. `charge.dispute.closed` → if won, revert to `financialOutcome: "settled"`; if lost, remains `"disputed"`
+
 ## 8. Authorization Model
 
 | Operation | Who | Enforcement | Location |
@@ -270,6 +279,7 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 16. **`paymentsEnabled` must be derived from Connect status** — every caller of `createAppointment()` must set `paymentsEnabled: shop.stripeOnboardingStatus === "complete"`. Never hardcode `true`. The function's default (`?? true`) is a safety net, not a correct value. Tripwire comment at `src/lib/queries/appointments.ts:828`. `src/lib/slot-recovery.ts` (acceptOffer).
 17. **Platform minimum deposit floor** — deposits between 1p and 99p are clamped to 100p (£1). Enforced at two points: `finalDepositCents` in `createAppointment()` (before policy snapshot) and `derivePaymentRequirement()` in `tier-pricing.ts` (belt-and-suspenders). Zero-amount deposits (from `topDepositWaived`) bypass the floor. Constant: `PLATFORM_MINIMUM_DEPOSIT_CENTS` exported from `src/lib/tier-pricing.ts`. Tripwire: review when multi-currency ships (JPY has no subunit) or if platform fee changes from flat 50p to percentage-based.
 18. **No DB persistence for volatile Stripe account flags** — `payouts_enabled` is fetched live via `stripe.accounts.retrieve()` on the settings page, not stored in the `shops` table. Stripe account flags that change without merchant action (e.g., `payouts_enabled`, `capabilities`) must be fetched live. Only `stripeOnboardingStatus` (a lifecycle stage set by webhook) is persisted. `src/app/app/settings/stripe-connect/page.tsx`.
+19. **Dispute email sent after DB commit** — `sendEmail()` for dispute notifications runs outside the DB transaction (same pattern as suspension sweep PI cancellation). Email failure does not roll back dispute state persistence. `src/app/api/stripe/connect-webhook/route.ts`.
 
 ## 11. Codebase Quality Assessment
 
