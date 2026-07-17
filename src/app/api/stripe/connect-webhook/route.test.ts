@@ -21,6 +21,7 @@ const {
   mockSendEmail,
   mockCreateLoginLink,
   mockSelect,
+  mockLimit,
 } = vi.hoisted(() => {
   const mockReturning = vi.fn();
   const mockOnConflictDoNothing = vi.fn(() => ({ returning: mockReturning }));
@@ -57,6 +58,7 @@ const {
     mockSendEmail,
     mockCreateLoginLink,
     mockSelect,
+    mockLimit,
   };
 });
 
@@ -446,13 +448,11 @@ describe("Connect webhook — POST", () => {
 
       expect(res.status).toBe(200);
       expect(mockPaymentIntentsCancel).not.toHaveBeenCalled();
-      expect(warnSpy).toHaveBeenCalledWith(
+      // "Suspension sweep complete" only logs when pendingCancellations > 0;
+      // with no pending payments the post-commit sweep is skipped entirely.
+      expect(warnSpy).not.toHaveBeenCalledWith(
         "Suspension sweep complete",
-        expect.objectContaining({
-          shopId: "shop_1",
-          pendingPaymentsFound: 0,
-          paymentIntentsCancelled: 0,
-        })
+        expect.anything(),
       );
     });
 
@@ -783,6 +783,55 @@ describe("Connect webhook — POST", () => {
       expect(res.status).toBe(200);
       expect(mockPaymentsFindFirst).not.toHaveBeenCalled();
       expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it("sends dispute notification email when shop has stripeAccountId", async () => {
+      const dispute = makeDispute({ amount: 2500, currency: "gbp" });
+      const event = makeEvent("charge.dispute.created", "evt_dc_email_1", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_dc_email_1" }]);
+      mockPaymentsFindFirst.mockResolvedValue({
+        appointmentId: "apt_1",
+        shopId: "shop_1",
+        stripePaymentIntentId: "pi_test_1",
+      });
+      // Shop WITH stripeAccountId — triggers email path
+      mockFindFirst.mockResolvedValue({
+        id: "shop_1",
+        ownerUserId: "user_1",
+        stripeAccountId: "acct_connected_1",
+        name: "Cool Cuts",
+      });
+      // First select chain → owner email
+      mockLimit
+        .mockResolvedValueOnce([{ email: "owner@example.com", name: "Cool" }])
+        // Second select chain → customer name
+        .mockResolvedValueOnce([{ fullName: "Jane Doe" }]);
+      // Appointment with customerId and startsAt
+      mockAppointmentsFindFirst.mockResolvedValue({
+        id: "apt_1",
+        customerId: "cust_1",
+        startsAt: new Date("2026-07-20T10:00:00Z"),
+      });
+
+      const res = await POST(buildRequest());
+
+      expect(res.status).toBe(200);
+      expect(mockCreateLoginLink).toHaveBeenCalledWith("acct_connected_1");
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: "owner@example.com",
+          subject: "A customer has disputed a deposit",
+        }),
+      );
+      // Verify email body includes key details
+      const emailCall = mockSendEmail.mock.calls[0][0];
+      expect(emailCall.html).toContain("Jane Doe has");
+      expect(emailCall.html).toContain("£25.00");
+      expect(emailCall.html).toContain("https://dashboard.stripe.com/test");
+      expect(emailCall.text).toContain("Jane Doe has");
+      expect(emailCall.text).toContain("£25.00");
     });
   });
 
