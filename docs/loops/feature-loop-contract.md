@@ -1,14 +1,16 @@
 # Feature Loop Contract
 
 ## Goal
-Payouts-not-surfaced: surface live `payoutsEnabled` status on Stripe Connect settings page. 3 specs, 1 wave.
+Auto-poll fallback: add `"still-verifying"` view state at poll exhaustion in `StripeConnectCard`. 5 specs, 3 waves.
 
 ## Current state
-- Feature: payouts-not-surfaced
-- Wave: 1 of 1
+- Feature: auto-poll-fallback
+- Wave: 1 of 1 (all 3 waves implemented in single sweep — single-file feature)
 - Phase: COMPLETE
-- Specs in scope: docs/shaping/payouts-not-surfaced/ (P1, P2, P3)
-- Build order: 3 specs, 2 phases, linear critical path (P1 → P2 → P3)
+- Specs in scope: docs/shaping/auto-poll-fallback/specs/ (01–05)
+- Build order: docs/shaping/auto-poll-fallback/_build-order.md
+- Design prototype: docs/shaping/auto-poll-fallback/Stripe Connect Still Verifying (standalone) (1).html
+- Prototype aligned: spec 03 updated with exact tokens from prototype (22px title, 13.5px info text, 28px margin-top, --al-surface-container bg)
 
 ## Backlog
 - Waves remaining: none (1 wave, all specs implemented)
