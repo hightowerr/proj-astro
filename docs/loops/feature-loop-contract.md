@@ -1,16 +1,14 @@
 # Feature Loop Contract
 
 ## Goal
-Auto-poll fallback: add `"still-verifying"` view state at poll exhaustion in `StripeConnectCard`. 5 specs, 3 waves.
+Dispute visibility: webhook handlers for dispute detection, merchant notification email, payment card disputed modifier. 7 specs, 3 waves.
 
 ## Current state
-- Feature: auto-poll-fallback
-- Wave: 1 of 1 (all 3 waves implemented in single sweep — single-file feature)
-- Phase: COMPLETE
-- Specs in scope: docs/shaping/auto-poll-fallback/specs/ (01–05)
-- Build order: docs/shaping/auto-poll-fallback/_build-order.md
-- Design prototype: docs/shaping/auto-poll-fallback/Stripe Connect Still Verifying (standalone) (1).html
-- Prototype aligned: spec 03 updated with exact tokens from prototype (22px title, 13.5px info text, 28px margin-top, --al-surface-container bg)
+- Feature: dispute-visibility
+- Wave: — (not started)
+- Phase: SHAPE (specs + build order written, awaiting IMPLEMENT)
+- Specs in scope: docs/shaping/dispute-visibility/specs/ (01–07)
+- Build order: docs/shaping/dispute-visibility/_build-order.md
 
 ## Backlog
 - Waves remaining: none (1 wave, all specs implemented)
@@ -52,6 +50,11 @@ Queued in `docs/shaping/rebrand/BUILD-ORDER.md`:
 4. code-standards.md: add brand name convention
 
 ## Prior features
+### auto-poll-fallback — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-16 | 1 | ALL | ALL PASS. 0 evolution / 0 shortcut. Single-file sweep. Loop COMPLETE. |
+
 ### payouts-not-surfaced — COMPLETE
 | Date | Wave | Phase | Notes |
 |------|------|-------|-------|

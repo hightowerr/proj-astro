@@ -676,6 +676,7 @@ export function StripeConnectCard({
 
       if (pollCountRef.current > 12) {
         if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+        // eslint-disable-next-line no-console
         console.info("[stripe-connect] Poll exhausted after 12 attempts — transitioning to still-verifying");
         setView("still-verifying");
         return;
