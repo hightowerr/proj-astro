@@ -13,9 +13,14 @@ const {
   mockInsertValues,
   mockReturning,
   mockFindFirst,
+  mockPaymentsFindFirst,
   mockPaymentsFindMany,
+  mockAppointmentsFindFirst,
   mockAppointmentsFindMany,
   mockUpdate,
+  mockSendEmail,
+  mockCreateLoginLink,
+  mockSelect,
 } = vi.hoisted(() => {
   const mockReturning = vi.fn();
   const mockOnConflictDoNothing = vi.fn(() => ({ returning: mockReturning }));
@@ -23,10 +28,18 @@ const {
     onConflictDoNothing: mockOnConflictDoNothing,
   }));
   const mockFindFirst = vi.fn();
+  const mockPaymentsFindFirst = vi.fn();
   const mockPaymentsFindMany = vi.fn();
+  const mockAppointmentsFindFirst = vi.fn();
   const mockAppointmentsFindMany = vi.fn();
   const mockSet = vi.fn(() => ({ where: vi.fn() }));
   const mockUpdate = vi.fn(() => ({ set: mockSet }));
+  const mockSendEmail = vi.fn().mockResolvedValue({ success: true });
+  const mockCreateLoginLink = vi.fn().mockResolvedValue({ url: "https://dashboard.stripe.com/test" });
+  const mockLimit = vi.fn().mockResolvedValue([]);
+  const mockWhere = vi.fn(() => ({ limit: mockLimit }));
+  const mockFrom = vi.fn(() => ({ where: mockWhere }));
+  const mockSelect = vi.fn(() => ({ from: mockFrom }));
 
   return {
     mockConstructEvent: vi.fn(),
@@ -36,17 +49,28 @@ const {
     mockOnConflictDoNothing,
     mockReturning,
     mockFindFirst,
+    mockPaymentsFindFirst,
     mockPaymentsFindMany,
+    mockAppointmentsFindFirst,
     mockAppointmentsFindMany,
     mockUpdate,
+    mockSendEmail,
+    mockCreateLoginLink,
+    mockSelect,
   };
 });
+
+// -- @/lib/email ----------------------------------------------------------
+vi.mock("@/lib/email", () => ({
+  sendEmail: mockSendEmail,
+}));
 
 // -- @/lib/stripe --------------------------------------------------------
 vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
     webhooks: { constructEvent: mockConstructEvent },
     paymentIntents: { cancel: mockPaymentIntentsCancel },
+    accounts: { createLoginLink: mockCreateLoginLink },
   }),
 }));
 
@@ -67,7 +91,10 @@ vi.mock("@/lib/schema", () => ({
   processedStripeEvents: {},
   shops: { id: "shops.id", shopId: "shops.shopId" },
   appointments: { id: "appointments.id", shopId: "appointments.shopId" },
+  appointmentEvents: {},
   payments: {},
+  customers: { fullName: "customers.fullName", id: "customers.id" },
+  user: { email: "user.email", name: "user.name", id: "user.id" },
 }));
 
 // -- @/lib/db -------------------------------------------------------------
@@ -77,10 +104,11 @@ vi.mock("@/lib/db", () => ({
       // Build a minimal transaction proxy that records calls.
       const tx = {
         insert: () => ({ values: mockInsertValues }),
+        select: mockSelect,
         query: {
           shops: { findFirst: mockFindFirst },
-          payments: { findMany: mockPaymentsFindMany },
-          appointments: { findMany: mockAppointmentsFindMany },
+          payments: { findFirst: mockPaymentsFindFirst, findMany: mockPaymentsFindMany },
+          appointments: { findFirst: mockAppointmentsFindFirst, findMany: mockAppointmentsFindMany },
         },
         update: mockUpdate,
       };
@@ -651,6 +679,260 @@ describe("Connect webhook — POST", () => {
           flaggedCount: 0,
         })
       );
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // charge.dispute.created
+  // -----------------------------------------------------------------------
+  describe("charge.dispute.created", () => {
+    function makeDispute(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+      return {
+        id: "dp_test_1",
+        charge: "ch_test_1",
+        payment_intent: "pi_test_1",
+        amount: 1000,
+        currency: "gbp",
+        reason: "fraudulent",
+        status: "needs_response",
+        ...overrides,
+      };
+    }
+
+    it("sets financialOutcome to 'disputed' and inserts dispute_opened event when payment found", async () => {
+      const dispute = makeDispute();
+      const event = makeEvent("charge.dispute.created", "evt_dc_1", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_dc_1" }]);
+      mockPaymentsFindFirst.mockResolvedValue({
+        appointmentId: "apt_1",
+        shopId: "shop_1",
+        stripePaymentIntentId: "pi_test_1",
+      });
+      // Shop lookup for email prep — no stripeAccountId → email skipped
+      mockFindFirst.mockResolvedValue({ id: "shop_1", ownerUserId: "user_1" });
+
+      const res = await POST(buildRequest());
+
+      expect(res.status).toBe(200);
+      expect(mockUpdate).toHaveBeenCalled();
+      expect(mockInsertValues).toHaveBeenCalled();
+    });
+
+    it("logs console.error with dispute context when payment found", async () => {
+      const dispute = makeDispute();
+      const event = makeEvent("charge.dispute.created", "evt_dc_2", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_dc_2" }]);
+      mockPaymentsFindFirst.mockResolvedValue({
+        appointmentId: "apt_1",
+        shopId: "shop_1",
+        stripePaymentIntentId: "pi_test_1",
+      });
+      mockFindFirst.mockResolvedValue({ id: "shop_1", ownerUserId: "user_1" });
+
+      await POST(buildRequest());
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Dispute opened — financialOutcome set to disputed",
+        expect.objectContaining({
+          disputeId: "dp_test_1",
+          chargeId: "ch_test_1",
+          paymentIntentId: "pi_test_1",
+          amount: 1000,
+          reason: "fraudulent",
+          appointmentId: "apt_1",
+          shopId: "shop_1",
+        }),
+      );
+    });
+
+    it("logs console.error when payment cannot be resolved", async () => {
+      const dispute = makeDispute();
+      const event = makeEvent("charge.dispute.created", "evt_dc_3", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_dc_3" }]);
+      mockPaymentsFindFirst.mockResolvedValue(null);
+
+      await POST(buildRequest());
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Dispute opened but could not resolve payment context",
+        expect.objectContaining({
+          disputeId: "dp_test_1",
+          chargeId: "ch_test_1",
+          paymentIntentId: "pi_test_1",
+          amount: 1000,
+          reason: "fraudulent",
+        }),
+      );
+    });
+
+    it("skips processing on duplicate event (dedup)", async () => {
+      const dispute = makeDispute();
+      const event = makeEvent("charge.dispute.created", "evt_dc_dup", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([]);
+
+      const res = await POST(buildRequest());
+
+      expect(res.status).toBe(200);
+      expect(mockPaymentsFindFirst).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // charge.dispute.updated
+  // -----------------------------------------------------------------------
+  describe("charge.dispute.updated", () => {
+    it("logs console.warn with dispute status and reason", async () => {
+      const dispute = {
+        id: "dp_test_1",
+        payment_intent: "pi_test_1",
+        status: "under_review",
+        reason: "fraudulent",
+        amount: 1000,
+      };
+      const event = makeEvent("charge.dispute.updated", "evt_du_1", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_du_1" }]);
+
+      await POST(buildRequest());
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Dispute updated",
+        expect.objectContaining({
+          disputeId: "dp_test_1",
+          status: "under_review",
+          reason: "fraudulent",
+          amount: 1000,
+          paymentIntentId: "pi_test_1",
+          eventId: "evt_du_1",
+        }),
+      );
+    });
+
+    it("skips processing on duplicate event (dedup)", async () => {
+      const dispute = {
+        id: "dp_test_1",
+        payment_intent: "pi_test_1",
+        status: "under_review",
+        reason: "fraudulent",
+        amount: 1000,
+      };
+      const event = makeEvent("charge.dispute.updated", "evt_du_dup", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([]);
+
+      await POST(buildRequest());
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // charge.dispute.closed
+  // -----------------------------------------------------------------------
+  describe("charge.dispute.closed", () => {
+    function makeClosedDispute(status: string): Record<string, unknown> {
+      return {
+        id: "dp_test_1",
+        payment_intent: "pi_test_1",
+        status,
+        amount: 1000,
+      };
+    }
+
+    it("sets financialOutcome to 'settled' when dispute status is 'won'", async () => {
+      const dispute = makeClosedDispute("won");
+      const event = makeEvent("charge.dispute.closed", "evt_dcl_1", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_dcl_1" }]);
+      mockPaymentsFindFirst.mockResolvedValue({
+        appointmentId: "apt_1",
+        shopId: "shop_1",
+        stripePaymentIntentId: "pi_test_1",
+      });
+
+      await POST(buildRequest());
+
+      expect(mockUpdate).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Dispute closed",
+        expect.objectContaining({
+          disputeId: "dp_test_1",
+          status: "won",
+          outcome: "settled",
+          appointmentId: "apt_1",
+          shopId: "shop_1",
+        }),
+      );
+    });
+
+    it("keeps financialOutcome as 'disputed' when dispute status is 'lost'", async () => {
+      const dispute = makeClosedDispute("lost");
+      const event = makeEvent("charge.dispute.closed", "evt_dcl_2", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_dcl_2" }]);
+      mockPaymentsFindFirst.mockResolvedValue({
+        appointmentId: "apt_1",
+        shopId: "shop_1",
+        stripePaymentIntentId: "pi_test_1",
+      });
+
+      await POST(buildRequest());
+
+      expect(mockUpdate).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Dispute closed",
+        expect.objectContaining({
+          disputeId: "dp_test_1",
+          status: "lost",
+          outcome: "disputed",
+        }),
+      );
+    });
+
+    it("logs when payment cannot be resolved", async () => {
+      const dispute = makeClosedDispute("won");
+      const event = makeEvent("charge.dispute.closed", "evt_dcl_3", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([{ id: "evt_dcl_3" }]);
+      mockPaymentsFindFirst.mockResolvedValue(null);
+
+      await POST(buildRequest());
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Dispute closed but could not resolve payment context",
+        expect.objectContaining({
+          disputeId: "dp_test_1",
+          status: "won",
+          paymentIntentId: "pi_test_1",
+        }),
+      );
+    });
+
+    it("skips processing on duplicate event (dedup)", async () => {
+      const dispute = makeClosedDispute("won");
+      const event = makeEvent("charge.dispute.closed", "evt_dcl_dup", dispute);
+
+      mockConstructEvent.mockReturnValue(event);
+      mockReturning.mockResolvedValue([]);
+
+      await POST(buildRequest());
+
+      expect(mockPaymentsFindFirst).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
     });
   });
 

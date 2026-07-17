@@ -157,3 +157,45 @@ describe("resolveHelperText", () => {
     );
   });
 });
+
+// ─── Disputed modifier ───────────────────────────────────────────────────────
+
+describe("resolvePayoutDisplay — disputed", () => {
+  const AMOUNT = 2000;
+
+  it('returns "Disputed" when disputed=true', () => {
+    expect(resolvePayoutDisplay(AMOUNT, false, false, false, true)).toBe("Disputed");
+  });
+
+  it("disputed takes priority over refunded", () => {
+    expect(resolvePayoutDisplay(AMOUNT, false, true, false, true)).toBe("Disputed");
+  });
+
+  it("disputed takes priority over transferHeld", () => {
+    expect(resolvePayoutDisplay(AMOUNT, false, false, true, true)).toBe("Disputed");
+  });
+});
+
+describe("resolveHelperIcon — disputed", () => {
+  it('returns "gavel" when disputed=true', () => {
+    expect(resolveHelperIcon(false, false, true)).toBe("gavel");
+  });
+
+  it("disputed takes priority over refunded (gavel, not undo)", () => {
+    expect(resolveHelperIcon(true, false, true)).toBe("gavel");
+  });
+});
+
+describe("resolveHelperText — disputed", () => {
+  it("returns dispute text when disputed=true", () => {
+    expect(resolveHelperText(false, false, true)).toBe(
+      "This deposit is under dispute. Respond via your Stripe Dashboard.",
+    );
+  });
+
+  it("disputed takes priority over other states", () => {
+    expect(resolveHelperText(true, true, true)).toBe(
+      "This deposit is under dispute. Respond via your Stripe Dashboard.",
+    );
+  });
+});

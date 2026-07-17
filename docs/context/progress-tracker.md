@@ -6,13 +6,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Payouts Not Surfaced — COMPLETE. 3 specs, 1 wave (14/14 PASS). 0 evolution / 0 shortcuts. Server-side `stripe.accounts.retrieve()` + conditional ConnectedView UI.
+Dispute Visibility — COMPLETE. 7 specs, 3 waves (41/41 PASS). 4 evolution / 0 shortcuts. Webhook handlers for dispute detection, notification email, payment card modifier.
 
 ---
 
 ## Current Goal
 
-No active feature. All prior features (payouts-not-surfaced, rebrand, connect-guard, no-minimum, ks-migration, confirmation-SMS, MCC-hardcoded, re-engagement-email, inflight-payments, webhook-unaware, refund-state) are COMPLETE. See **Next Up** for candidate work.
+No active feature. All prior features (dispute-visibility, payouts-not-surfaced, rebrand, connect-guard, no-minimum, ks-migration, confirmation-SMS, MCC-hardcoded, re-engagement-email, inflight-payments, webhook-unaware, refund-state) are COMPLETE. See **Next Up** for candidate work.
 
 ---
 
@@ -90,6 +90,12 @@ No active feature. All prior features (payouts-not-surfaced, rebrand, connect-gu
 - Icon a11y fix in `profile/page.tsx`: added `aria-hidden="true"` to `MsIcon` span so screen readers won't announce raw glyph names. 0 TS errors, 0 lint errors.
 
 ---
+
+- **Dispute Visibility** — 7 specs, 3 waves. Webhook handlers for `charge.dispute.created`/`updated`/`closed`, merchant notification email (Resend), payment card `disputed` modifier (gavel icon, `--al-error-soft`). ConnectedView expectation copy. Feature loop COMPLETE (2026-07-17, 41/41 PASS). 4 evolution / 0 shortcuts. Shaping: `docs/shaping/dispute-visibility/`. Verification: `docs/shaping/dispute-visibility/shape/wave-1/wave-1-verify.md`. Ops: register 3 dispute events on Connect webhook in Stripe Dashboard.
+  - **Wave 1**: spec 01 (ConnectedView copy) + spec 02 (`dispute.created` handler) — parallel
+  - **Wave 2**: spec 03 (lifecycle handlers) + spec 04 (notification email) + spec 05 (payment card modifier) — sequential for route.ts, parallel for payment-card.tsx
+  - **Wave 3**: spec 06 (10 webhook tests) + spec 07 (7 payment card tests) — parallel
+  - **Modified files (5):** `stripe-connect-card.tsx`, `connect-webhook/route.ts`, `connect-webhook/route.test.ts`, `payment-card.tsx`, `payment-card.test.ts`
 
 - **Payouts Not Surfaced** — 3 specs, 1 wave. Surface live `payoutsEnabled` from Stripe API on Connect settings page. Feature loop COMPLETE (2026-07-16, 14/14 PASS). 0 evolution / 0 shortcuts. Shaping: `docs/shaping/payouts-not-surfaced/`. Verification: `docs/shaping/payouts-not-surfaced/shape/wave-1/wave-1-verify.md`.
   - **Wave 1**: P1 (server-side `stripe.accounts.retrieve()` + prop), P2 (conditional status row), P3 (info box when `payoutsEnabled=false`) — sequential (linear chain)

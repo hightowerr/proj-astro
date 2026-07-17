@@ -525,6 +525,14 @@ function ConnectedView({
         </div>
       )}
 
+      <p
+        className="mt-4 text-xs leading-relaxed"
+        style={{ color: "var(--al-on-surface-variant)", opacity: 0.7 }}
+      >
+        Since deposits go directly to you, you&apos;ll handle any customer
+        disputes through your Stripe Dashboard.
+      </p>
+
       <Button
         variant="outline"
         size="lg"

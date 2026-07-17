@@ -5,8 +5,8 @@ Dispute visibility: webhook handlers for dispute detection, merchant notificatio
 
 ## Current state
 - Feature: dispute-visibility
-- Wave: — (not started)
-- Phase: SHAPE (specs + build order written, awaiting IMPLEMENT)
+- Wave: 3 of 3 (all waves implemented)
+- Phase: COMPLETE
 - Specs in scope: docs/shaping/dispute-visibility/specs/ (01–07)
 - Build order: docs/shaping/dispute-visibility/_build-order.md
 

@@ -4,6 +4,37 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-17] verify+drift+retro | dispute-visibility
+
+- **Picked up**: Phases 3-5 for dispute-visibility feature (verify from separate session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 41/41 PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session (code review + unit tests; Playwright blocked — no seed data for disputed appointment state).
+  - Drift: 0 remaining unimplemented specs. 4 deviations, all EVOLUTION: (1) explicit `tx.select().from()` queries instead of Drizzle relations + `fullName` not `name`, (2) `user.email` via join instead of `shop.userEmail`, (3) TS closure narrowing cast, (4) helper param defaults for backward compat.
+  - Retro: Architecture context updated — connect-webhook event list expanded, "Dispute Handling" key flow added, invariant #19 (dispute email after DB commit). current-issues.md dispute entry moved to Resolved. progress-tracker.md updated with feature entry.
+  - Evolution/shortcut ratio: 4/0 (0%)
+  - Patterns extracted: 0 (modifier-over-enum and design-prototype-as-source-of-truth already documented, reapplied here)
+  - Friction logged: 0
+  - Key learning: Spec assumptions about schema field names (`name` vs `fullName`) and Drizzle patterns (`with:` relations) should be verified against actual schema during shaping. Worktree isolation times out on large repos (8K+ files) — direct implementation works when files don't conflict.
+- **Unresolved**: none. Loop COMPLETE.
+
+---
+
+## [2026-07-17] implement | dispute-visibility waves 1–3
+
+- **Picked up**: Phase 2 IMPLEMENT for dispute-visibility feature — 7 specs, 3 waves.
+- **Result**: All 3 waves implemented. `pnpm check` clean after each slice.
+  - Wave 1 (parallel worktrees): Spec 01 (ConnectedView expectation copy) + Spec 02 (`charge.dispute.created` handler). 0 deviations.
+  - Wave 2 (sequential for route.ts, parallel for payment-card.tsx): Spec 03 (lifecycle handlers `updated`/`closed`), Spec 04 (notification email via Resend), Spec 05 (payment card `disputed` modifier). 2 deviations:
+    - (1) EVOLUTION: helper function `disputed` params default to `false` — existing tests call without the param; spec showed required param but defaults maintain backward compatibility
+    - (2) EVOLUTION: `customers.fullName` not `customers.name` — spec assumed `name` field but schema uses `fullName`; TypeScript caught; email queries adapted to use `tx.select().from(user/customers)` pattern (no Drizzle relations in codebase)
+    - (3) EVOLUTION: TypeScript closure narrowing fix — `pendingDisputeEmail` mutated inside async callback; TS can't track → explicit `as` cast to restore declared type
+  - Wave 3 (both files): Spec 06 (10 webhook handler tests) + Spec 07 (7 payment card modifier tests). All 17 tests pass. 5 pre-existing test failures unchanged (messages ×3, connect-webhook suspension sweep ×1, twilio inbound ×1).
+  - Modified files (4): `stripe-connect-card.tsx`, `connect-webhook/route.ts`, `payment-card.tsx`, `payment-card.test.ts`, `connect-webhook/route.test.ts`
+  - Signals applied: `modifier-over-enum` (disputed boolean on FeeBreakdown), `design-prototype-as-source-of-truth` (email template matches prototype exactly)
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session (NEVER self-verify). Then DRIFT AUDIT + RETRO.
+
+---
+
 ## [2026-07-16] verify+drift+retro | auto-poll-fallback
 
 - **Picked up**: Phases 3-5 for auto-poll-fallback feature (verify from separate session, drift audit, retro)
