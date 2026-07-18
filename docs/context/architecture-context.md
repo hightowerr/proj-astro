@@ -102,7 +102,7 @@ A multi-tenant appointment booking and no-show risk management system for servic
 | Appointments | `appointments` table | Server Components + API | Yes (DB mutations via API) |
 | Customers | `customers` + `customerScores` + `customerNoShowStats` tables | Dashboard Server Components | Yes (scores recomputed by cron) |
 | Policies | `shopPolicies` + `policyVersions` tables | Applied at booking time | Yes (owner edits via settings UI) |
-| Event types | `eventTypes` table | Booking page + settings | Yes (owner CRUD via dashboard) |
+| Event types | `eventTypes` table | Booking page + settings | Yes (owner CRUD via dashboard). `durationMinutes` is decoupled from `slotMinutes` — arbitrary values 5–480, not grid multiples. DB CHECK constraint enforces upper bound. |
 | Shop config | `shops` + `bookingSettings` + `shopHours` tables | Booking page availability | Yes (owner settings) |
 | Message templates | `messageTemplates` table | Rendered at send time | Yes (DB-managed templates) |
 | Landing page | Hardcoded JSX in `src/app/page.tsx` | Static RSC | No — intentionally locked to code |

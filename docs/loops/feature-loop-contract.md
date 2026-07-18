@@ -1,55 +1,72 @@
 # Feature Loop Contract
 
 ## Goal
-Dispute visibility: webhook handlers for dispute detection, merchant notification email, payment card disputed modifier. 7 specs, 3 waves.
+Configurable service durations: decouple service duration from calendar grid cadence, raise max from 240 to 480 minutes, replace dropdown/radio selectors with number inputs. 7 specs, 3 waves.
 
 ## Current state
-- Feature: dispute-visibility
-- Wave: 3 of 3 (all waves implemented)
+- Feature: configurable-durations
+- Wave: 3 of 3
 - Phase: COMPLETE
-- Specs in scope: docs/shaping/dispute-visibility/specs/ (01–07)
-- Build order: docs/shaping/dispute-visibility/_build-order.md
+- Specs in scope: docs/shaping/configurable-durations/specs/ (01–07)
+- Build order: docs/shaping/configurable-durations/_build-order.md
+- Design prototypes: docs/shaping/configurable-durations/designs/ (3 interactive HTML mockups)
 
 ## Backlog
-- Waves remaining: none (1 wave, all specs implemented)
+- Waves remaining: none (all implemented)
 - Blocked specs: none
-- Design review: design prototype reviewed — `Payments Stripe Connect.html` provides exact tokens and copy
+- Design review: 3 prototypes reviewed — Service Editor Duration Input 1a, Onboarding Duration Input, Service Editor Grid Cadence Hint
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |
 |------|------|-------|----------|-------|
-| 2026-07-13 | — | SHAPE | — | 10 specs created from current-issues.md analysis. BUILD-ORDER + DESIGN-BRIEF written. Mock-ups received and approved. Verified 35 occurrences across 15 files (original estimate was 28/14). Shape doc, slices doc, wave-1 plan created. No spikes needed. |
-| 2026-07-13 | 1 | IMPLEMENT | — | Single sweep: 25 replacements across 13 files. `pnpm check` clean. 4 deviations (all EVOLUTION): (1) `features-carousel.tsx` had `astro.app/book` URL not in spec → fixed to `showup.dev/book`, (2) `page.tsx` had 2 feature card descriptions with "Astro" not in spec → fixed, (3) `shop-details-step.tsx` had `astro.com/book/` demo URL not in spec → fixed to `showup.dev/book/`. Post-sweep grep confirms 0 "Astro"/"ASTRO" in Wave 1 scope. |
-| 2026-07-14 | 1 | VERIFY+DRIFT+RETRO | — | Verification: 12/12 PASS (independent agent). Drift audit: 0 conflicts with Wave 2 specs. All remaining spec line numbers verified accurate. P4 spec inaccuracy noted (auth-origins.test.ts fixture URLs). 4 evolution / 0 shortcuts (0%). Retro: architecture updates applied (ui-context.md brand names, code-standards.md brand convention). No new patterns, no friction. |
-| 2026-07-14 | 2 | IMPLEMENT | — | 3 specs implemented: P3-app-copy (2 tooltip replacements), P3-email-rebrand (5 string replacements + typography fix: headline letter-spacing, body max-width, footer font-size/color + brand footer "SHOWUP · Stop losing money to no-shows."), P4-internal-docs (7 replacements in project-overview.md). `pnpm check` clean. Post-sweep grep: 0 "Astro" in src/ except auth-origins.test.ts fixture URLs (excluded). |
-| 2026-07-14 | 2 | VERIFY+DRIFT+RETRO | — | Verification: 20/20 PASS (independent agent). Drift: 0 divergences. Retro: current-issues.md rebrand + typography fix marked RESOLVED. Loop COMPLETE. |
-| 2026-07-15 | 1 | SHAPE | — | payouts-not-surfaced: 3 specs (P1, P2, P3) + build-order aligned with design prototype (`Payments Stripe Connect.html`). 6 discrepancies fixed (label text, info box tokens, copy). No spikes needed. |
-| 2026-07-15 | 1 | IMPLEMENT | — | 3 specs implemented sequentially (P1→P2→P3). P1: server-side `stripe.accounts.retrieve()` + prop. P2: conditional status row (green/neutral dot). P3: info box with design prototype tokens. `pnpm check` clean after each slice. 0 deviations. Modified files (2): `stripe-connect/page.tsx`, `stripe-connect-card.tsx`. |
-| 2026-07-16 | 1 | VERIFY+DRIFT+RETRO | — | Verification: 14/14 PASS (independent agent). 4 Playwright + 10 code review. Drift: 0 divergences — all 3 specs match implementation exactly. Retro: architecture updates applied (invariant #18: no DB persistence for volatile Stripe flags; ui-context.md: ConnectedView info box pattern). 0 patterns, 0 friction. Loop COMPLETE. |
+| 2026-07-18 | — | SHAPE | — | 7 specs + build order pre-written. 3 design prototypes loaded + token-extracted. Shape doc, slices doc, 7 slice plans created. No spikes needed — all patterns known from prior features. Collapsed build-order phases 1+2 into Wave 1 (foundation + core unlock). |
+| 2026-07-18 | 1 | IMPLEMENT | — | 3 slices: Spec 01 (MAX 240→480, 1 line), Spec 02 (validateDuration: grid-multiple → floor check, `_shopId` unused prefix), Spec 05 (DB CHECK constraint + manual migration 0040). `pnpm check` clean. 1 deviation: MIN_SERVICE_DURATION_MINUTES constant extracted to constants.ts (EVOLUTION — testability). |
+| 2026-07-18 | 2 | IMPLEMENT | — | 3 slices parallel: Spec 03 (editor dropdown → number input + stepper + "min" suffix + helper text), Spec 04 (onboarding radio → number input + stepper, MAX import added), Spec 06 (10 tests, all PASS). `pnpm check` clean. 0 deviations. |
+| 2026-07-18 | 3 | IMPLEMENT | — | 1 slice: Spec 07 (showGridHint variable + conditional `<p>` with link to availability settings). `pnpm check` clean. 0 deviations. |
+| 2026-07-18 | 1–3 | VERIFY | — | Independent verifier (fresh session). 45/45 PASS, 0 FAIL, 0 BLOCKED. Code review + unit tests (10/10 PASS). |
+| 2026-07-18 | 1–3 | DRIFT AUDIT | — | 0 remaining unimplemented specs. 2 deviations, both EVOLUTION (MIN constant extraction, `_shopId` prefix). 0 shortcuts. |
+| 2026-07-18 | 1–3 | RETRO | — | Architecture updates applied (content model note, domain rules convention). Progress tracker updated. Loop COMPLETE. |
 
 ## Dependency graph
 ```
-P0 (metadata) ──────────────────┐
-P1-site-header ─────────────────┤
-P1-auth-brand ──────────────────┤
-P1-booking-nav ─────────────────┼──► [PR #1: P0+P1+P2] ──► P3-app-copy
-P1-site-footer ─────────────────┤                      ──► P3-email-rebrand (+ typography fix)
-P2-auth-cta ────────────────────┤                      ──► P4-internal-docs
-P2-landing-copy ────────────────┘
+Spec 01 (raise MAX) ─────────────────────────┐
+                                              ├──► Spec 02 (remove grid-multiple)
+                                              │         │
+                                              │         ├──► Spec 03 (editor number input) ──► Spec 07 (grid hint)
+                                              │         │
+                                              │         ├──► Spec 04 (onboarding number input)
+                                              │         │
+                                              │         └──► Spec 06 (tests)
+                                              │
+                                              └──► Spec 05 (DB constraint)
 ```
 
+## Waves
+| Wave | Specs | Strategy | Files |
+|------|-------|----------|-------|
+| 1 | 01, 02, 05 | Sequential: 01 first (trivial), then 02 + 05 parallel | `constants.ts`, `actions.ts`, `schema.ts` + migration |
+| 2 | 03, 04, 06 | Parallel: 3 independent files | `service-editor-form.tsx`, `add-service-step.tsx`, test file |
+| 3 | 07 | Sequential: single addition | `service-editor-form.tsx` |
+
 ## Critical path
-Phase 1 (any spec) → P3-email-rebrand + typography fix (2 phases; email is bottleneck due to cross-dep)
-Shortest path to brand consistency: Wave 1 alone (one PR, 21 replacements)
+```
+01 (raise MAX) → 02 (remove validation) → 03 (editor input) → 07 (grid hint)
+```
+4 specs, sequential. Specs 04, 05, 06 are off the critical path.
 
 ## Architecture context updates (apply in RETRO)
-Queued in `docs/shaping/rebrand/BUILD-ORDER.md`:
-1. project-overview.md: "Astro" → "ShowUp", "Astro Pro" → "ShowUp Pro" (7 replacements — this IS spec P4)
-2. current-issues.md: mark "Full rebrand" resolved after Wave 1 ships
-3. ui-context.md: product display name "ShowUp", uppercase "SHOWUP", plan name "ShowUp Pro"
-4. code-standards.md: add brand name convention
+Queued in `docs/shaping/configurable-durations/_build-order.md`:
+1. architecture-context.md: Content Model — `durationMinutes` decoupled from `slotMinutes` (5–480, not grid multiples)
+2. code-standards.md: convention — duration and grid cadence are orthogonal, no coupling validation
+3. progress-tracker.md: add feature entry
+4. roadmap.md: move "Configurable service durations" to Resolved
 
 ## Prior features
+### dispute-visibility — COMPLETE
+| Date | Wave | Phase | Notes |
+|------|------|-------|-------|
+| 2026-07-17 | 1–3 | ALL | 41/41 PASS. 4 evolution / 0 shortcut. Loop COMPLETE. |
+
 ### auto-poll-fallback — COMPLETE
 | Date | Wave | Phase | Notes |
 |------|------|-------|-------|
@@ -74,6 +91,7 @@ Queued in `docs/shaping/rebrand/BUILD-ORDER.md`:
 | Date | Wave | Phase | Notes |
 |------|------|-------|-------|
 | 2026-07-07 | 1–2 | ALL | 16/16 PASS. 1 evolution / 0 shortcut. Loop COMPLETE. |
+
 ### ks-migration — COMPLETE
 | Date | Wave | Phase | Notes |
 |------|------|-------|-------|
@@ -110,14 +128,14 @@ Queued in `docs/shaping/rebrand/BUILD-ORDER.md`:
 | 2026-07-01 | 1–3 | ALL | 31 PASS / 3 FAIL (test infra). 4 evolution / 1 shortcut. Loop COMPLETE. |
 
 ## References
-- Specs: docs/shaping/rebrand/ (P0, P1×4, P2×2, P3×2, P4)
-- Build order: docs/shaping/rebrand/BUILD-ORDER.md
-- Design brief: docs/shaping/rebrand/DESIGN-BRIEF.md
-- Mock-ups: docs/shaping/rebrand/Rebrand Mockups.html
+- Specs: docs/shaping/configurable-durations/specs/ (01–07)
+- Build order: docs/shaping/configurable-durations/_build-order.md
+- Design prototypes: docs/shaping/configurable-durations/designs/
+- Shape: docs/shaping/configurable-durations/shape/configurable-durations-shape.md
+- Slices: docs/shaping/configurable-durations/shape/configurable-durations-slices.md
 - Architecture: docs/context/architecture-context.md
 - Design system: docs/design-system/
 - Progress: docs/context/progress-tracker.md
 - Issues: docs/context/current-issues.md
 - Signals: docs/signals/
 - Work log: docs/loops/work-log.md
-- Mental models: mcp-go/Mental Models/WorkSpace/26-07-07_07-28-58_astro_to_showup_dev_rebrand/analysis-report.md

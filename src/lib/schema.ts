@@ -356,6 +356,10 @@ export const eventTypes = pgTable(
       "event_types_duration_minutes_positive",
       sql`${table.durationMinutes} > 0`
     ),
+    check(
+      "event_types_duration_minutes_max",
+      sql`${table.durationMinutes} <= 480`
+    ),
   ]
 );
 

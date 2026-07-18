@@ -4,6 +4,36 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-18] verify+drift+retro | configurable-durations waves 1–3
+
+- **Picked up**: Phases 3-5 for configurable-durations feature (verify from separate fresh session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 45/45 PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session (code review + unit tests; 10/10 vitest PASS; `pnpm check` clean except pre-existing TS error in `connect-webhook/route.test.ts:829`).
+  - Drift: 0 remaining unimplemented specs. 2 deviations, both EVOLUTION: (1) `MIN_SERVICE_DURATION_MINUTES` constant extracted to `constants.ts` for testability + DRY, (2) `_shopId` prefix for unused parameter (TS strict convention).
+  - Retro: Architecture context updated — content model notes `durationMinutes` decoupled from `slotMinutes`. `code-standards.md` added domain rule (duration/cadence orthogonal). Progress tracker updated. Loop contract → COMPLETE.
+  - Evolution/shortcut ratio: 2/0 (0% shortcuts)
+  - Patterns extracted: 0 (foundation-first-slicing, design-prototype-as-source-of-truth already documented — reapplied here)
+  - Friction logged: 0
+  - Key learning: 7-spec feature with 3 design prototypes achieved 0 FAIL in verification. Pre-written specs + prototype alignment + foundation-first slicing continues to produce zero-deviation UI implementations.
+- **Unresolved**: none. Loop COMPLETE.
+
+---
+
+## [2026-07-18] shape+implement | configurable-durations waves 1–3
+
+- **Picked up**: Full SHAPE + Phase 2 IMPLEMENT for configurable-durations feature (decouple service duration from calendar grid cadence, raise max 240→480, replace dropdown/radio with number inputs).
+- **Result**: Shape complete + all 3 waves implemented. `pnpm check` clean after each slice. 10/10 tests PASS.
+  - **Shape**: 7 specs pre-written (with 3 design prototypes). Shape doc, slices doc, 7 slice plans (42 acceptance criteria). No spikes.
+  - **Wave 1** (foundation): Spec 01 (MAX 240→480), Spec 02 (validateDuration: grid-multiple → floor check), Spec 05 (DB CHECK constraint + migration 0040). 1 deviation (EVOLUTION): extracted `MIN_SERVICE_DURATION_MINUTES = 5` to constants.ts for testability + used in validateDuration error message.
+  - **Wave 2** (UI + tests, parallel): Spec 03 (editor `<select>` → number input + custom stepper + "min" suffix + helper text), Spec 04 (onboarding radio buttons → number input + stepper, added MAX constant import), Spec 06 (10 validation tests, all PASS). 0 deviations.
+  - **Wave 3** (polish): Spec 07 (`showGridHint` variable + conditional `<p>` with `--al-on-surface-variant` opacity 0.7 + availability settings link). 0 deviations.
+  - **Modified files (5)**: `constants.ts` (+1 line), `actions.ts` (validateDuration body), `schema.ts` (+check constraint), `service-editor-form.tsx` (dropdown→input, grid hint), `add-service-step.tsx` (radio→input)
+  - **New files (2)**: `drizzle/0040_duration_max_constraint.sql`, `duration-validation.test.ts`
+  - Signals applied: design-prototype-as-source-of-truth, foundation-first-slicing, no-component-test-infra
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session (NEVER self-verify). Then DRIFT AUDIT + RETRO.
+
+---
+
 ## [2026-07-17] verify+drift+retro | dispute-visibility
 
 - **Picked up**: Phases 3-5 for dispute-visibility feature (verify from separate session, drift audit, retro)

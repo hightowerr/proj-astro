@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { createEventType } from "@/app/app/settings/services/actions";
+import { MAX_SERVICE_DURATION_MINUTES } from "@/app/app/settings/services/constants";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FormInput } from "./form-input";
@@ -11,13 +12,6 @@ type AddServiceStepProps = {
   onDone: () => void;
   onSkip: () => Promise<void>;
 };
-
-const DURATION_OPTIONS = [
-  { value: 60, label: "60 min" },
-  { value: 120, label: "120 min" },
-  { value: 180, label: "180 min" },
-  { value: 240, label: "240 min" },
-] as const;
 
 const BUFFER_OPTIONS: Array<{ value: 0 | 5 | 10; label: string }> = [
   { value: 0, label: "None" },
@@ -119,26 +113,55 @@ export function AddServiceStep({ onDone, onSkip }: AddServiceStepProps) {
         />
 
         <div className="space-y-4">
-          <label className="text-sm font-bold text-primary uppercase tracking-wider">
+          <label htmlFor="duration" className="text-sm font-bold text-primary uppercase tracking-wider">
             Duration <span className="text-destructive">*</span>
           </label>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {DURATION_OPTIONS.map((option) => (
+          <div className="relative flex items-center">
+            <input
+              type="number"
+              id="duration"
+              min={5}
+              max={MAX_SERVICE_DURATION_MINUTES}
+              step={5}
+              placeholder="e.g. 60"
+              value={durationMinutes || ""}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setDurationMinutes(Number.isNaN(val) ? 0 : val);
+              }}
+              className={cn(
+                "w-full rounded-xl border-2 border-border/40 bg-al-surface-low px-4 py-3.5 text-sm font-bold text-primary transition-all",
+                "placeholder:text-muted-foreground/40",
+                "focus:border-primary focus:bg-primary/5 focus:outline-none",
+                "[appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden",
+                "pr-24",
+              )}
+            />
+            <span className="absolute right-14 text-sm text-muted-foreground/60 pointer-events-none select-none">
+              min
+            </span>
+            <div className="absolute right-3 flex flex-col gap-0.5">
               <button
-                key={option.value}
                 type="button"
-                onClick={() => setDurationMinutes(option.value)}
-                className={cn(
-                  "rounded-xl border-2 px-4 py-3.5 text-sm font-bold transition-all duration-300 active:scale-95",
-                  durationMinutes === option.value
-                    ? "border-primary bg-primary/5 text-primary shadow-sm shadow-primary/10"
-                    : "border-border/40 bg-al-surface-low text-muted-foreground/60 hover:border-primary/30"
-                )}
+                aria-label="Increase"
+                className="flex items-center justify-center w-6 h-5 rounded bg-[#e2f0ea] hover:bg-[#d0e6dc] transition-colors"
+                onClick={() => setDurationMinutes((prev) => Math.min(prev + 5, MAX_SERVICE_DURATION_MINUTES))}
               >
-                {option.label}
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">keyboard_arrow_up</span>
               </button>
-            ))}
+              <button
+                type="button"
+                aria-label="Decrease"
+                className="flex items-center justify-center w-6 h-5 rounded bg-[#e2f0ea] hover:bg-[#d0e6dc] transition-colors"
+                onClick={() => setDurationMinutes((prev) => Math.max(prev - 5, 5))}
+              >
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">keyboard_arrow_down</span>
+              </button>
+            </div>
           </div>
+          <p className="mt-1 text-xs font-medium text-muted-foreground/60">
+            In 5-minute steps, up to {MAX_SERVICE_DURATION_MINUTES / 60} hours ({MAX_SERVICE_DURATION_MINUTES} min).
+          </p>
         </div>
 
         <div className="space-y-4">

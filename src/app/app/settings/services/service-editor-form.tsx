@@ -291,10 +291,10 @@ export function ServiceEditorForm({
 }: ServiceEditorFormProps) {
   const prefersReducedMotion = useReducedMotion();
 
-  const durationOptions = Array.from(
-    { length: Math.max(1, Math.floor(MAX_SERVICE_DURATION_MINUTES / shopContext.slotMinutes)) },
-    (_, index) => (index + 1) * shopContext.slotMinutes,
-  );
+  const showGridHint =
+    draft.durationMinutes > 0 &&
+    shopContext.slotMinutes > 0 &&
+    draft.durationMinutes >= shopContext.slotMinutes * 4;
 
   const normalizedDepositValue =
     draft.depositAmountCents === null ? "" : (draft.depositAmountCents / 100).toFixed(2);
@@ -352,32 +352,69 @@ export function ServiceEditorForm({
           <label className={labelClassName} htmlFor="service-duration">
             Time Commitment
           </label>
-          <div className="relative">
-            <select
+          <div className="relative flex items-center">
+            <input
+              type="number"
               className={cn(
                 getFieldClassName(Boolean(fieldErrors.durationMinutes)),
-                "appearance-none pr-12",
+                "[appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden pr-24",
               )}
               id="service-duration"
-              onChange={(event) => onFieldChange("durationMinutes", Number(event.target.value))}
-              value={String(draft.durationMinutes)}
-            >
-              {durationOptions.map((minutes) => (
-                <option key={minutes} value={minutes}>
-                  {minutes} mins
-                </option>
-              ))}
-            </select>
-            <span
-              aria-hidden="true"
-              className="material-symbols-outlined text-xl absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-30"
-            >
-              expand_more
+              min={5}
+              max={MAX_SERVICE_DURATION_MINUTES}
+              step={5}
+              aria-label="Time Commitment"
+              onChange={(event) => {
+                const parsed = Number(event.target.value);
+                if (Number.isFinite(parsed)) {
+                  onFieldChange("durationMinutes", parsed);
+                }
+              }}
+              value={draft.durationMinutes}
+            />
+            <span className="absolute right-14 text-sm text-al-on-surface-variant/50 pointer-events-none select-none">
+              min
             </span>
+            <div className="absolute right-2 flex flex-col gap-0.5">
+              <button
+                type="button"
+                aria-label="Increase"
+                className="flex items-center justify-center w-6 h-5 rounded bg-[#e2f0ea] hover:bg-[#d0e6dc] transition-colors"
+                onClick={() => {
+                  const next = Math.min(draft.durationMinutes + 5, MAX_SERVICE_DURATION_MINUTES);
+                  onFieldChange("durationMinutes", next);
+                }}
+              >
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">keyboard_arrow_up</span>
+              </button>
+              <button
+                type="button"
+                aria-label="Decrease"
+                className="flex items-center justify-center w-6 h-5 rounded bg-[#e2f0ea] hover:bg-[#d0e6dc] transition-colors"
+                onClick={() => {
+                  const next = Math.max(draft.durationMinutes - 5, 5);
+                  onFieldChange("durationMinutes", next);
+                }}
+              >
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">keyboard_arrow_down</span>
+              </button>
+            </div>
           </div>
           {fieldErrors.durationMinutes ? (
             <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-error">
               {fieldErrors.durationMinutes}
+            </p>
+          ) : null}
+          <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-al-on-surface-variant/70">
+            In 5-minute steps, up to {MAX_SERVICE_DURATION_MINUTES / 60} hours ({MAX_SERVICE_DURATION_MINUTES} min).
+          </p>
+          {showGridHint ? (
+            <p className="text-xs pl-1" style={{ color: "var(--al-on-surface-variant)", opacity: 0.7 }}>
+              Your calendar grid is set to {shopContext.slotMinutes}-minute slots.
+              For longer services, consider adjusting your slot length in{" "}
+              <a href="/app/settings/availability" className="underline">
+                Availability settings
+              </a>.
             </p>
           ) : null}
         </div>

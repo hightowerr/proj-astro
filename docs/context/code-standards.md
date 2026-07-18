@@ -40,6 +40,10 @@
 - Return consistent, predictable response shapes.
 - Keep route handlers thin — push complexity into shared modules or background tasks.
 
+## Domain Rules
+
+- Service duration (`durationMinutes`) and calendar grid cadence (`slotMinutes`) are orthogonal. Do not add validation that couples them.
+
 ## Data and Storage
 
 - Project metadata and relationships belong in PostgreSQL via Prisma.
