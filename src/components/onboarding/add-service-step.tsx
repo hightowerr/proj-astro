@@ -113,7 +113,7 @@ export function AddServiceStep({ onDone, onSkip }: AddServiceStepProps) {
         />
 
         <div className="space-y-4">
-          <label className="text-sm font-bold text-primary uppercase tracking-wider">
+          <label htmlFor="duration" className="text-sm font-bold text-primary uppercase tracking-wider">
             Duration <span className="text-destructive">*</span>
           </label>
           <div className="relative flex items-center">
@@ -124,7 +124,6 @@ export function AddServiceStep({ onDone, onSkip }: AddServiceStepProps) {
               max={MAX_SERVICE_DURATION_MINUTES}
               step={5}
               placeholder="e.g. 60"
-              aria-label="Duration"
               value={durationMinutes || ""}
               onChange={(e) => {
                 const val = Number(e.target.value);
@@ -161,7 +160,7 @@ export function AddServiceStep({ onDone, onSkip }: AddServiceStepProps) {
             </div>
           </div>
           <p className="mt-1 text-xs font-medium text-muted-foreground/60">
-            In 5-minute steps, up to 8 hours (480 min).
+            In 5-minute steps, up to {MAX_SERVICE_DURATION_MINUTES / 60} hours ({MAX_SERVICE_DURATION_MINUTES} min).
           </p>
         </div>
 

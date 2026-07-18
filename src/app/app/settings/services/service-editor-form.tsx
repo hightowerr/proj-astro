@@ -364,7 +364,12 @@ export function ServiceEditorForm({
               max={MAX_SERVICE_DURATION_MINUTES}
               step={5}
               aria-label="Time Commitment"
-              onChange={(event) => onFieldChange("durationMinutes", Number(event.target.value))}
+              onChange={(event) => {
+                const parsed = Number(event.target.value);
+                if (Number.isFinite(parsed)) {
+                  onFieldChange("durationMinutes", parsed);
+                }
+              }}
               value={draft.durationMinutes}
             />
             <span className="absolute right-14 text-sm text-al-on-surface-variant/50 pointer-events-none select-none">
@@ -401,7 +406,7 @@ export function ServiceEditorForm({
             </p>
           ) : null}
           <p className="text-[10px] font-extrabold uppercase tracking-widest pl-1 text-al-on-surface-variant/70">
-            In 5-minute steps, up to 8 hours (480 min).
+            In 5-minute steps, up to {MAX_SERVICE_DURATION_MINUTES / 60} hours ({MAX_SERVICE_DURATION_MINUTES} min).
           </p>
           {showGridHint ? (
             <p className="text-xs pl-1" style={{ color: "var(--al-on-surface-variant)", opacity: 0.7 }}>

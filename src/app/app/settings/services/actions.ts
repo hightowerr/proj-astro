@@ -35,7 +35,10 @@ const serviceEditorSchema = z.object({
   durationMinutes: z
     .number()
     .int()
-    .positive()
+    .min(
+      MIN_SERVICE_DURATION_MINUTES,
+      `Duration must be at least ${MIN_SERVICE_DURATION_MINUTES} minutes`
+    )
     .max(
       MAX_SERVICE_DURATION_MINUTES,
       `Duration must be ${MAX_SERVICE_DURATION_MINUTES} minutes or less`
@@ -73,22 +76,6 @@ function validateValues(values: ServiceEditorValues): ActionFieldError | null {
   const result = serviceEditorSchema.safeParse(values);
   if (!result.success) {
     return { ok: false, fieldErrors: mapZodErrors(result.error.issues) };
-  }
-
-  return null;
-}
-
-async function validateDuration(
-  _shopId: string,
-  durationMinutes: number
-): Promise<ActionFieldError | null> {
-  if (durationMinutes < MIN_SERVICE_DURATION_MINUTES) {
-    return {
-      ok: false,
-      fieldErrors: {
-        durationMinutes: `Duration must be at least ${MIN_SERVICE_DURATION_MINUTES} minutes`,
-      },
-    };
   }
 
   return null;
@@ -141,11 +128,6 @@ async function runCreateEventType(
   const valuesError = validateValues(values);
   if (valuesError) {
     return valuesError;
-  }
-
-  const durationError = await validateDuration(shop.id, values.durationMinutes);
-  if (durationError) {
-    return durationError;
   }
 
   const [lastEventType] = await db
@@ -234,11 +216,6 @@ export async function updateEventType(
       ok: false,
       fieldErrors: { isActive: "Cannot deactivate the default service" },
     };
-  }
-
-  const durationError = await validateDuration(shop.id, values.durationMinutes);
-  if (durationError) {
-    return durationError;
   }
 
   await db

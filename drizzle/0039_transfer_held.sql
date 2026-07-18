@@ -1,1 +1,1 @@
-ALTER TABLE "appointments" ADD COLUMN "transfer_held" boolean DEFAULT false NOT NULL;
+ALTER TABLE "appointments" ADD COLUMN IF NOT EXISTS "transfer_held" boolean DEFAULT false NOT NULL;

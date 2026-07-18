@@ -1990,6 +1990,10 @@
         "event_types_duration_minutes_positive": {
           "name": "event_types_duration_minutes_positive",
           "value": "\"event_types\".\"duration_minutes\" > 0"
+        },
+        "event_types_duration_minutes_max": {
+          "name": "event_types_duration_minutes_max",
+          "value": "\"event_types\".\"duration_minutes\" <= 480"
         }
       },
       "isRLSEnabled": false
