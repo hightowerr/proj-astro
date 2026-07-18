@@ -8,7 +8,7 @@ import { getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { getShopByOwnerId } from "@/lib/queries/shops";
 import { eventTypes } from "@/lib/schema";
 import { requireAuth } from "@/lib/session";
-import { MAX_SERVICE_DURATION_MINUTES } from "./constants";
+import { MAX_SERVICE_DURATION_MINUTES, MIN_SERVICE_DURATION_MINUTES } from "./constants";
 import type { ServiceEditorValues, ServiceField } from "./types";
 
 type ActionOk<T = void> = { ok: true; data: T };
@@ -79,17 +79,14 @@ function validateValues(values: ServiceEditorValues): ActionFieldError | null {
 }
 
 async function validateDuration(
-  shopId: string,
+  _shopId: string,
   durationMinutes: number
 ): Promise<ActionFieldError | null> {
-  const settings = await getBookingSettingsForShop(shopId);
-  const slotMinutes = settings?.slotMinutes ?? 60;
-
-  if (durationMinutes % slotMinutes !== 0) {
+  if (durationMinutes < MIN_SERVICE_DURATION_MINUTES) {
     return {
       ok: false,
       fieldErrors: {
-        durationMinutes: `Duration must be a multiple of ${slotMinutes} minutes`,
+        durationMinutes: `Duration must be at least ${MIN_SERVICE_DURATION_MINUTES} minutes`,
       },
     };
   }

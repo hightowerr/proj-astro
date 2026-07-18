@@ -6,13 +6,13 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-Dispute Visibility — COMPLETE. 7 specs, 3 waves (41/41 PASS). 4 evolution / 0 shortcuts. Webhook handlers for dispute detection, notification email, payment card modifier.
+No active feature. Ready for next feature.
 
 ---
 
 ## Current Goal
 
-No active feature. All prior features (dispute-visibility, payouts-not-surfaced, rebrand, connect-guard, no-minimum, ks-migration, confirmation-SMS, MCC-hardcoded, re-engagement-email, inflight-payments, webhook-unaware, refund-state) are COMPLETE. See **Next Up** for candidate work.
+Ship next feature from backlog.
 
 ---
 
@@ -90,6 +90,13 @@ No active feature. All prior features (dispute-visibility, payouts-not-surfaced,
 - Icon a11y fix in `profile/page.tsx`: added `aria-hidden="true"` to `MsIcon` span so screen readers won't announce raw glyph names. 0 TS errors, 0 lint errors.
 
 ---
+
+- **Configurable Durations** — 7 specs, 3 waves. Decouple service duration from calendar grid cadence, raise max 240→480, replace dropdown/radio with number inputs + custom stepper + grid cadence hint. Feature loop COMPLETE (2026-07-18, 45/45 PASS). 2 evolution / 0 shortcuts. Shaping: `docs/shaping/configurable-durations/`. Verification: `docs/shaping/configurable-durations/shape/wave-all-verify.md`.
+  - **Wave 1** (foundation): Spec 01 (MAX 240→480), Spec 02 (floor check replaces grid-multiple), Spec 05 (DB CHECK constraint + migration 0040) — sequential
+  - **Wave 2** (UI + tests): Spec 03 (editor number input + stepper), Spec 04 (onboarding number input + stepper), Spec 06 (10 validation tests) — parallel
+  - **Wave 3** (polish): Spec 07 (grid cadence guidance hint) — single slice
+  - **Modified files (5):** `constants.ts`, `actions.ts`, `schema.ts`, `service-editor-form.tsx`, `add-service-step.tsx`
+  - **New files (2):** `drizzle/0040_duration_max_constraint.sql`, `duration-validation.test.ts`
 
 - **Dispute Visibility** — 7 specs, 3 waves. Webhook handlers for `charge.dispute.created`/`updated`/`closed`, merchant notification email (Resend), payment card `disputed` modifier (gavel icon, `--al-error-soft`). ConnectedView expectation copy. Feature loop COMPLETE (2026-07-17, 41/41 PASS). 4 evolution / 0 shortcuts. Shaping: `docs/shaping/dispute-visibility/`. Verification: `docs/shaping/dispute-visibility/shape/wave-1/wave-1-verify.md`. Ops: register 3 dispute events on Connect webhook in Stripe Dashboard.
   - **Wave 1**: spec 01 (ConnectedView copy) + spec 02 (`dispute.created` handler) — parallel
