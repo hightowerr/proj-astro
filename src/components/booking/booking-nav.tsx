@@ -10,12 +10,12 @@ export function BookingNav() {
   return (
     <nav
       style={{
-        fontFamily: "var(--font-manrope-raw), sans-serif",
+        fontFamily: "var(--al-font)",
         display: "flex",
         alignItems: "center",
         padding: "16px 32px",
         backgroundColor: "var(--al-surface-container-lowest)",
-        borderBottom: "1px solid rgba(195,198,209,0.20)",
+        borderBottom: "1px solid var(--al-ghost-border)",
       }}
     >
       <Link

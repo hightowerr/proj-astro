@@ -46,7 +46,7 @@ export default function CtaSection() {
         </h2>
 
         <p className="mx-auto mb-8 max-w-xl text-lg text-text-muted">
-          Join beauty professionals who&apos;ve eliminated no-shows with automated slot recovery.
+          Protect your revenue with deposit collection, client scoring, and automated slot recovery.
         </p>
 
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
