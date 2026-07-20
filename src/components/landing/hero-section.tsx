@@ -133,7 +133,7 @@ export default function HeroSection() {
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <p className="text-sm text-text-light-muted">Trusted by 500+ beauty professionals</p>
+            <p className="text-sm text-text-light-muted">New platform. Early adopters are filling their calendars.</p>
           </motion.div>
         </motion.div>
 

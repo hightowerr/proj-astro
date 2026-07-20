@@ -23,7 +23,7 @@ const AUTOMATION_STEPS = [
   "Google Calendar synced",
 ] as const;
 
-const NEXT_ACTIONS = ["Manage booking", "Add note", "Upsell prompt ready"] as const;
+const NEXT_ACTIONS = ["Manage booking", "Add note"] as const;
 
 export default function CtaSection() {
   const reducedMotion = useReducedMotion();
@@ -46,8 +46,7 @@ export default function CtaSection() {
         </h2>
 
         <p className="mx-auto mb-8 max-w-xl text-lg text-text-muted">
-          Join 500+ beauty professionals who have eliminated no-shows and put their slot recovery
-          on autopilot.
+          Join beauty professionals who&apos;ve eliminated no-shows with automated slot recovery.
         </p>
 
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
@@ -80,7 +79,7 @@ export default function CtaSection() {
                   <CheckCircle className="h-7 w-7 text-green-600" />
                 </div>
                 <p className="text-sm font-semibold text-gray-900">Booking Confirmed!</p>
-                <p className="mt-0.5 text-[11px] text-gray-500">Ref #AST-2194 · Sent at 9:42 AM</p>
+                <p className="mt-0.5 text-[11px] text-gray-500">Ref #SU-2194 · Sent at 9:42 AM</p>
               </div>
 
               <div className="mt-3 rounded-xl border border-gray-200 bg-white p-3">
@@ -101,7 +100,7 @@ export default function CtaSection() {
 
               <div className="mt-3 rounded-xl border border-gray-200 bg-white p-3">
                 <p className="mb-2 text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
-                  Autopilot actions
+                  Automated actions
                 </p>
                 <div className="space-y-1.5">
                   {AUTOMATION_STEPS.map((step) => (
