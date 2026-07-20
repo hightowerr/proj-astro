@@ -1,35 +1,59 @@
 # Feature Loop Contract
 
 ## Goal
-Configurable service durations: decouple service duration from calendar grid cadence, raise max from 240 to 480 minutes, replace dropdown/radio selectors with number inputs. 7 specs, 3 waves.
+Launch truth audit: remove false claims, unverifiable metrics, and vaporware references from the landing page and booking page. Replace with honest, directional, structurally-true copy. 6 specs, 1 wave.
 
 ## Current state
-- Feature: configurable-durations
-- Wave: 3 of 3
+- Feature: launch-truth-audit
+- Wave: 1 of 1
 - Phase: COMPLETE
-- Specs in scope: docs/shaping/configurable-durations/specs/ (01–07)
-- Build order: docs/shaping/configurable-durations/_build-order.md
-- Design prototypes: docs/shaping/configurable-durations/designs/ (3 interactive HTML mockups)
+- Specs in scope: docs/shaping/launch-truth-audit/specs/ (01–06)
+- Build order: docs/shaping/launch-truth-audit/_build-order.md
+- Design prototypes: docs/shaping/launch-truth-audit/design/ (3 interactive HTML mockups)
 
 ## Backlog
-- Waves remaining: none (all implemented)
+- Waves remaining: none (single wave)
 - Blocked specs: none
-- Design review: 3 prototypes reviewed — Service Editor Duration Input 1a, Onboarding Duration Input, Service Editor Grid Cadence Hint
+- Design review: 3 prototypes — Slot Recovery Phone Mockup, Float Cards Directional Copy, BookingNav Simplified
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |
 |------|------|-------|----------|-------|
-| 2026-07-18 | — | SHAPE | — | 7 specs + build order pre-written. 3 design prototypes loaded + token-extracted. Shape doc, slices doc, 7 slice plans created. No spikes needed — all patterns known from prior features. Collapsed build-order phases 1+2 into Wave 1 (foundation + core unlock). |
-| 2026-07-18 | 1 | IMPLEMENT | — | 3 slices: Spec 01 (MAX 240→480, 1 line), Spec 02 (validateDuration: grid-multiple → floor check, `_shopId` unused prefix), Spec 05 (DB CHECK constraint + manual migration 0040). `pnpm check` clean. 1 deviation: MIN_SERVICE_DURATION_MINUTES constant extracted to constants.ts (EVOLUTION — testability). |
-| 2026-07-18 | 2 | IMPLEMENT | — | 3 slices parallel: Spec 03 (editor dropdown → number input + stepper + "min" suffix + helper text), Spec 04 (onboarding radio → number input + stepper, MAX import added), Spec 06 (10 tests, all PASS). `pnpm check` clean. 0 deviations. |
-| 2026-07-18 | 3 | IMPLEMENT | — | 1 slice: Spec 07 (showGridHint variable + conditional `<p>` with link to availability settings). `pnpm check` clean. 0 deviations. |
-| 2026-07-18 | 1–3 | VERIFY | — | Independent verifier (fresh session). 45/45 PASS, 0 FAIL, 0 BLOCKED. Code review + unit tests (10/10 PASS). |
-| 2026-07-18 | 1–3 | DRIFT AUDIT | — | 0 remaining unimplemented specs. 2 deviations, both EVOLUTION (MIN constant extraction, `_shopId` prefix). 0 shortcuts. |
-| 2026-07-18 | 1–3 | RETRO | — | Architecture updates applied (content model note, domain rules convention). Progress tracker updated. Loop COMPLETE. |
+| 2026-07-18 | — | SHAPE | — | 6 specs + build order pre-written. 3 design prototypes. Zero inter-dependencies → single wave, all parallel. No spikes needed — string replacements + 1 component swap (Spec 02). |
+| 2026-07-18 | 1 | IMPLEMENT | ~20 min | All 6 specs implemented. 0 deviations. `pnpm check` lint clean (pre-existing TS error in route.test.ts:829 only). |
+| 2026-07-19 | 1 | VERIFY | — | Awaiting separate fresh session. |
+| 2026-07-20 | 1 | VERIFY+DRIFT+RETRO | — | 32/32 PASS. 0 evolution / 0 shortcut. Context files updated. Loop COMPLETE. |
 
 ## Dependency graph
 ```
-Spec 01 (raise MAX) ─────────────────────────┐
+01 (hero social proof)       — independent
+02 (carousel slot recovery)  — independent
+03 (float cards directional) — independent
+04 (CTA section cleanup)     — independent
+05 (FAQ onboarding claim)    — independent
+06 (BookingNav cleanup)      — independent
+```
+Zero inter-dependencies. All specs touch different files.
+
+## Waves
+| Wave | Specs | Strategy | Files |
+|------|-------|----------|-------|
+| 1 | 01–06 | All parallel (zero inter-deps) | `hero-section.tsx`, `features-carousel.tsx`, `page.tsx`, `cta-section.tsx`, `faq-section.tsx`, `booking-nav.tsx` |
+
+## Critical path
+```
+No sequential chain. All specs are parallel.
+Critical path = longest single spec = Spec 02 (~25 min).
+```
+
+## Document updates (apply in RETRO)
+Queued in `docs/shaping/launch-truth-audit/_build-order.md`:
+1. project-overview.md: §2 social proof line, §4 exclusion #8 note
+2. current-issues.md: BookingNav session awareness → Resolved
+3. progress-tracker.md: add feature entry
+4. roadmap.md: mark "Homepage update (parked)" partially addressed
+
+## OLD — Spec 01 (raise MAX) ─────────────────────────┐
                                               ├──► Spec 02 (remove grid-multiple)
                                               │         │
                                               │         ├──► Spec 03 (editor number input) ──► Spec 07 (grid hint)

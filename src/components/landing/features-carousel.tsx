@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { CalendarDays, Check, Megaphone, ShieldAlert } from "lucide-react";
+import { CalendarDays, Check, RefreshCw, ShieldAlert } from "lucide-react";
 import { PhoneMockup } from "@/components/landing/phone-mockup";
 import type { PanInfo } from "framer-motion";
 
-type SlideScreen = "NoShowScreen" | "MarketingScreen" | "CalendarScreen";
+type SlideScreen = "NoShowScreen" | "SlotRecoveryScreen" | "CalendarScreen";
 
 type Slide = {
   label: string;
@@ -30,16 +30,16 @@ const SLIDES: Slide[] = [
     phoneScreen: "NoShowScreen",
   },
   {
-    label: "Marketing Tools",
-    title: "Win back clients on autopilot",
+    label: "Slot Recovery",
+    title: "Fill cancelled slots in minutes",
     description:
-      "Send targeted re-engagement SMS to clients who haven't booked in 60+ days. Personalised messages go out from your number, not a generic shortcode.",
+      "Cancelled bookings trigger automatic SMS offers to fill the gap — top-tier clients get first dibs.",
     bullets: [
-      "Segment by last booking date automatically",
-      "One-click SMS campaign to lapsed clients",
-      "Replies routed back to your inbox",
+      "SMS offers sent automatically on cancellation",
+      "Top-tier clients offered first, then neutral, then risk",
+      "Cooldowns prevent re-offering to the same client",
     ],
-    phoneScreen: "MarketingScreen",
+    phoneScreen: "SlotRecoveryScreen",
   },
   {
     label: "Calendar",
@@ -68,13 +68,6 @@ const RISK_TREND = [
   { label: "W4", height: 72 },
 ] as const;
 
-const CAMPAIGN_AUDIENCES = ["Lapsed 60+ days", "VIP clients", "Last-minute fillers"] as const;
-
-const CAMPAIGN_METRICS = [
-  { label: "Recipients", value: "28" },
-  { label: "Replies", value: "11" },
-  { label: "Rebook rate", value: "39%" },
-] as const;
 
 type CalendarSlotState = "booked" | "open" | "held";
 
@@ -179,65 +172,73 @@ const NoShowScreen = (
   </div>
 );
 
-const MarketingScreen = (
+const SlotRecoveryScreen = (
   <div className="flex h-full flex-col bg-gray-50 p-4 text-gray-900">
     <div className="mb-3 flex items-center justify-between">
       <div className="flex items-center gap-2 text-primary">
-        <Megaphone className="h-4 w-4" />
-        <p className="text-xs font-semibold tracking-wide uppercase">Campaign composer</p>
+        <RefreshCw className="h-4 w-4" />
+        <p className="text-xs font-semibold tracking-wide uppercase">Slot recovery</p>
       </div>
       <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-medium text-teal-700">
-        Draft ready
+        Active
       </span>
     </div>
 
-    <div className="mb-3 flex flex-wrap gap-1.5">
-      {CAMPAIGN_AUDIENCES.map((audience) => (
-        <span
-          key={audience}
-          className="rounded-full border border-gray-200 bg-white px-2 py-1 text-[10px] font-medium text-gray-600"
-        >
-          {audience}
-        </span>
-      ))}
+    <div className="rounded-xl border border-gray-200 bg-white p-3">
+      <p className="mb-2 text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
+        Outgoing SMS
+      </p>
+      <div className="rounded-lg bg-gray-100 p-2.5 text-xs leading-relaxed text-gray-700">
+        Hi Sarah, a slot just opened tomorrow at 2pm for a Cut &amp; Finish. Reply{" "}
+        <span className="font-bold">YES</span> to book. Reply{" "}
+        <span className="font-bold">STOP</span> to opt out.
+      </div>
     </div>
 
-    <div className="rounded-xl border border-gray-200 bg-white p-3 text-xs leading-relaxed text-gray-600">
-      We miss you, [Name]! Book your next appointment -&gt;{" "}
-      <span className="text-teal-600">showup.dev/book</span>
-    </div>
-
-    <div className="mt-3 grid grid-cols-3 gap-2">
-      {CAMPAIGN_METRICS.map((metric) => (
-        <div key={metric.label} className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-center">
-          <p className="text-[10px] text-gray-500">{metric.label}</p>
-          <p className="text-xs font-semibold text-gray-900">{metric.value}</p>
+    <div className="mt-3 rounded-xl border border-gray-200 bg-white p-3">
+      <p className="mb-2 text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
+        Offer status
+      </p>
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-500">Offered to</span>
+          <span className="font-medium text-gray-900">1 of 3 eligible</span>
         </div>
-      ))}
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-500">Status</span>
+          <span className="font-medium text-amber-600">● Awaiting reply</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-500">Expires</span>
+          <span className="font-medium text-gray-900">30 min</span>
+        </div>
+      </div>
     </div>
 
-    <div className="mt-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
-            Scheduled send
-          </p>
-          <p className="text-xs font-medium text-gray-800">Thu, 6:30 PM</p>
+    <div className="mt-3 rounded-xl border border-gray-200 bg-white p-3">
+      <p className="mb-2 text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
+        Offer queue
+      </p>
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs">
+          <span className="font-medium text-primary">Sarah M.</span>
+          <span className="text-[10px] text-primary">Top · offered</span>
         </div>
-        <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-medium text-primary">
-          SMS
-        </span>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-600">Nadia R.</span>
+          <span className="text-[10px] text-gray-400">Neutral · next</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-600">Daniel P.</span>
+          <span className="text-[10px] text-gray-400">Risk · queued</span>
+        </div>
       </div>
     </div>
 
     <div className="mt-auto pt-3">
-      <button
-        type="button"
-        className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white"
-      >
-        Launch campaign
-      </button>
-      <p className="mt-1 text-center text-[11px] text-gray-500">Estimated 4 recovered bookings</p>
+      <div className="rounded-full bg-teal-100 px-3 py-1.5 text-center text-xs font-medium text-teal-700">
+        Top-tier clients get priority
+      </div>
     </div>
   </div>
 );
@@ -320,8 +321,8 @@ function renderPhoneScreen(screen: SlideScreen) {
   if (screen === "NoShowScreen") {
     return NoShowScreen;
   }
-  if (screen === "MarketingScreen") {
-    return MarketingScreen;
+  if (screen === "SlotRecoveryScreen") {
+    return SlotRecoveryScreen;
   }
   return CalendarScreen;
 }

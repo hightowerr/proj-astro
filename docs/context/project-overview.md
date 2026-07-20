@@ -22,7 +22,7 @@
 | **Conversion funnel** | Land (hero) → Understand (feature sections) → Trust (metrics, social proof) → Convert (start free trial) |
 | **Funnel time target** | Under 3 minutes from landing page to registration |
 
-**Social proof (landing page):** "Trusted by 500+ beauty professionals"
+**Social proof (landing page):** Future social proof framing — "New platform. Early adopters are filling their calendars." (updated 2026-07-20, launch truth audit). Upgrade path: swap to named testimonial when consent obtained (target: 3-5 customers).
 
 ## 3. Core Features (In Scope)
 
@@ -41,7 +41,7 @@
 
 ### Slot Recovery
 
-8. **Automated slot recovery** — When a paid appointment is cancelled, the system SMS-offers the slot to other customers in tier priority order (top → neutral → risk). *Business reason:* Recovers revenue that would otherwise be lost. Landing page claims 8-minute average fill time and £240/week recovery.
+8. **Automated slot recovery** — When a paid appointment is cancelled, the system SMS-offers the slot to other customers in tier priority order (top → neutral → risk). *Business reason:* Recovers revenue that would otherwise be lost. Landing page uses directional benefit language ("Minutes to fill a cancelled slot", "Lost revenue recovered automatically") — no specific metrics claimed (updated 2026-07-20, launch truth audit).
 9. **Offer loop with cooldowns** — Redis-backed cooldowns prevent re-offering to the same customer. Offers expire after TTL. If declined/expired, next eligible customer is offered. *Business reason:* Prevents spam while maximizing fill rate.
 
 ### Communications
@@ -81,7 +81,7 @@
 | 5 | Multi-location / franchise support | Single-shop model. Multi-tenant would require org hierarchy, permissions, and cross-shop reporting. Revisit after 100+ paying shops. |
 | 6 | In-app chat or messaging | SMS and email are the communication channels. Real-time chat adds infrastructure cost for minimal no-show prevention value. |
 | 7 | Marketplace / discovery | ShowUp is a tool for existing businesses, not a booking marketplace. Customers arrive via the shop's direct link. |
-| 8 | Re-engagement campaigns | Landing page mentions "win back clients on autopilot" but this is aspirational — not implemented. Revisit after core loop is validated. |
+| 8 | Re-engagement campaigns | Aspirational — not implemented. "Win back clients on autopilot" copy removed from landing page (2026-07-20, launch truth audit). Feature remains excluded. Revisit after core loop is validated. |
 | 9 | Mobile app | Web-first. The dashboard is responsive. A native app would double maintenance surface for the same features. |
 | 10 | Internationalization / i18n | English only. Multi-language would require template translation, locale-aware formatting, and translated UI. Revisit for non-English markets. |
 

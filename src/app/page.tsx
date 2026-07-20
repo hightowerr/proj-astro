@@ -23,14 +23,14 @@ export default function Home() {
             imagePosition="right"
           >
             <FloatCard
-              value="94%"
-              label="client show-up rate"
+              value="Higher"
+              label="show-up rates with risk scoring"
               className="top-6 right-6"
               delay={0}
             />
             <FloatCard
-              value="3x"
-              label="fewer no-shows with risk flagging"
+              value="Fewer"
+              label="no-shows with automated flagging"
               className="bottom-6 left-6"
               delay={0.2}
             />
@@ -44,14 +44,14 @@ export default function Home() {
             imagePosition="left"
           >
             <FloatCard
-              value="8 min"
-              label="average time to fill a cancelled slot"
+              value="Minutes"
+              label="to fill a cancelled slot"
               className="top-6 left-6"
               delay={0}
             />
             <FloatCard
-              value="£240"
-              label="avg. weekly recovery"
+              value="Lost revenue"
+              label="recovered automatically"
               className="right-6 bottom-6"
               delay={0.2}
             />
