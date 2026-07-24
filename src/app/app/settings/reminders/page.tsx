@@ -3,8 +3,7 @@ import { ReminderTimingsForm } from "@/components/settings/reminder-timings-form
 import { SmsTemplateForm } from "@/components/settings/sms-template-form";
 import { db } from "@/lib/db";
 import { getOrCreateTemplate } from "@/lib/messages";
-import { getShopByOwnerId } from "@/lib/queries/shops";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import {
   EMAIL_REMINDER_KEY,
   EMAIL_REMINDER_DEFAULTS,
@@ -15,19 +14,7 @@ import {
 type Interval = "10m" | "1h" | "2h" | "4h" | "24h" | "48h" | "1w";
 
 export default async function ReminderSettingsPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div className="max-w-7xl mx-auto px-12 py-8">
-        <h1 className="al-page-title">Reminders</h1>
-        <p className="al-lede">
-          Create your shop to configure reminder settings.
-        </p>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   const settings = await db.query.bookingSettings.findFirst({
     where: (table, { eq }) => eq(table.shopId, shop.id),

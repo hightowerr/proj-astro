@@ -11,7 +11,7 @@ const {
   mockInsertReturning,
   mockInsertValues,
   mockRevalidatePath,
-  mockRequireAuth,
+  mockRequireShopAuth,
   mockSelectFrom,
   mockSelectLimit,
   mockSelectOrderBy,
@@ -28,7 +28,7 @@ const {
   mockInsertReturning: vi.fn(),
   mockInsertValues: vi.fn(),
   mockRevalidatePath: vi.fn(),
-  mockRequireAuth: vi.fn(),
+  mockRequireShopAuth: vi.fn(),
   mockSelectFrom: vi.fn(),
   mockSelectLimit: vi.fn(),
   mockSelectOrderBy: vi.fn(),
@@ -63,7 +63,7 @@ vi.mock("@/lib/queries/shops", () => ({
 }));
 
 vi.mock("@/lib/session", () => ({
-  requireAuth: mockRequireAuth,
+  requireShopAuth: mockRequireShopAuth,
 }));
 
 import {
@@ -87,7 +87,7 @@ describe("service actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockRequireAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockRequireShopAuth.mockResolvedValue({ session: { user: { id: "user-1" } }, shop: { id: "shop-1" }, isPastDue: false });
     mockGetShopByOwnerId.mockResolvedValue({ id: "shop-1" });
     mockGetBookingSettingsForShop.mockResolvedValue({ slotMinutes: 60 });
 
@@ -202,7 +202,7 @@ describe("createDefaultEventType", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockRequireAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockRequireShopAuth.mockResolvedValue({ session: { user: { id: "user-1" } }, shop: { id: "shop-1" }, isPastDue: false });
     mockGetShopByOwnerId.mockResolvedValue({ id: "shop-1" });
     mockGetBookingSettingsForShop.mockResolvedValue({ slotMinutes: 120 });
 

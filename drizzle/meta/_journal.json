@@ -288,6 +288,13 @@
       "when": 1784354138816,
       "tag": "0040_duration_max_constraint",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1784642045461,
+      "tag": "0041_polar_subscription",
+      "breakpoints": true
     }
   ]
 }

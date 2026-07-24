@@ -4,9 +4,8 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { shopPolicies } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 
 const tierSettingsSchema = z.object({
   shopId: z.string().uuid(),
@@ -37,10 +36,9 @@ export async function updateShopPolicyTierSettings(
   shopId: string,
   formData: FormData
 ) {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
+  const { shop } = await requireShopAuth();
 
-  if (!shop || shop.id !== shopId) {
+  if (shop.id !== shopId) {
     throw new Error("Unauthorized");
   }
 

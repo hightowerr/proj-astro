@@ -4,9 +4,8 @@ import { z } from "zod";
 import { PaymentPolicyForm } from "@/components/payments/payment-policy-form";
 import { TierPolicyForm } from "@/components/payments/tier-policy-form";
 import { db } from "@/lib/db";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { shopPolicies } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { updateShopPolicyTierSettings } from "./actions";
 
 const policySchema = z.object({
@@ -27,21 +26,7 @@ const getFormString = (formData: FormData, key: string) => {
 };
 
 export default async function PaymentPolicyPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div className="al-page max-w-5xl mx-auto">
-        <h1 className="al-page-title">
-          Payment policy
-        </h1>
-        <p className="al-lede">
-          Create your shop to configure payment policies.
-        </p>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   let policy = await db.query.shopPolicies.findFirst({
     where: (table, { eq }) => eq(table.shopId, shop.id),

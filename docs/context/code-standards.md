@@ -43,6 +43,9 @@
 ## Domain Rules
 
 - Service duration (`durationMinutes`) and calendar grid cadence (`slotMinutes`) are orthogonal. Do not add validation that couples them.
+- `requireShopAuth()` is the standard dashboard auth function. Use `requireAuth()` only for billing pages (`/app/billing/*`) and shop creation (`/app` root). Never call `requireShopAuth()` from the app layout — it would redirect canceled users before they reach billing pages.
+- Webhook dedup pattern: transaction wraps `insert(dedupTable).onConflictDoNothing().returning()` + length check + state update. Same pattern for Stripe (`processedStripeEvents`) and Polar (`processedPolarEvents`).
+- Deferred email pattern: capture email data inside the transaction, send email OUTSIDE the transaction after commit. Email failure never rolls back state changes.
 
 ## Data and Storage
 

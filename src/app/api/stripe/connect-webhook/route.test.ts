@@ -826,7 +826,7 @@ describe("Connect webhook — POST", () => {
         }),
       );
       // Verify email body includes key details
-      const emailCall = mockSendEmail.mock.calls[0][0];
+      const emailCall = mockSendEmail.mock.calls[0]![0];
       expect(emailCall.html).toContain("Jane Doe has");
       expect(emailCall.html).toContain("£25.00");
       expect(emailCall.html).toContain("https://dashboard.stripe.com/test");

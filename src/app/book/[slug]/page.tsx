@@ -48,6 +48,34 @@ export default async function BookingPage({
     notFound();
   }
 
+  // Soft lock: block bookings when merchant subscription is canceled
+  if (shop.subscriptionStatus === "canceled") {
+    return (
+      <div className="bg-al-surface min-h-screen">
+        <BookingHeader shopName={shop.name} />
+        <div className="px-16 pb-12 pt-6 flex justify-center">
+          <div className="w-full max-w-[440px] rounded-3xl p-8 text-center" style={{ backgroundColor: "var(--al-surface-container-low)", boxShadow: "var(--al-shadow-menu)" }}>
+            <div className="rounded-3xl p-10 bg-al-surface-container-lowest" style={{ boxShadow: "var(--al-shadow-float)" }}>
+              <div
+                className="mx-auto mb-5 flex items-center justify-center rounded-full"
+                style={{ width: 60, height: 60, background: "linear-gradient(135deg, rgb(253,216,203), rgb(226,191,179))" }}
+              >
+                <span className="material-symbols-outlined text-al-on-surface" style={{ fontSize: 28 }}>schedule</span>
+              </div>
+              <div className="al-eyebrow mb-3 opacity-70">TEMPORARILY UNAVAILABLE</div>
+              <h2 className="text-[23px] font-extrabold tracking-tight text-al-primary mb-3" style={{ letterSpacing: "-0.02em" }}>
+                Online booking is temporarily unavailable
+              </h2>
+              <p className="text-[15px] leading-relaxed text-al-on-surface-variant">
+                Please contact <strong className="text-al-on-surface">{shop.name}</strong> directly to book your appointment. We expect to be back online shortly.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const canAcceptPayments = shop.stripeOnboardingStatus === "complete";
 
   const settings = await getBookingSettingsForShop(shop.id);

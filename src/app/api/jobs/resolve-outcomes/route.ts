@@ -1,5 +1,6 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { processOnboardingDrips } from "@/lib/onboarding-drips";
 import { backfillCancelledOutcome, resolveFinancialOutcome } from "@/lib/outcomes";
 import {
   appointmentEvents,
@@ -306,6 +307,14 @@ export async function POST(req: Request) {
     });
   } finally {
     await db.execute(sql`select pg_advisory_unlock(${lockId})`);
+
+    // Onboarding drips — runs outside the advisory lock
+    // Failures do not affect outcome resolution
+    try {
+      await processOnboardingDrips();
+    } catch (error) {
+      console.error("[resolve-outcomes] onboarding drips failed:", error);
+    }
   }
 }
 

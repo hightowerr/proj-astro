@@ -1,0 +1,5 @@
+- Date: 2026-07-23
+- Spec: 12-onboarding-drip.md
+- What diverged: Spec said dedup via `messageLog` but implementation uses `messageDedup` table instead.
+- Classification: EVOLUTION
+- Why: `messageLog` requires `appointmentId`, `customerId`, `toPhone` (all NOT NULL) and a `purpose` enum that does not include drip types. `messageDedup` accepts any string key and matches the project dedup pattern.

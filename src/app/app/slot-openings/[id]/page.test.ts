@@ -6,13 +6,13 @@ const {
   mockSelect,
   mockGetBookingSettingsForShop,
   mockGetShopByOwnerId,
-  mockRequireAuth,
+  mockRequireShopAuth,
   mockNotFound,
 } = vi.hoisted(() => ({
   mockSelect: vi.fn(),
   mockGetBookingSettingsForShop: vi.fn(),
   mockGetShopByOwnerId: vi.fn(),
-  mockRequireAuth: vi.fn(),
+  mockRequireShopAuth: vi.fn(),
   mockNotFound: vi.fn(),
 }));
 
@@ -35,7 +35,7 @@ vi.mock("@/lib/queries/shops", () => ({
 }));
 
 vi.mock("@/lib/session", () => ({
-  requireAuth: mockRequireAuth,
+  requireShopAuth: mockRequireShopAuth,
 }));
 
 import SlotOpeningDetailPage from "./page";
@@ -82,7 +82,7 @@ const makeSlotRow = (eventTypeName: string | null) => {
 describe("slot-openings detail service rendering", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRequireAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockRequireShopAuth.mockResolvedValue({ session: { user: { id: "user-1" } }, shop: { id: "shop-1" }, isPastDue: false });
     mockGetShopByOwnerId.mockResolvedValue({ id: "shop-1" });
     mockGetBookingSettingsForShop.mockResolvedValue({ timezone: "UTC" });
   });

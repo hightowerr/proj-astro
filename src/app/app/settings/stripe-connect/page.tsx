@@ -1,16 +1,9 @@
-import { redirect } from "next/navigation";
 import { StripeConnectCard } from "@/components/settings/stripe-connect-card";
-import { getShopByOwnerId } from "@/lib/queries/shops";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { getStripeClient } from "@/lib/stripe";
 
 export default async function StripeConnectPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    redirect("/app");
-  }
+  const { shop } = await requireShopAuth();
 
   let payoutsEnabled = true;
   if (shop.stripeAccountId && shop.stripeOnboardingStatus === "complete") {

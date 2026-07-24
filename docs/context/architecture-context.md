@@ -15,6 +15,7 @@ A multi-tenant appointment booking and no-show risk management system for servic
 | Database | PostgreSQL 18 (pgvector image) | Primary data store; advisory locks for job concurrency |
 | Auth | Better Auth 1.4.18 | Email/password, session management, rate limiting |
 | Payments | Stripe 16.12.0 (API v2024-06-20) | Payment intents, refunds, webhook processing, Connect Express (destination charges) |
+| Billing | Polar (@polar-sh/better-auth + @polar-sh/sdk) | Subscription lifecycle, checkout, customer portal, webhook events |
 | SMS | Twilio (REST API, no SDK) | Reminders, confirmations, slot recovery offers, inbound handling |
 | Email | Resend 6.4.1 | Transactional email delivery |
 | Cache/Locks | Upstash Redis 1.36.1 | Session caching, distributed locks, offer cooldowns |
@@ -35,7 +36,7 @@ A multi-tenant appointment booking and no-show risk management system for servic
 │  ┌──────────────┐   ┌──────────────────┐   ┌────────────────────┐  │
 │  │  Public Pages │   │  Dashboard (Auth) │   │  Cron Jobs (/jobs) │  │
 │  │  /book/[slug] │   │  /app/*           │   │  x-cron-secret     │  │
-│  │  /manage/[tk] │   │  requireAuth()    │   │  advisory locks    │  │
+│  │  /manage/[tk] │   │  requireShopAuth()│   │  advisory locks    │  │
 │  └──────┬───────┘   └────────┬──────────┘   └─────────┬──────────┘  │
 │         │                    │                         │             │
 │         └────────────┬───────┴─────────────────────────┘             │
@@ -54,15 +55,17 @@ A multi-tenant appointment booking and no-show risk management system for servic
   │ (Drizzle)│  │ Payments  │  │   SMS     │  │  Email    │  │ Upstash  │
   └──────────┘  │ Webhooks  │  │ Inbound   │  └──────────┘  │ Locks    │
                 └──────────┘  └──────────┘                  └──────────┘
-                                                      ┌──────────┐
-                                                      │  Google   │
-                                                      │ Calendar  │
+                                        ┌──────────┐  ┌──────────┐
+                                        │  Polar    │  │  Google   │
+                                        │ Billing   │  │ Calendar  │
+                                        │ Webhooks  │
                                                       └──────────┘
 ```
 
 **Static/cached:** Landing page (`/`), public booking pages.
 **Dynamic/server-side:** All `/api/*` routes, dashboard, manage links, cron jobs.
-**Webhooks (inbound):** Stripe (`/api/stripe/webhook`), Twilio (`/api/twilio/inbound`).
+**Webhooks (inbound):** Stripe (`/api/stripe/webhook`), Twilio (`/api/twilio/inbound`), Polar (via Better Auth plugin route).
+**Billing pages:** `/app/billing/subscribe` (paywall), `/app/billing/processing` (checkout interstitial).
 
 ## 4. Non-Obvious Routes
 
@@ -151,6 +154,29 @@ SlotOffer:    sent ──→ accepted (customer replies YES or books)
                    ──→ declined (customer opts out)
 ```
 
+### Subscription Status
+
+```
+trialing ──→ active    (Polar checkout + webhook onSubscriptionActive)
+         ──→ [expired] (dynamic: now > trialEndsAt, no DB state change)
+
+active   ──→ past_due  (webhook onSubscriptionUpdated, payment failed)
+         ──→ canceled  (webhook onSubscriptionRevoked, subscription ended)
+
+past_due ──→ active    (webhook onSubscriptionUpdated, retry succeeded)
+         ──→ canceled  (webhook onSubscriptionRevoked, retries exhausted)
+
+canceled ──→ active    (new checkout + webhook onSubscriptionActive)
+```
+
+| Transition | Trigger | Side Effects |
+|-----------|---------|-------------|
+| `trialing → active` | Polar webhook `onSubscriptionActive` | Store `polarCustomerId`, set status |
+| `trialing → [expired]` | `now > trialEndsAt` (dynamic check in `requireShopAuth()`) | Redirect to paywall, booking page soft lock |
+| `active → past_due` | Polar webhook `onSubscriptionUpdated` | "Payment failed" email |
+| `past_due → active` | Polar webhook `onSubscriptionUpdated` | "Payment recovered" email |
+| `* → canceled` | Polar webhook `onSubscriptionRevoked` | "Subscription ended" email, booking page soft lock |
+
 ### Confirmation Status
 
 ```
@@ -226,7 +252,7 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 | Create booking | Public (anyone) | None — shop identified by slug | `src/app/api/bookings/create/route.ts` |
 | Cancel booking | Customer | Hashed manage token validated against `bookingManageTokens` | `src/app/api/manage/[token]/cancel/route.ts` |
 | Update preferences | Customer | Same manage token | `src/app/api/manage/[token]/update-preferences/route.ts` |
-| Dashboard read/write | Owner | `requireAuth()` → Better Auth session + shop ownership FK | `src/lib/session.ts`, `src/app/app/layout.tsx` |
+| Dashboard read/write | Owner | `requireShopAuth()` → session + shop + subscription status gate. Redirects `canceled`/expired-trial to `/app/billing/subscribe`. `requireAuth()` kept for billing pages only. | `src/lib/session.ts`, `src/app/app/layout.tsx` |
 | Cron jobs | System | `x-cron-secret` header vs `CRON_SECRET` env var | Each `src/app/api/jobs/*/route.ts` |
 | Offer loop | Internal | `x-internal-secret` header vs `INTERNAL_SECRET` env var | `src/app/api/jobs/offer-loop/route.ts` |
 | Stripe webhook | Stripe | `stripe-signature` header (HMAC-SHA256) | `src/app/api/stripe/webhook/route.ts` |
@@ -248,6 +274,8 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side Stripe | Build + Runtime |
 | `STRIPE_WEBHOOK_SECRET` | Webhook signature validation | Runtime |
 | `STRIPE_CONNECT_WEBHOOK_SECRET` | Connect webhook signature validation (optional) | Runtime |
+| `POLAR_ACCESS_TOKEN` | Polar API access (required) | Runtime |
+| `POLAR_WEBHOOK_SECRET` | Polar webhook signature validation (optional, required in prod) | Runtime |
 | `TWILIO_ACCOUNT_SID` / `AUTH_TOKEN` / `PHONE_NUMBER` | SMS sending | Runtime |
 | `RESEND_API_KEY` / `EMAIL_FROM_ADDRESS` | Email sending | Runtime |
 | `UPSTASH_REDIS_REST_URL` / `TOKEN` | Redis cache + locks | Runtime |
@@ -280,6 +308,11 @@ none ──→ pending (request sent) ──→ confirmed (customer responds)
 17. **Platform minimum deposit floor** — deposits between 1p and 99p are clamped to 100p (£1). Enforced at two points: `finalDepositCents` in `createAppointment()` (before policy snapshot) and `derivePaymentRequirement()` in `tier-pricing.ts` (belt-and-suspenders). Zero-amount deposits (from `topDepositWaived`) bypass the floor. Constant: `PLATFORM_MINIMUM_DEPOSIT_CENTS` exported from `src/lib/tier-pricing.ts`. Tripwire: review when multi-currency ships (JPY has no subunit) or if platform fee changes from flat 50p to percentage-based.
 18. **No DB persistence for volatile Stripe account flags** — `payouts_enabled` is fetched live via `stripe.accounts.retrieve()` on the settings page, not stored in the `shops` table. Stripe account flags that change without merchant action (e.g., `payouts_enabled`, `capabilities`) must be fetched live. Only `stripeOnboardingStatus` (a lifecycle stage set by webhook) is persisted. `src/app/app/settings/stripe-connect/page.tsx`.
 19. **Dispute email sent after DB commit** — `sendEmail()` for dispute notifications runs outside the DB transaction (same pattern as suspension sweep PI cancellation). Email failure does not roll back dispute state persistence. `src/app/api/stripe/connect-webhook/route.ts`.
+20. **Polar webhook events deduped via `processedPolarEvents`** — prevents reprocessing. Same transaction-wrapping pattern as Stripe webhooks. Composite key: `{type}:{subId}:{timestamp}`. `src/lib/auth.ts`.
+21. **`requireShopAuth()` is the primary dashboard auth function** — replaces `requireAuth()` on all `/app/*` routes except billing pages (`/app/billing/*`). Returns `{ session, shop, isPastDue }`. Fails open on DB error (lets merchant in). Redirects canceled/expired-trial to `/app/billing/subscribe`. `src/lib/session.ts`.
+22. **Booking page fails closed on canceled subscription** — `book/[slug]/page.tsx` shows "temporarily unavailable" when `subscriptionStatus === 'canceled'`. No mention of billing to end-customers. `src/app/book/[slug]/page.tsx`.
+23. **Billing emails sent after DB commit** — `sendBillingEmail()` runs outside the DB transaction (same pattern as invariant 19). Dedup via `messageDedup` table. `src/lib/auth.ts`.
+24. **Paywall reconciliation checks Polar API before rendering** — if `shop.polarCustomerId` exists, the paywall page verifies with Polar that the merchant is actually canceled. If Polar says active, heals DB and redirects. API failure falls through to paywall. `src/app/app/billing/subscribe/page.tsx`.
 
 ## 11. Codebase Quality Assessment
 

@@ -1,29 +1,12 @@
 import { db } from "@/lib/db";
 import { getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { getEventTypesForShop } from "@/lib/queries/event-types";
-import { getShopByOwnerId } from "@/lib/queries/shops";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { ServicesEditorShell } from "./services-editor-shell";
 import type { ServiceRow, ShopContext } from "./types";
 
 export default async function ServicesPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div>
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <h1 className="al-page-title">
-            Services
-          </h1>
-          <p className="mt-2 al-lede">
-            Create your shop to manage services.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   const [eventTypeRows, settings, policy] = await Promise.all([
     getEventTypesForShop(shop.id),

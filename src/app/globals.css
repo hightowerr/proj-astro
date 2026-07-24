@@ -192,6 +192,32 @@
   50%      { transform: scale(0.78); }
 }
 
+@keyframes al-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes al-dot {
+  0%, 20% { opacity: 0; }
+  40%     { opacity: 1; }
+}
+
+/* Checkout interstitial — spinner ring + animated ellipsis */
+.al-spinner {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  border: 3px solid rgba(0, 30, 64, 0.12);
+  border-top-color: var(--al-primary);
+  animation: al-spin 0.9s linear infinite;
+}
+
+.al-dots span {
+  animation: al-dot 1.4s ease-in-out infinite;
+}
+.al-dots span:nth-child(2) { animation-delay: 0.2s; }
+.al-dots span:nth-child(3) { animation-delay: 0.4s; }
+
 /* ================================================================
    Root: Atelier Light Design System
    Source: Stitch · assets/449beb1e286a415881985419132b73bd · v1

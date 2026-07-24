@@ -5,9 +5,8 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { parseTimeToMinutes } from "@/lib/booking";
 import { db } from "@/lib/db";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { bookingSettings, shopHours } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 
 const slotMinutesSchema = z.enum(["15", "30", "45", "60", "90", "120"]);
 const defaultBufferMinutesSchema = z.union([
@@ -27,10 +26,9 @@ const validateTimezone = (timezone: string) => {
 };
 
 export async function updateAvailabilitySettings(shopId: string, formData: FormData) {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
+  const { shop } = await requireShopAuth();
 
-  if (!shop || shop.id !== shopId) {
+  if (shop.id !== shopId) {
     throw new Error("Unauthorized");
   }
 

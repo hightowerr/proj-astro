@@ -4,9 +4,8 @@ import { revalidatePath } from "next/cache";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { bookingSettings, messageTemplates } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import {
   EMAIL_REMINDER_KEY,
   EMAIL_REMINDER_DEFAULTS,
@@ -22,12 +21,7 @@ const schema = z
   .max(3, "Maximum 3 reminder intervals allowed");
 
 export async function updateReminderTimings(timings: unknown) {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    throw new Error("Shop not found");
-  }
+  const { shop } = await requireShopAuth();
 
   const parsed = schema.parse(timings);
 
@@ -57,12 +51,7 @@ const emailTemplateSchema = z.object({
 });
 
 export async function updateEmailTemplate(subject: string, body: string) {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    throw new Error("Shop not found");
-  }
+  await requireShopAuth();
 
   const parsed = emailTemplateSchema.parse({ subject, body });
 
@@ -97,12 +86,7 @@ export async function updateEmailTemplate(subject: string, body: string) {
 /* ── Email template reset action ─────────────────────────── */
 
 export async function resetEmailTemplate() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    throw new Error("Shop not found");
-  }
+  await requireShopAuth();
 
   // Query the current max version for this key/channel pair
   const [latest] = await db
@@ -140,12 +124,7 @@ const smsTemplateSchema = z
   .max(320, "Body must be 320 characters or fewer (2 SMS segments max)");
 
 export async function updateSmsTemplate(body: string) {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    throw new Error("Shop not found");
-  }
+  await requireShopAuth();
 
   const parsed = smsTemplateSchema.parse(body);
 
@@ -179,12 +158,7 @@ export async function updateSmsTemplate(body: string) {
 /* ── SMS template reset action ──────────────────────────── */
 
 export async function resetSmsTemplate() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    throw new Error("Shop not found");
-  }
+  await requireShopAuth();
 
   // Query the current max version for this key/channel pair
   const [latest] = await db

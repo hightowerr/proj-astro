@@ -95,6 +95,8 @@ export const createShop = async (input: {
         slug: input.slug,
         businessType: input.businessType ?? null,
         status: input.status ?? "active",
+        subscriptionStatus: "trialing",
+        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       })
       .onConflictDoNothing()
       .returning();

@@ -1,0 +1,5 @@
+- Date: 2026-07-21
+- Spec: 03-polar-server-plugin.md
+- What diverged: Spec said `createCustomerOnSignUp: false` but implementation uses `true`.
+- Classification: EVOLUTION
+- Why: Spike finding showed Polar docs recommend proactive customer creation at signup for reliable checkout and portal access.

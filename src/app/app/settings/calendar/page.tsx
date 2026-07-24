@@ -1,18 +1,14 @@
 import { CalendarSettingsClient } from "@/components/settings/calendar-settings-client";
 import { db } from "@/lib/db";
-import { getShopByOwnerId } from "@/lib/queries/shops";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 
 export default async function CalendarSettingsPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
+  const { shop } = await requireShopAuth();
 
-  const connection = shop
-    ? await db.query.calendarConnections.findFirst({
-        where: (table, { and, eq, isNull }) =>
-          and(eq(table.shopId, shop.id), isNull(table.deletedAt)),
-      })
-    : null;
+  const connection = await db.query.calendarConnections.findFirst({
+    where: (table, { and, eq, isNull }) =>
+      and(eq(table.shopId, shop.id), isNull(table.deletedAt)),
+  });
 
   const isGoogleOAuthConfigured = Boolean(
     process.env.GOOGLE_CLIENT_ID &&
@@ -42,7 +38,7 @@ export default async function CalendarSettingsPage() {
 
         <CalendarSettingsClient
           isGoogleOAuthConfigured={isGoogleOAuthConfigured}
-          hasShop={Boolean(shop)}
+          hasShop={true}
           connection={
             connection
               ? {

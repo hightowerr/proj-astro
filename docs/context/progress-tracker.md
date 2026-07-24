@@ -91,6 +91,21 @@ Ship next feature from backlog.
 
 ---
 
+- **Polar Subscription** — 14 specs, 5 waves. Polar Better Auth plugin, 4-state subscription enum, webhook handler with dedup, trial initialization, `requireShopAuth()` dashboard gating, booking soft lock, paywall page, checkout interstitial, past-due banner, onboarding drip (8 emails), reconciliation, grace period emails. Shaping: `docs/shaping/polar-subscription/`. Spike resolved: `createCustomerOnSignUp: true`.
+  - **Wave 1** (foundation, 2026-07-21): Spec 01 (schema migration — enum, 4 columns, dedup table, migration 0041), Spec 02 (env vars — `POLAR_ACCESS_TOKEN` + `POLAR_WEBHOOK_SECRET`), Spec 03 (server plugin — `@polar-sh/better-auth` + `@polar-sh/sdk`, 6 webhook stubs). `pnpm check` clean. 0 deviations. Awaiting VERIFY.
+  - **Modified files (3):** `schema.ts`, `env.ts`, `auth.ts`
+  - **New files (2):** `polar.ts`, `drizzle/0041_polar_subscription.sql`
+  - **Wave 2** (webhook + trial + client, 2026-07-21): Spec 04 (client plugin — `polarClient()` in auth-client.ts), Spec 05 (webhook handler — 3 state-changing callbacks with dedup + timestamp guard + shop lookup, 3 no-op loggers), Spec 06 (trial init — `subscriptionStatus: 'trialing'` + `trialEndsAt` at shop creation). `pnpm check` clean. 0 deviations. Awaiting VERIFY.
+  - **Modified files (3):** `auth-client.ts`, `auth.ts`, `queries/shops.ts`
+  - **Wave 3** (gating, 2026-07-21): Spec 07 (requireShopAuth — new auth function + 24 dashboard route replacements, fail-open on DB error), Spec 08 (booking soft lock — canceled status check + "temporarily unavailable" card with terracotta clock icon), Spec 09 (paywall page — 2 variants: trial-expired/welcome-back, pricing toggle, checkout CTA via authClient), Spec 12 (onboarding drip — 8-email sequence on resolve-outcomes cron, completion gates, messageDedup). `pnpm check` clean. 0 deviations. Awaiting VERIFY.
+  - **Modified files (16+):** `session.ts`, all `src/app/app/` pages + actions, `book/[slug]/page.tsx`, `resolve-outcomes/route.ts`
+  - **New files (4):** `billing/subscribe/page.tsx`, `billing/subscribe/pricing-card.tsx`, `billing/subscribe/checkout-button.tsx`, `onboarding-drips.ts`
+  - **Wave 3** (gating, 2026-07-21): Spec 07 (requireShopAuth — new function in session.ts, 24 dashboard routes replaced), Spec 08 (booking soft lock — canceled check + unavailable card in book/[slug]/page.tsx), Spec 09 (paywall page — 2 variants + pricing toggle + checkout CTA, 3 new files), Spec 12 (onboarding drip — 8-email function + resolve-outcomes hook). `pnpm check` clean. 0 deviations. Awaiting VERIFY.
+  - **Modified files (18+):** `session.ts`, `book/[slug]/page.tsx`, `resolve-outcomes/route.ts`, + 15 dashboard route files
+  - **New files (4):** `billing/subscribe/page.tsx`, `billing/subscribe/pricing-card.tsx`, `billing/subscribe/checkout-button.tsx`, `onboarding-drips.ts`
+  - **Wave 4** (UX polish, 2026-07-23): Spec 10 (checkout interstitial — polling page, 2 states), Spec 11 (past-due banner — amber, customerPortal CTA), Spec 13 (reconciliation — Polar API heal). `pnpm check` clean. 0 deviations. Awaiting VERIFY.
+  - **Wave 5** (emails, 2026-07-23): Spec 14 (3 deferred billing emails from webhook callbacks). `pnpm check` clean. 0 deviations. Awaiting VERIFY.
+
 - **Configurable Durations** — 7 specs, 3 waves. Decouple service duration from calendar grid cadence, raise max 240→480, replace dropdown/radio with number inputs + custom stepper + grid cadence hint. Feature loop COMPLETE (2026-07-18, 45/45 PASS). 2 evolution / 0 shortcuts. Shaping: `docs/shaping/configurable-durations/`. Verification: `docs/shaping/configurable-durations/shape/wave-all-verify.md`.
   - **Wave 1** (foundation): Spec 01 (MAX 240→480), Spec 02 (floor check replaces grid-multiple), Spec 05 (DB CHECK constraint + migration 0040) — sequential
   - **Wave 2** (UI + tests): Spec 03 (editor number input + stepper), Spec 04 (onboarding number input + stepper), Spec 06 (10 validation tests) — parallel

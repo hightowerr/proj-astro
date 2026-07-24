@@ -1,7 +1,6 @@
 import { AvailabilitySettingsForm } from "@/components/settings/availability-settings-form";
 import { db } from "@/lib/db";
-import { getShopByOwnerId } from "@/lib/queries/shops";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { updateAvailabilitySettings } from "./actions";
 
 const DAY_LABELS = [
@@ -23,19 +22,7 @@ const normalizeTime = (value: string | null | undefined, fallback: string) => {
 };
 
 export default async function AvailabilitySettingsPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div className="max-w-7xl mx-auto px-12 py-8">
-        <h1 className="al-page-title">Availability settings</h1>
-        <p className="al-lede">
-          Create your shop to configure slot availability.
-        </p>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   const [settings, existingHours] = await Promise.all([
     db.query.bookingSettings.findFirst({

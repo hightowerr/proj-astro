@@ -31,6 +31,12 @@ const serverEnvSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),
   STRIPE_CONNECT_WEBHOOK_SECRET: z.string().min(1).optional(),
 
+  // Polar
+  POLAR_ACCESS_TOKEN: z.string().min(1, "POLAR_ACCESS_TOKEN is required"),
+  POLAR_WEBHOOK_SECRET: z.string().min(1).optional(),
+  POLAR_PRODUCT_ID_MONTHLY: z.string().min(1, "POLAR_PRODUCT_ID_MONTHLY is required"),
+  POLAR_PRODUCT_ID_ANNUAL: z.string().min(1, "POLAR_PRODUCT_ID_ANNUAL is required"),
+
   // Twilio
   TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
   TWILIO_AUTH_TOKEN: z.string().min(1).optional(),
@@ -227,6 +233,17 @@ export function checkEnv(): void {
       throw new Error("STRIPE_CONNECT_WEBHOOK_SECRET is required in production");
     }
     warnings.push("STRIPE_CONNECT_WEBHOOK_SECRET is not set. Stripe Connect webhook events will not be verified.");
+  }
+
+  if (!process.env.POLAR_ACCESS_TOKEN) {
+    throw new Error("POLAR_ACCESS_TOKEN is required");
+  }
+
+  if (!process.env.POLAR_WEBHOOK_SECRET) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("POLAR_WEBHOOK_SECRET is required in production");
+    }
+    warnings.push("POLAR_WEBHOOK_SECRET is not set. Polar webhook events will not be verified.");
   }
 
   // Log warnings in development

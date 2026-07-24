@@ -2,8 +2,7 @@ import Link from "next/link";
 import { ConflictsLedger } from "@/components/conflicts/conflicts-ledger";
 import { getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { getConflicts } from "@/lib/queries/calendar-conflicts";
-import { getShopByOwnerId } from "@/lib/queries/shops";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 
 // --- types ------------------------------------------------------------------
 
@@ -87,19 +86,7 @@ function fmtOverlap(
 // --- page -------------------------------------------------------------------
 
 export default async function ConflictsPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div className="al-page">
-        <div className="al-page-title">Calendar Conflicts</div>
-        <p className="al-lede">
-          Create your shop to manage calendar conflicts.
-        </p>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   const [conflicts, settings] = await Promise.all([
     getConflicts(shop.id),

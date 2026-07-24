@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
-  mockRequireAuth,
+  mockRequireShopAuth,
   mockGetShopByOwnerId,
   mockDismissAlert,
   mockResolveAlertsForCancelledAppointment,
@@ -26,7 +26,7 @@ const {
   const mockSelect = vi.fn().mockReturnValue({ from: mockFrom });
 
   return {
-    mockRequireAuth: vi.fn(),
+    mockRequireShopAuth: vi.fn(),
     mockGetShopByOwnerId: vi.fn(),
     mockDismissAlert: vi.fn(),
     mockResolveAlertsForCancelledAppointment: vi.fn(),
@@ -48,7 +48,7 @@ vi.mock("next/cache", () => ({
 }));
 
 vi.mock("@/lib/session", () => ({
-  requireAuth: mockRequireAuth,
+  requireShopAuth: mockRequireShopAuth,
 }));
 
 vi.mock("@/lib/queries/shops", () => ({
@@ -132,7 +132,7 @@ const baseRow = {
 describe("dismissConflictAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRequireAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockRequireShopAuth.mockResolvedValue({ session: { user: { id: "user-1" } }, shop: { id: "shop-1" }, isPastDue: false });
     mockGetShopByOwnerId.mockResolvedValue({ id: "shop-1" });
     mockDismissAlert.mockResolvedValue(true);
   });
@@ -162,7 +162,7 @@ describe("dismissConflictAction", () => {
   });
 
   it("catches unexpected errors gracefully", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("Auth down"));
+    mockRequireShopAuth.mockRejectedValue(new Error("Auth down"));
 
     const result = await dismissConflictAction("alert-1");
 
@@ -174,7 +174,7 @@ describe("dismissConflictAction", () => {
 describe("cancelAppointmentFromConflict", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRequireAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockRequireShopAuth.mockResolvedValue({ session: { user: { id: "user-1" } }, shop: { id: "shop-1" }, isPastDue: false });
     mockGetShopByOwnerId.mockResolvedValue({ id: "shop-1" });
     mockSelectLimit.mockResolvedValue([{ ...baseRow }]);
     mockCalculateCancellationEligibility.mockReturnValue({
@@ -296,7 +296,7 @@ describe("cancelAppointmentFromConflict", () => {
   });
 
   it("catches unexpected errors gracefully", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("Auth down"));
+    mockRequireShopAuth.mockRejectedValue(new Error("Auth down"));
 
     const result = await cancelAppointmentFromConflict("appt-1");
 

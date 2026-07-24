@@ -1,7 +1,6 @@
 import { CustomersEditorial } from "@/components/customers/customers-editorial";
 import { listCustomersForShop } from "@/lib/queries/customers";
-import { getShopByOwnerId } from "@/lib/queries/shops";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 
 // --- types ------------------------------------------------------------------
 
@@ -42,19 +41,7 @@ function fmtUpdated(d: Date): string {
 // --- page -------------------------------------------------------------------
 
 export default async function CustomersPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div className="al-page">
-        <div className="al-page-title">Customers</div>
-        <p className="al-lede">
-          Create your shop to start managing customers.
-        </p>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   const customers = await listCustomersForShop(shop.id);
 
