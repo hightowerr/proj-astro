@@ -18,6 +18,20 @@ Polar subscription lifecycle: 4-state subscription enum, Polar Better Auth plugi
 ## Backlog
 - Waves remaining: none (all implemented and verified)
 - Blocked specs: none
+Launch truth audit: remove false claims, unverifiable metrics, and vaporware references from the landing page and booking page. Replace with honest, directional, structurally-true copy. 6 specs, 1 wave.
+
+## Current state
+- Feature: launch-truth-audit
+- Wave: 1 of 1
+- Phase: COMPLETE
+- Specs in scope: docs/shaping/launch-truth-audit/specs/ (01–06)
+- Build order: docs/shaping/launch-truth-audit/_build-order.md
+- Design prototypes: docs/shaping/launch-truth-audit/design/ (3 interactive HTML mockups)
+
+## Backlog
+- Waves remaining: none (single wave)
+- Blocked specs: none
+- Design review: 3 prototypes — Slot Recovery Phone Mockup, Float Cards Directional Copy, BookingNav Simplified
 
 ## Timeline
 | Date | Wave | Phase | Duration | Notes |
@@ -55,6 +69,50 @@ Polar subscription lifecycle: 4-state subscription enum, Polar Better Auth plugi
 
 13-reconciliation ◄── 03-server, 09-paywall
 14-grace-emails ◄── 05-webhook, 12-drip
+| 2026-07-18 | — | SHAPE | — | 6 specs + build order pre-written. 3 design prototypes. Zero inter-dependencies → single wave, all parallel. No spikes needed — string replacements + 1 component swap (Spec 02). |
+| 2026-07-18 | 1 | IMPLEMENT | ~20 min | All 6 specs implemented. 0 deviations. `pnpm check` lint clean (pre-existing TS error in route.test.ts:829 only). |
+| 2026-07-19 | 1 | VERIFY | — | Awaiting separate fresh session. |
+| 2026-07-20 | 1 | VERIFY+DRIFT+RETRO | — | 32/32 PASS. 0 evolution / 0 shortcut. Context files updated. Loop COMPLETE. |
+
+## Dependency graph
+```
+01 (hero social proof)       — independent
+02 (carousel slot recovery)  — independent
+03 (float cards directional) — independent
+04 (CTA section cleanup)     — independent
+05 (FAQ onboarding claim)    — independent
+06 (BookingNav cleanup)      — independent
+```
+Zero inter-dependencies. All specs touch different files.
+
+## Waves
+| Wave | Specs | Strategy | Files |
+|------|-------|----------|-------|
+| 1 | 01–06 | All parallel (zero inter-deps) | `hero-section.tsx`, `features-carousel.tsx`, `page.tsx`, `cta-section.tsx`, `faq-section.tsx`, `booking-nav.tsx` |
+
+## Critical path
+```
+No sequential chain. All specs are parallel.
+Critical path = longest single spec = Spec 02 (~25 min).
+```
+
+## Document updates (apply in RETRO)
+Queued in `docs/shaping/launch-truth-audit/_build-order.md`:
+1. project-overview.md: §2 social proof line, §4 exclusion #8 note
+2. current-issues.md: BookingNav session awareness → Resolved
+3. progress-tracker.md: add feature entry
+4. roadmap.md: mark "Homepage update (parked)" partially addressed
+
+## OLD — Spec 01 (raise MAX) ─────────────────────────┐
+                                              ├──► Spec 02 (remove grid-multiple)
+                                              │         │
+                                              │         ├──► Spec 03 (editor number input) ──► Spec 07 (grid hint)
+                                              │         │
+                                              │         ├──► Spec 04 (onboarding number input)
+                                              │         │
+                                              │         └──► Spec 06 (tests)
+                                              │
+                                              └──► Spec 05 (DB constraint)
 ```
 
 ## Waves

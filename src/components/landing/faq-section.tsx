@@ -15,7 +15,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "How long does it take to get started?",
-    a: "Most beauty professionals are live and taking bookings within 20 minutes. Set your availability, cancellation policy, and deposit amount, then share your booking link.",
+    a: "Set your availability, cancellation policy, and deposit amount — you can be live and taking bookings in minutes.",
   },
   {
     q: "Is there a free trial?",

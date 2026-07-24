@@ -105,6 +105,9 @@ Ship next feature from backlog.
   - **New files (4):** `billing/subscribe/page.tsx`, `billing/subscribe/pricing-card.tsx`, `billing/subscribe/checkout-button.tsx`, `onboarding-drips.ts`
   - **Wave 4** (UX polish, 2026-07-23): Spec 10 (checkout interstitial — polling page, 2 states), Spec 11 (past-due banner — amber, customerPortal CTA), Spec 13 (reconciliation — Polar API heal). `pnpm check` clean. 0 deviations. Awaiting VERIFY.
   - **Wave 5** (emails, 2026-07-23): Spec 14 (3 deferred billing emails from webhook callbacks). `pnpm check` clean. 0 deviations. Awaiting VERIFY.
+- **Launch Truth Audit** — 6 specs, 1 wave. Remove false claims, unverifiable metrics, and vaporware from landing page + booking page. Replace with honest, directional, structurally-true copy. Feature loop COMPLETE (2026-07-20, 32/32 PASS). 0 evolution / 0 shortcuts. Shaping: `docs/shaping/launch-truth-audit/`.
+  - **Wave 1** (all parallel): Spec 01 (hero social proof → future framing), Spec 02 (carousel Marketing Tools → Slot Recovery + SlotRecoveryScreen mockup), Spec 03 (float cards → directional: "Higher"/"Fewer"/"Minutes"/"Lost revenue"), Spec 04 (CTA subhead "500+" removed, "Automated actions", "SU-2194", "Upsell" pill removed), Spec 05 (FAQ onboarding claim → capability framing), Spec 06 (BookingNav → brand mark only, nav links + auth CTAs + hamburger removed)
+  - **Modified files (6):** `hero-section.tsx`, `features-carousel.tsx`, `page.tsx`, `cta-section.tsx`, `faq-section.tsx`, `booking-nav.tsx`
 
 - **Configurable Durations** — 7 specs, 3 waves. Decouple service duration from calendar grid cadence, raise max 240→480, replace dropdown/radio with number inputs + custom stepper + grid cadence hint. Feature loop COMPLETE (2026-07-18, 45/45 PASS). 2 evolution / 0 shortcuts. Shaping: `docs/shaping/configurable-durations/`. Verification: `docs/shaping/configurable-durations/shape/wave-all-verify.md`.
   - **Wave 1** (foundation): Spec 01 (MAX 240→480), Spec 02 (floor check replaces grid-multiple), Spec 05 (DB CHECK constraint + migration 0040) — sequential
@@ -204,8 +207,7 @@ Ship next feature from backlog.
 
 ## Open Questions
 
-- Should `BookingNav` be session-aware? (Current spec shows static links; `SiteHeader` is session-aware)
-- Do landing page sections have matching `id` anchors for nav links?
+_(none — BookingNav session question dissolved by launch truth audit spec 06; nav link anchor question dissolved by BookingNav link removal)_
 
 ---
 

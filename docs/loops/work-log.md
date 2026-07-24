@@ -15,6 +15,17 @@ Append-only. Every agent reads the last 10 entries at session start for context.
   - Patterns extracted: 0 (all patterns reapplied from prior features — foundation-first-slicing, spike-before-shape, design-prototype-as-source-of-truth)
   - Friction logged: 0 (worktree timeout is known signal, not new)
   - Key learning: 14-spec feature with 5 waves achieved 0 deviations at implementation time. Pre-written specs with BUILD-ORDER and design prototypes continue to produce zero-deviation implementations.
+## [2026-07-20] verify+drift+retro | launch-truth-audit wave 1
+
+- **Picked up**: Phases 3-5 for launch-truth-audit feature (verify in separate fresh session, drift audit, retro)
+- **Result**: Loop COMPLETE.
+  - Verify: 32/32 PASS. 0 FAIL. 0 BLOCKED. Independent verifier in fresh session (code review + grep audit for forbidden strings + `pnpm check` clean except pre-existing TS error `route.test.ts:829`).
+  - Drift: 0 divergences — all 6 specs match implementation exactly. Every replacement string matches character-for-character. SlotRecoveryScreen mockup matches all design brief sections.
+  - Retro: Context files updated — project-overview.md (§2 social proof line, §3 slot recovery description, §4 exclusion #8), current-issues.md (BookingNav session → Resolved), progress-tracker.md (open questions dissolved, feature entry added), roadmap.md ("Homepage update" → partially addressed). Loop contract → COMPLETE.
+  - Evolution/shortcut ratio: 0/0
+  - Patterns extracted: 0
+  - Friction logged: 0
+  - Key learning: Copy-only + component-swap features with pre-written specs and design prototypes achieve perfect spec fidelity. 6 parallel independent specs = zero coordination overhead. The Via Negativa approach on BookingNav (spec 06) dissolved two open questions simultaneously.
 - **Unresolved**: none. Loop COMPLETE.
 
 ---
@@ -70,6 +81,19 @@ Append-only. Every agent reads the last 10 entries at session start for context.
   - **New files (2)**: `src/lib/polar.ts` (SDK client singleton), `drizzle/0041_polar_subscription.sql`
   - Signals applied: foundation-first-slicing, spike-before-shape
 - **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session (NEVER self-verify). Then DRIFT AUDIT + RETRO. Waves 2–5 remain.
+## [2026-07-19] implement | launch-truth-audit wave 1
+
+- **Picked up**: Phase 2 IMPLEMENT for launch-truth-audit (remove false claims, unverifiable metrics, vaporware from landing + booking pages). 6 specs, 1 wave, all parallel.
+- **Result**: All 6 specs implemented. 0 deviations. `pnpm check` lint clean (pre-existing TS error `route.test.ts:829` only).
+  - Spec 01: Hero social proof → "New platform. Early adopters are filling their calendars."
+  - Spec 02: Carousel slide 2 → SlotRecoveryScreen (MarketingScreen deleted, CAMPAIGN_* constants deleted)
+  - Spec 03: Float cards → directional ("Higher", "Fewer", "Minutes", "Lost revenue")
+  - Spec 04: CTA subhead no "500+", "Automated actions", "Upsell prompt ready" removed, "SU-2194"
+  - Spec 05: FAQ answer → capability framing (no "20 minutes", no "most professionals")
+  - Spec 06: BookingNav → brand mark only (nav links + auth CTAs + hamburger removed)
+  - Modified files (6): `hero-section.tsx`, `features-carousel.tsx`, `page.tsx`, `cta-section.tsx`, `faq-section.tsx`, `booking-nav.tsx`
+  - Signals applied: design-prototype-as-source-of-truth (Slot Recovery mockup, Float Cards, BookingNav)
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session (NEVER self-verify). Then DRIFT AUDIT + RETRO.
 
 ---
 
