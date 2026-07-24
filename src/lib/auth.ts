@@ -7,7 +7,6 @@ import { eq } from "drizzle-orm"
 import { getTrustedAuthOrigins } from "./auth-origins"
 import { db } from "./db"
 import { sendEmail } from "./email"
-import { getServerEnv } from "./env"
 import { escapeHtml } from "./html"
 import { polarClient } from "./polar"
 import { messageDedup, processedPolarEvents, shops, user } from "./schema"
@@ -15,7 +14,12 @@ import { messageDedup, processedPolarEvents, shops, user } from "./schema"
 const isPlaywrightE2E =
   process.env.PLAYWRIGHT === "true" && process.env.NODE_ENV !== "production"
 const trustedOrigins = getTrustedAuthOrigins()
-const serverEnv = getServerEnv()
+
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`${name} is required`)
+  return value
+}
 
 function getPolarWebhookSecret(): string {
   const secret = process.env.POLAR_WEBHOOK_SECRET
@@ -265,11 +269,11 @@ export const auth = betterAuth({
         checkout({
           products: [
             {
-              productId: serverEnv.POLAR_PRODUCT_ID_MONTHLY,
+              productId: requireEnv("POLAR_PRODUCT_ID_MONTHLY"),
               slug: "showup-pro-monthly",
             },
             {
-              productId: serverEnv.POLAR_PRODUCT_ID_ANNUAL,
+              productId: requireEnv("POLAR_PRODUCT_ID_ANNUAL"),
               slug: "showup-pro-annual",
             },
           ],
