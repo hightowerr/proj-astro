@@ -295,6 +295,20 @@
       "when": 1784642045461,
       "tag": "0041_polar_subscription",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1784881715478,
+      "tag": "0042_huge_lady_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1784881715479,
+      "tag": "0043_backfill_trial_ends_at",
+      "breakpoints": true
     }
   ]
 }

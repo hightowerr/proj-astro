@@ -24,9 +24,10 @@ export function PricingCard({ ctaLabel }: PricingCardProps) {
   return (
     <div className="rounded-3xl bg-al-surface-lowest p-7 shadow-[var(--al-shadow-float)]">
       {/* Billing toggle */}
-      <div className="mb-6 flex rounded-xl bg-al-surface-container p-1">
+      <div className="mb-6 flex rounded-xl bg-al-surface-container p-1" role="group" aria-label="Billing period">
         <button
           onClick={() => setIsAnnual(false)}
+          aria-pressed={!isAnnual}
           className={cn(
             "flex-1 rounded-[10px] py-2.5 text-sm font-semibold transition-all",
             !isAnnual
@@ -38,6 +39,7 @@ export function PricingCard({ ctaLabel }: PricingCardProps) {
         </button>
         <button
           onClick={() => setIsAnnual(true)}
+          aria-pressed={isAnnual}
           className={cn(
             "flex-1 rounded-[10px] py-2.5 text-sm font-semibold transition-all flex items-center justify-center gap-2",
             isAnnual

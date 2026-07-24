@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { getSubscriptionStatus } from "./actions"
 
 const POLL_INTERVAL = 2_000
-const FALLBACK_THRESHOLD = 7 // ~14 seconds (7 polls x 2s)
+const FALLBACK_THRESHOLD = 7  // ~14 seconds (7 polls x 2s)
+const MAX_POLLS = 60          // stop after ~2 minutes (60 polls x 2s)
 
 type Phase = "processing" | "fallback"
 
@@ -32,6 +33,7 @@ export default function ProcessingPage() {
       setPhase("fallback")
     }
 
+    if (pollCount.current >= MAX_POLLS) return
     timerRef.current = setTimeout(poll, POLL_INTERVAL)
   }
 

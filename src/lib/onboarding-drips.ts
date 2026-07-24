@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { escapeHtml } from "@/lib/html";
 import { messageDedup, shops, user, eventTypes, shopPolicies, appointments } from "@/lib/schema";
 
 /**
@@ -46,7 +47,7 @@ const DRIP_SCHEDULE: DripDefinition[] = [
     key: "welcome",
     subject: "Welcome to ShowUp -- here's how to get started",
     ctaLabel: "Open your dashboard",
-    ctaUrl: (appUrl) => `${appUrl}/dashboard`,
+    ctaUrl: (appUrl) => `${appUrl}/app/dashboard`,
     body: (ctx) =>
       `Hi ${ctx.firstName},\n\nWelcome to ShowUp! You're on a 14-day free trial. Here's the quick path to start protecting your bookings:\n\n1. Connect Stripe so you can collect deposits\n2. Create your services (event types)\n3. Set your cancellation and deposit policies\n4. Share your booking link with clients\n\nYou can do all of this from your dashboard.\n\n-- ShowUp`,
   },
@@ -65,7 +66,7 @@ const DRIP_SCHEDULE: DripDefinition[] = [
     key: "create-services",
     subject: "Create your first service to start taking bookings",
     ctaLabel: "Create a service",
-    ctaUrl: (appUrl) => `${appUrl}/dashboard/services`,
+    ctaUrl: (appUrl) => `${appUrl}/app/settings/services`,
     skipIf: async (ctx) => {
       const result = await db
         .select({ count: sql<number>`count(*)::int` })
@@ -81,7 +82,7 @@ const DRIP_SCHEDULE: DripDefinition[] = [
     key: "set-policies",
     subject: "Set your cancellation and deposit policies",
     ctaLabel: "Set policies",
-    ctaUrl: (appUrl) => `${appUrl}/dashboard/policies`,
+    ctaUrl: (appUrl) => `${appUrl}/app/settings/payment-policy`,
     skipIf: async (ctx) => {
       const result = await db
         .select({ count: sql<number>`count(*)::int` })
@@ -97,7 +98,7 @@ const DRIP_SCHEDULE: DripDefinition[] = [
     key: "share-link",
     subject: "Share your booking link and get your first booking",
     ctaLabel: "View your booking page",
-    ctaUrl: (appUrl) => `${appUrl}/dashboard`,
+    ctaUrl: (appUrl) => `${appUrl}/app/dashboard`,
     skipIf: async (ctx) => {
       const result = await db
         .select({ count: sql<number>`count(*)::int` })
@@ -113,7 +114,7 @@ const DRIP_SCHEDULE: DripDefinition[] = [
     key: "trial-warning-2d",
     subject: "Your ShowUp trial ends in 2 days",
     ctaLabel: "Subscribe now",
-    ctaUrl: (appUrl) => `${appUrl}/dashboard/billing`,
+    ctaUrl: (appUrl) => `${appUrl}/app/billing/subscribe`,
     body: (ctx) =>
       `Hi ${ctx.firstName},\n\nYour 14-day ShowUp trial ends in 2 days. Subscribe now to keep your booking page live and continue collecting deposits.\n\nIf you don't subscribe, your shop will be paused and clients won't be able to book.\n\n-- ShowUp`,
   },
@@ -122,7 +123,7 @@ const DRIP_SCHEDULE: DripDefinition[] = [
     key: "trial-warning-1d",
     subject: "Last day of your ShowUp trial -- subscribe to keep going",
     ctaLabel: "Subscribe now",
-    ctaUrl: (appUrl) => `${appUrl}/dashboard/billing`,
+    ctaUrl: (appUrl) => `${appUrl}/app/billing/subscribe`,
     body: (ctx) =>
       `Hi ${ctx.firstName},\n\nThis is your last day on the ShowUp free trial. Subscribe today to keep your booking page, deposits, and no-show protection active.\n\n-- ShowUp`,
   },
@@ -131,7 +132,7 @@ const DRIP_SCHEDULE: DripDefinition[] = [
     key: "trial-expired",
     subject: "Your ShowUp trial has ended",
     ctaLabel: "Reactivate now",
-    ctaUrl: (appUrl) => `${appUrl}/dashboard/billing`,
+    ctaUrl: (appUrl) => `${appUrl}/app/billing/subscribe`,
     body: (ctx) =>
       `Hi ${ctx.firstName},\n\nYour ShowUp trial has ended and your shop has been paused. Reactivate any time by subscribing -- your data is still here and nothing has been deleted.\n\n-- ShowUp`,
   },
@@ -172,9 +173,13 @@ export async function processOnboardingDrips(): Promise<{
 
   for (const shop of trialingShops) {
     try {
-      const trialDay = Math.floor(
-        (Date.now() - shop.createdAt.getTime()) / (24 * 60 * 60 * 1000)
-      );
+      // Use UTC calendar days, not elapsed milliseconds, so the result
+      // is independent of what time of day the shop was created or the
+      // cron fires.
+      const nowUTC = new Date();
+      const todayUTC = Date.UTC(nowUTC.getUTCFullYear(), nowUTC.getUTCMonth(), nowUTC.getUTCDate());
+      const createdUTC = Date.UTC(shop.createdAt.getUTCFullYear(), shop.createdAt.getUTCMonth(), shop.createdAt.getUTCDate());
+      const trialDay = Math.round((todayUTC - createdUTC) / (24 * 60 * 60 * 1000));
 
       // Find the drip that matches this trial day
       const drip = DRIP_SCHEDULE.find((d) => d.day === trialDay);
@@ -226,7 +231,7 @@ export async function processOnboardingDrips(): Promise<{
     <div style="margin-bottom:36px">
       <span style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#001e40">ShowUp</span>
     </div>
-    ${bodyText
+    ${escapeHtml(bodyText)
       .split("\n\n")
       .map((p) => `<p style="font-size:15.5px;line-height:1.65;color:#111827">${p.replace(/\n/g, "<br>")}</p>`)
       .join("\n    ")}

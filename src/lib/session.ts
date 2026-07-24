@@ -50,7 +50,9 @@ export async function requireAuth() {
  *  - past_due → lets merchant through with `isPastDue: true`
  *  - active / valid trial → normal access
  *
- * On DB errors the function **fails open** — the merchant keeps access.
+ * On DB errors the function **fails closed** — the error is re-thrown,
+ * which surfaces as a 500 / error boundary rather than letting writes
+ * proceed with an undefined shop FK.
  */
 export async function requireShopAuth() {
   const session = await requireAuth();
@@ -98,10 +100,9 @@ export async function requireShopAuth() {
     ) {
       throw error;
     }
-    // DB error — fail open, let merchant in
-    console.error("[requireShopAuth] DB error, failing open:", error);
-    const shop = null as any; // This path should be extremely rare
-    return { session, shop, isPastDue: false };
+    // DB error — fail closed to prevent writes with undefined FKs
+    console.error("[requireShopAuth] DB error, failing closed:", error);
+    throw error;
   }
 
   // TypeScript exhaustiveness — should never reach here

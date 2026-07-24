@@ -3,8 +3,18 @@
 import { useState } from "react"
 import { authClient } from "@/lib/auth-client"
 
+const DISMISS_KEY = "past-due-banner-dismissed"
+
+function wasSessionDismissed(): boolean {
+  try {
+    return !!sessionStorage.getItem(DISMISS_KEY)
+  } catch {
+    return false
+  }
+}
+
 export function PastDueBanner() {
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(wasSessionDismissed)
   const [pending, setPending] = useState(false)
 
   if (dismissed) return null
@@ -21,13 +31,15 @@ export function PastDueBanner() {
   return (
     <div
       role="alert"
-      className="mx-4 mt-4 rounded-xl border border-[rgba(201,122,42,0.35)] bg-[rgba(201,122,42,0.10)] px-5 py-4 lg:mx-6"
+      className="mx-4 mt-4 rounded-xl px-5 py-4 lg:mx-6"
+      style={{ border: "1px solid var(--al-status-caution-border)", backgroundColor: "var(--al-status-caution-bg)" }}
     >
       <div className="flex items-start gap-4">
         {/* Warning icon */}
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[rgba(201,122,42,0.20)]">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--al-status-caution-border)" }}>
           <span
-            className="material-symbols-outlined text-xl text-[#c97a2a]"
+            className="material-symbols-outlined text-xl"
+            style={{ color: "var(--al-status-caution)" }}
             aria-hidden="true"
           >
             warning
@@ -50,7 +62,8 @@ export function PastDueBanner() {
           <button
             onClick={handleUpdatePayment}
             disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#003366] px-4 py-2.5 text-[13.5px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-[13.5px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{ background: "var(--al-gradient-cta)", boxShadow: "var(--al-shadow-cta)" }}
           >
             <span
               className="material-symbols-outlined text-base"
@@ -62,8 +75,11 @@ export function PastDueBanner() {
           </button>
 
           <button
-            onClick={() => setDismissed(true)}
-            className="rounded-lg p-1.5 text-al-on-surface-variant transition-colors hover:bg-[rgba(201,122,42,0.15)]"
+            onClick={() => {
+              try { sessionStorage.setItem(DISMISS_KEY, "1") } catch {}
+              setDismissed(true)
+            }}
+            className="rounded-lg p-1.5 text-al-on-surface-variant transition-colors hover:bg-[var(--al-status-caution-bg)]"
             aria-label="Dismiss payment warning"
           >
             <span

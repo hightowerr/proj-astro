@@ -18,6 +18,7 @@ import {
 import { getEventTypeById } from "@/lib/queries/event-types";
 import { getShopBySlug } from "@/lib/queries/shops";
 import { stripeIsMocked } from "@/lib/stripe";
+import { isBookingBlocked } from "@/lib/subscription";
 
 const createBookingSchema = z.object({
   shop: z.string().min(1),
@@ -89,6 +90,19 @@ export async function POST(req: Request) {
       durationMs: Date.now() - startedAt,
     });
     return Response.json({ error: "Shop not found" }, { status: 404 });
+  }
+
+  if (isBookingBlocked(shop)) {
+    console.warn("[booking-create] blocked — subscription inactive or trial expired", {
+      shopId: shop.id,
+      subscriptionStatus: shop.subscriptionStatus,
+      trialEndsAt: shop.trialEndsAt,
+      durationMs: Date.now() - startedAt,
+    });
+    return Response.json(
+      { error: "Online booking is temporarily unavailable for this shop" },
+      { status: 403 }
+    );
   }
 
   let phone: string;

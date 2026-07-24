@@ -5,6 +5,7 @@ import { formatDateInTimeZone } from "@/lib/booking";
 import { getBookingSettingsForShop } from "@/lib/queries/appointments";
 import { getEventTypeById, getEventTypesForShop } from "@/lib/queries/event-types";
 import { getShopBySlug } from "@/lib/queries/shops";
+import { isBookingBlocked } from "@/lib/subscription";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -48,8 +49,8 @@ export default async function BookingPage({
     notFound();
   }
 
-  // Soft lock: block bookings when merchant subscription is canceled
-  if (shop.subscriptionStatus === "canceled") {
+  // Block bookings when merchant subscription is canceled or trial has expired
+  if (isBookingBlocked(shop)) {
     return (
       <div className="bg-al-surface min-h-screen">
         <BookingHeader shopName={shop.name} />

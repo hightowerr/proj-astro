@@ -7,11 +7,26 @@ import { eq } from "drizzle-orm"
 import { getTrustedAuthOrigins } from "./auth-origins"
 import { db } from "./db"
 import { sendEmail } from "./email"
+import { getServerEnv } from "./env"
+import { escapeHtml } from "./html"
 import { polarClient } from "./polar"
 import { messageDedup, processedPolarEvents, shops, user } from "./schema"
 
-const isPlaywrightE2E = process.env.PLAYWRIGHT === "true"
+const isPlaywrightE2E =
+  process.env.PLAYWRIGHT === "true" && process.env.NODE_ENV !== "production"
 const trustedOrigins = getTrustedAuthOrigins()
+const serverEnv = getServerEnv()
+
+function getPolarWebhookSecret(): string {
+  const secret = process.env.POLAR_WEBHOOK_SECRET
+  if (secret) return secret
+  if (isPlaywrightE2E || process.env.NODE_ENV === "test") return ""
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("POLAR_WEBHOOK_SECRET is required in production")
+  }
+  console.warn("[auth] POLAR_WEBHOOK_SECRET is not set — webhook signatures will not be verified")
+  return ""
+}
 
 // Build a secondaryStorage adapter from Upstash Redis when credentials are
 // present. Better Auth uses this for session caching and rate-limit counters,
@@ -77,6 +92,7 @@ async function sendBillingEmail(
     }
 
     const firstName = (owner.name ?? "").split(" ")[0] || "there"
+    const firstNameHtml = escapeHtml(firstName)
 
     const text = `Hi ${firstName},\n\n${def.bodyText}\n\n${def.ctaLabel}: ${ctaUrl}\n\n— ShowUp`
     const html = `<!DOCTYPE html>
@@ -113,7 +129,7 @@ async function sendBillingEmail(
     <div style="margin-bottom:36px">
       <span class="em-logo" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#001e40">ShowUp</span>
     </div>
-    <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">Hi ${firstName},</p>
+    <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">Hi ${firstNameHtml},</p>
     ${def.bodyText
       .split("\n\n")
       .map((p) => `<p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">${p.replace(/\n/g, "<br>")}</p>`)
@@ -153,6 +169,53 @@ async function sendBillingEmail(
       error: emailError instanceof Error ? emailError.message : String(emailError),
     })
   }
+}
+
+// ---------------------------------------------------------------------------
+// Shared webhook helper: shop lookup + timestamp guard
+// ---------------------------------------------------------------------------
+
+type TxLike = Pick<typeof db, "select">
+
+/**
+ * Find the shop for a Polar webhook event. Tries `polarCustomerId` first,
+ * falls back to `externalId → ownerUserId`. Returns `null` if not found or
+ * if the event is older than the shop's `lastWebhookEventAt`.
+ */
+async function resolveShopForWebhook(
+  tx: TxLike,
+  opts: {
+    customerId: string
+    externalId: string | null | undefined
+    eventTimestamp: Date
+    handlerName: string
+  },
+) {
+  let [shop] = await tx
+    .select()
+    .from(shops)
+    .where(eq(shops.polarCustomerId, opts.customerId))
+    .limit(1)
+
+  if (!shop && opts.externalId) {
+    ;[shop] = await tx
+      .select()
+      .from(shops)
+      .where(eq(shops.ownerUserId, opts.externalId))
+      .limit(1)
+  }
+
+  if (!shop) {
+    console.warn(`[Polar] ${opts.handlerName}: no shop found for customer`, opts.customerId)
+    return null
+  }
+
+  // Timestamp guard: skip if event is older than last processed webhook
+  if (shop.lastWebhookEventAt && opts.eventTimestamp <= shop.lastWebhookEventAt) {
+    return null
+  }
+
+  return shop
 }
 
 export const auth = betterAuth({
@@ -202,11 +265,11 @@ export const auth = betterAuth({
         checkout({
           products: [
             {
-              productId: process.env.POLAR_PRODUCT_ID_MONTHLY!,
+              productId: serverEnv.POLAR_PRODUCT_ID_MONTHLY,
               slug: "showup-pro-monthly",
             },
             {
-              productId: process.env.POLAR_PRODUCT_ID_ANNUAL!,
+              productId: serverEnv.POLAR_PRODUCT_ID_ANNUAL,
               slug: "showup-pro-annual",
             },
           ],
@@ -214,7 +277,7 @@ export const auth = betterAuth({
           successUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/app/billing/processing`,
         }),
         webhooks({
-          secret: process.env.POLAR_WEBHOOK_SECRET ?? "",
+          secret: getPolarWebhookSecret(),
           onSubscriptionActive: async (payload) => {
             const sub = payload.data
             const eventTimestamp = payload.timestamp
@@ -233,28 +296,13 @@ export const auth = betterAuth({
                 .returning()
               if (inserted.length === 0) return
 
-              // Find shop by polarCustomerId first, fall back to externalId → ownerUserId
-              let [shop] = await tx
-                .select()
-                .from(shops)
-                .where(eq(shops.polarCustomerId, sub.customerId))
-                .limit(1)
-
-              if (!shop && sub.customer.externalId) {
-                ;[shop] = await tx
-                  .select()
-                  .from(shops)
-                  .where(eq(shops.ownerUserId, sub.customer.externalId))
-                  .limit(1)
-              }
-
-              if (!shop) {
-                console.warn("[Polar] onSubscriptionActive: no shop found for customer", sub.customerId)
-                return
-              }
-
-              // Timestamp guard: skip if event is older than last processed webhook
-              if (shop.lastWebhookEventAt && eventTimestamp <= shop.lastWebhookEventAt) return
+              const shop = await resolveShopForWebhook(tx, {
+                customerId: sub.customerId,
+                externalId: sub.customer.externalId,
+                eventTimestamp,
+                handlerName: "onSubscriptionActive",
+              })
+              if (!shop) return
 
               // Detect past_due → active recovery before the UPDATE
               const wasPastDue = shop.subscriptionStatus === "past_due"
@@ -315,26 +363,13 @@ export const auth = betterAuth({
                 .returning()
               if (inserted.length === 0) return
 
-              let [shop] = await tx
-                .select()
-                .from(shops)
-                .where(eq(shops.polarCustomerId, sub.customerId))
-                .limit(1)
-
-              if (!shop && sub.customer.externalId) {
-                ;[shop] = await tx
-                  .select()
-                  .from(shops)
-                  .where(eq(shops.ownerUserId, sub.customer.externalId))
-                  .limit(1)
-              }
-
-              if (!shop) {
-                console.warn("[Polar] onSubscriptionUpdated: no shop found for customer", sub.customerId)
-                return
-              }
-
-              if (shop.lastWebhookEventAt && eventTimestamp <= shop.lastWebhookEventAt) return
+              const shop = await resolveShopForWebhook(tx, {
+                customerId: sub.customerId,
+                externalId: sub.customer.externalId,
+                eventTimestamp,
+                handlerName: "onSubscriptionUpdated",
+              })
+              if (!shop) return
 
               // Detect transitions for email before the UPDATE
               const previousStatus = shop.subscriptionStatus
@@ -396,26 +431,13 @@ export const auth = betterAuth({
                 .returning()
               if (inserted.length === 0) return
 
-              let [shop] = await tx
-                .select()
-                .from(shops)
-                .where(eq(shops.polarCustomerId, sub.customerId))
-                .limit(1)
-
-              if (!shop && sub.customer.externalId) {
-                ;[shop] = await tx
-                  .select()
-                  .from(shops)
-                  .where(eq(shops.ownerUserId, sub.customer.externalId))
-                  .limit(1)
-              }
-
-              if (!shop) {
-                console.warn("[Polar] onSubscriptionRevoked: no shop found for customer", sub.customerId)
-                return
-              }
-
-              if (shop.lastWebhookEventAt && eventTimestamp <= shop.lastWebhookEventAt) return
+              const shop = await resolveShopForWebhook(tx, {
+                customerId: sub.customerId,
+                externalId: sub.customer.externalId,
+                eventTimestamp,
+                handlerName: "onSubscriptionRevoked",
+              })
+              if (!shop) return
 
               await tx
                 .update(shops)

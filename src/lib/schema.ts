@@ -225,6 +225,9 @@ export const shops = pgTable(
     uniqueIndex("shops_stripe_account_id_unique")
       .on(table.stripeAccountId)
       .where(sql`${table.stripeAccountId} IS NOT NULL`),
+    uniqueIndex("shops_polar_customer_id_unique")
+      .on(table.polarCustomerId)
+      .where(sql`${table.polarCustomerId} IS NOT NULL`),
   ]
 );
 

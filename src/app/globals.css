@@ -403,6 +403,7 @@
 
   /* Effects */
   --al-shadow-menu:  0px 20px 40px rgba(26, 28, 27, 0.10);
+  --al-shadow-cta:   0px 14px 28px rgba(0, 30, 64, 0.20);
   --al-shadow-mark:  0px 8px 18px rgba(0, 30, 64, 0.18);
   --al-shadow-ring:  0 0 0 4px rgba(0, 30, 64, 0.08);
   --al-hairline-rest:   rgba(195, 198, 209, 0.30);
