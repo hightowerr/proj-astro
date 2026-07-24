@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { and, eq, isNull, ne, or, sql } from "drizzle-orm";
 import { AllAppointmentsTable } from "@/components/dashboard/all-appointments-table";
 import { AttentionRequiredTable } from "@/components/dashboard/attention-required-table";
@@ -11,9 +10,8 @@ import { TierDistributionChart } from "@/components/dashboard/tier-distribution-
 import { TransferHeldCard } from "@/components/dashboard/transfer-held-card";
 import { db } from "@/lib/db";
 import { getDashboardDailyLog, getDashboardData } from "@/lib/queries/dashboard";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 const PERIOD_OPTIONS = new Set([24, 72, 168, 336]);
@@ -34,12 +32,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ period?: string; view?: string }>;
 }) {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    redirect("/app");
-  }
+  const { shop } = await requireShopAuth();
 
   // Connect card gate queries — run in parallel, independent of view/period
   const transferHeldWhere = and(

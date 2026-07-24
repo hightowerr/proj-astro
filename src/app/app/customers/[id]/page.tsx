@@ -2,28 +2,15 @@ import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getBookingSettingsForShop } from "@/lib/queries/appointments";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments, payments } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 
 export default async function CustomerPaymentHistoryPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div className="container mx-auto px-12 py-8">
-        <h1 className="al-page-title">Customer</h1>
-        <p className="al-lede">
-          Create your shop to view customer history.
-        </p>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   const { id } = await params;
   const customer = await db.query.customers.findFirst({

@@ -10,9 +10,8 @@ import {
   listAppointmentsForShop,
 } from "@/lib/queries/appointments";
 import { getConflictCount } from "@/lib/queries/calendar-conflicts";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { AppointmentsTable } from "./appointments-table";
 import type { SerializedAppointment } from "./appointments-table";
 
@@ -94,17 +93,7 @@ const RECOVERY_STATUS = {
 // --- page ------------------------------------------------------------------
 
 export default async function AppointmentsPage() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div className="al-page">
-        <div className="al-page-title">Appointments</div>
-        <p className="al-lede">Create your shop to start receiving bookings.</p>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   const [settings, appointmentRows, outcomeSummary, slotOpenings, conflictCount, unprotectedResult] = await Promise.all([
     getBookingSettingsForShop(shop.id),

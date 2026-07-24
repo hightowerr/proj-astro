@@ -8,28 +8,15 @@ import {
   getBookingSettingsForShop,
   getCustomerAppointmentHistory,
 } from "@/lib/queries/appointments";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments, customers, eventTypes, messageLog, payments } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 
 export default async function AppointmentDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return (
-      <div className="container mx-auto px-12 py-8">
-        <h1 className="al-page-title">Appointment</h1>
-        <p className="al-lede">
-          Create your shop to view appointment details.
-        </p>
-      </div>
-    );
-  }
+  const { shop } = await requireShopAuth();
 
   const { id } = await params;
 

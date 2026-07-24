@@ -181,6 +181,8 @@ export const stripeOnboardingStatusEnum = pgEnum("stripe_onboarding_status", [
   "suspended",
 ]);
 
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['trialing', 'active', 'past_due', 'canceled']);
+
 export const shops = pgTable(
   "shops",
   {
@@ -211,6 +213,10 @@ export const shops = pgTable(
     connectReengagementSentAt: timestamp("connect_reengagement_sent_at", {
       withTimezone: true,
     }),
+    subscriptionStatus: subscriptionStatusEnum('subscription_status').default('trialing').notNull(),
+    trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
+    polarCustomerId: text('polar_customer_id'),
+    lastWebhookEventAt: timestamp('last_webhook_event_at', { withTimezone: true }),
   },
   (table) => [
     uniqueIndex("shops_owner_user_id_unique").on(table.ownerUserId),
@@ -219,6 +225,9 @@ export const shops = pgTable(
     uniqueIndex("shops_stripe_account_id_unique")
       .on(table.stripeAccountId)
       .where(sql`${table.stripeAccountId} IS NOT NULL`),
+    uniqueIndex("shops_polar_customer_id_unique")
+      .on(table.polarCustomerId)
+      .where(sql`${table.polarCustomerId} IS NOT NULL`),
   ]
 );
 
@@ -980,6 +989,13 @@ export const messageOptOuts = pgTable(
 );
 
 export const processedStripeEvents = pgTable("processed_stripe_events", {
+  id: text("id").primaryKey(),
+  processedAt: timestamp("processed_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export const processedPolarEvents = pgTable("processed_polar_events", {
   id: text("id").primaryKey(),
   processedAt: timestamp("processed_at", { withTimezone: true })
     .defaultNow()

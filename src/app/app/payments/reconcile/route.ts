@@ -1,9 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { syncAppointmentCalendarEvent } from "@/lib/queries/appointments";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { appointments, payments } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { getStripeClient, normalizeStripePaymentStatus, stripeIsMocked } from "@/lib/stripe";
 import { processRefund } from "@/lib/stripe-refund";
 
@@ -30,12 +29,7 @@ const mapAppointmentUpdate = (
 };
 
 export async function POST() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-
-  if (!shop) {
-    return Response.json({ error: "Shop not found" }, { status: 404 });
-  }
+  const { shop } = await requireShopAuth();
 
   if (stripeIsMocked()) {
     return Response.json({

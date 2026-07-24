@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "shops_polar_customer_id_unique" ON "shops" USING btree ("polar_customer_id") WHERE "shops"."polar_customer_id" IS NOT NULL;

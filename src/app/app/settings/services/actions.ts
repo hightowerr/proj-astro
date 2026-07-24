@@ -5,9 +5,8 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getBookingSettingsForShop } from "@/lib/queries/appointments";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import { eventTypes } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { MAX_SERVICE_DURATION_MINUTES, MIN_SERVICE_DURATION_MINUTES } from "./constants";
 import type { ServiceEditorValues, ServiceField } from "./types";
 
@@ -112,9 +111,8 @@ function formDataToValues(formData: FormData): ServiceEditorValues {
 }
 
 async function getAuthorizedShop() {
-  const session = await requireAuth();
-  const shop = await getShopByOwnerId(session.user.id);
-  return shop ?? null;
+  const { shop } = await requireShopAuth();
+  return shop;
 }
 
 async function runCreateEventType(

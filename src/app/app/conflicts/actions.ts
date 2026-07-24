@@ -11,7 +11,6 @@ import {
   dismissAlert,
   resolveAlertsForCancelledAppointment,
 } from "@/lib/queries/calendar-conflicts";
-import { getShopByOwnerId } from "@/lib/queries/shops";
 import {
   appointmentEvents,
   appointments,
@@ -19,7 +18,7 @@ import {
   payments,
   policyVersions,
 } from "@/lib/schema";
-import { requireAuth } from "@/lib/session";
+import { requireShopAuth } from "@/lib/session";
 import { createSlotOpeningFromCancellation } from "@/lib/slot-recovery";
 import { processRefund } from "@/lib/stripe-refund";
 
@@ -28,12 +27,7 @@ export async function dismissConflictAction(alertId: string): Promise<{
   error?: string;
 }> {
   try {
-    const session = await requireAuth();
-    const shop = await getShopByOwnerId(session.user.id);
-
-    if (!shop) {
-      return { success: false, error: "Shop not found" };
-    }
+    const { shop } = await requireShopAuth();
 
     const dismissed = await dismissAlert(alertId, shop.id);
     if (!dismissed) {
@@ -61,12 +55,7 @@ export async function cancelAppointmentFromConflict(
   error?: string;
 }> {
   try {
-    const session = await requireAuth();
-    const shop = await getShopByOwnerId(session.user.id);
-
-    if (!shop) {
-      return { success: false, error: "Shop not found" };
-    }
+    const { shop } = await requireShopAuth();
 
     const [row] = await db
       .select({

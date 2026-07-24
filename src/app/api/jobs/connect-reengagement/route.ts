@@ -1,6 +1,7 @@
 import { sql, eq, and, between, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { escapeHtml } from "@/lib/html";
 import { eventTypes, shopHours, shops, user } from "@/lib/schema";
 
 export const runtime = "nodejs";
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
     for (const shop of pendingShops) {
       try {
         const firstName = (shop.userName ?? "").split(" ")[0] || "there";
+        const firstNameHtml = escapeHtml(firstName);
         const setupUrl = `${appUrl}/api/settings/stripe-connect/refresh`;
 
         const html = `<!DOCTYPE html>
@@ -105,7 +107,7 @@ export async function POST(req: Request) {
     <div style="margin-bottom:36px">
       <span class="em-logo" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#001e40">ShowUp</span>
     </div>
-    <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">Hi ${firstName},</p>
+    <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827">Hi ${firstNameHtml},</p>
     <p class="em-text" style="font-size:21px;font-weight:800;line-height:1.3;letter-spacing:-0.015em;color:#111827">You began setting up deposits — finish in under 5 minutes.</p>
     <p class="em-text" style="font-size:15.5px;line-height:1.65;color:#111827;max-width:46ch">Once set up, customer deposits will go directly to your bank account on every booking.</p>
     <div style="text-align:center;margin:32px 0">

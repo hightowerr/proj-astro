@@ -9,7 +9,7 @@ const {
   normalizeStripePaymentStatusMock,
   paymentIntentRetrieveMock,
   processRefundMock,
-  requireAuthMock,
+  requireShopAuthMock,
   stripeIsMockedMock,
   syncAppointmentCalendarEventMock,
   txFindAppointmentMock,
@@ -33,7 +33,7 @@ const {
     normalizeStripePaymentStatusMock: vi.fn(),
     paymentIntentRetrieveMock: vi.fn(),
     processRefundMock: vi.fn(),
-    requireAuthMock: vi.fn(),
+    requireShopAuthMock: vi.fn(),
     stripeIsMockedMock: vi.fn(),
     syncAppointmentCalendarEventMock: vi.fn(),
     txFindAppointmentMock: vi.fn(),
@@ -74,7 +74,7 @@ vi.mock("@/lib/queries/shops", () => ({
 }));
 
 vi.mock("@/lib/session", () => ({
-  requireAuth: requireAuthMock,
+  requireShopAuth: requireShopAuthMock,
 }));
 
 vi.mock("@/lib/stripe", () => ({
@@ -97,8 +97,10 @@ describe("POST /app/payments/reconcile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    requireAuthMock.mockResolvedValue({
-      user: { id: "user-1" },
+    requireShopAuthMock.mockResolvedValue({
+      session: { user: { id: "user-1" } },
+      shop: { id: "shop-1" },
+      isPastDue: false,
     });
     getShopByOwnerIdMock.mockResolvedValue({ id: "shop-1" });
     stripeIsMockedMock.mockReturnValue(false);

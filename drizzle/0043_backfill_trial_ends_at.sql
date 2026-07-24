@@ -1,0 +1,1 @@
+UPDATE "shops" SET "trial_ends_at" = "created_at" + interval '14 days' WHERE "trial_ends_at" IS NULL;

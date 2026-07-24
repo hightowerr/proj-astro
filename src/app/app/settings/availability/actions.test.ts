@@ -8,7 +8,7 @@ const {
   mockInsertShopHoursValues,
   mockOnConflictDoUpdate,
   mockRevalidatePath,
-  mockRequireAuth,
+  mockRequireShopAuth,
   mockTransaction,
   mockTxDelete,
   mockTxInsert,
@@ -19,7 +19,7 @@ const {
   mockInsertShopHoursValues: vi.fn(),
   mockOnConflictDoUpdate: vi.fn(),
   mockRevalidatePath: vi.fn(),
-  mockRequireAuth: vi.fn(),
+  mockRequireShopAuth: vi.fn(),
   mockTransaction: vi.fn(),
   mockTxDelete: vi.fn(),
   mockTxInsert: vi.fn(),
@@ -40,7 +40,7 @@ vi.mock("@/lib/queries/shops", () => ({
 }));
 
 vi.mock("@/lib/session", () => ({
-  requireAuth: mockRequireAuth,
+  requireShopAuth: mockRequireShopAuth,
 }));
 
 import { bookingSettings, shopHours } from "@/lib/schema";
@@ -63,7 +63,7 @@ describe("updateAvailabilitySettings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockRequireAuth.mockResolvedValue({ user: { id: "user-1" } });
+    mockRequireShopAuth.mockResolvedValue({ session: { user: { id: "user-1" } }, shop: { id: "shop-1" }, isPastDue: false });
     mockGetShopByOwnerId.mockResolvedValue({ id: "shop-1", slug: "demo-shop" });
 
     mockOnConflictDoUpdate.mockResolvedValue(undefined);
@@ -147,7 +147,7 @@ describe("updateAvailabilitySettings", () => {
   });
 
   it("throws unauthorized when not authenticated", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("Unauthorized"));
+    mockRequireShopAuth.mockRejectedValue(new Error("Unauthorized"));
 
     await expect(
       updateAvailabilitySettings("shop-1", createFormData(5))

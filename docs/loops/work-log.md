@@ -4,6 +4,17 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-23] verify+drift+retro | polar-subscription ALL waves
+
+- **Picked up**: Phases 3-5 for polar-subscription waves 4-5, then final drift audit and retro for all waves.
+- **Result**: Loop COMPLETE.
+  - Verify (waves 4-5): 31/33 PASS, 2 BLOCKED (design prototypes), 0 trajectory flags.
+  - Drift: 2 divergences total, both EVOLUTION: (1) createCustomerOnSignUp false→true per spike, (2) messageLog→messageDedup for drip dedup. 0 shortcuts.
+  - Retro: Architecture context updated — Polar as billing engine, subscription lifecycle state machine, requireShopAuth as primary dashboard auth, 5 new invariants (20-24), 2 env vars. Code standards updated — 3 new domain rules (requireShopAuth convention, webhook dedup pattern, deferred email pattern). Progress tracker updated. Loop COMPLETE.
+  - Evolution/shortcut ratio: 2/0 (0% shortcuts)
+  - Patterns extracted: 0 (all patterns reapplied from prior features — foundation-first-slicing, spike-before-shape, design-prototype-as-source-of-truth)
+  - Friction logged: 0 (worktree timeout is known signal, not new)
+  - Key learning: 14-spec feature with 5 waves achieved 0 deviations at implementation time. Pre-written specs with BUILD-ORDER and design prototypes continue to produce zero-deviation implementations.
 ## [2026-07-20] verify+drift+retro | launch-truth-audit wave 1
 
 - **Picked up**: Phases 3-5 for launch-truth-audit feature (verify in separate fresh session, drift audit, retro)
@@ -19,6 +30,57 @@ Append-only. Every agent reads the last 10 entries at session start for context.
 
 ---
 
+## [2026-07-23] implement | polar-subscription waves 4-5
+
+- **Picked up**: Phase 2 IMPLEMENT Waves 4-5 for polar-subscription (checkout interstitial, past-due banner, reconciliation, grace period emails).
+- **Result**: All 4 slices implemented across 2 waves. `pnpm check` clean. 0 deviations.
+  - Spec 10: Checkout interstitial at `/app/billing/processing` — client component with 2-second polling via server action, processing state (lock spinner, "Activating your shop...") and fallback state (checkmark, "Check again" button). Redirects to dashboard on `active`.
+  - Spec 11: Past-due banner — amber `#c97a2a` on 10% tint, warning icon, "Update payment method" CTA calling `authClient.customer.portal()`, dismissible via X. Layout reads `isPastDue` from shop query without calling `requireShopAuth()`.
+  - Spec 13: Reconciliation — `getCustomerSubscriptionStatus()` helper in polar.ts calls Polar API. Paywall page checks Polar before rendering. If `active`, heals DB and redirects. API failure falls through to paywall.
+  - Spec 14: Grace period emails — `sendBillingEmail` helper with messageDedup. 3 deferred emails: payment-failed (on past_due), payment-recovered (on active after past_due), subscription-ended (on revoked). All fire outside transaction.
+  - New files (3): `billing/processing/page.tsx`, `billing/processing/actions.ts`, `past-due-banner.tsx`
+  - Modified files (4): `auth.ts` (+sendBillingEmail, +3 deferred calls), `polar.ts` (+getCustomerSubscriptionStatus), `billing/subscribe/page.tsx` (+reconciliation), `layout.tsx` (+isPastDue banner), `globals.css` (+spinner keyframes)
+- **Unresolved**: Phase 3 (VERIFY) for waves 4-5 must run in a separate fresh session. Then DRIFT AUDIT + RETRO for all remaining waves. All 14 specs are now implemented.
+
+---
+
+## [2026-07-21] implement | polar-subscription wave 3
+
+- **Picked up**: Phase 2 IMPLEMENT Wave 3 for polar-subscription (requireShopAuth, booking soft lock, paywall page, onboarding drip).
+- **Result**: All 4 slices implemented. `pnpm check` clean after each slice. 0 deviations.
+  - Spec 07: `requireShopAuth()` added to session.ts with 4-state switch + NULL fallback + fail-open. 24 dashboard routes replaced (2 billing routes kept as `requireAuth()`). Duplicate shop queries removed.
+  - Spec 08: Booking page soft lock — `subscriptionStatus === 'canceled'` check renders unavailable card with terracotta clock icon, "TEMPORARILY UNAVAILABLE" label. Fail closed.
+  - Spec 09: Paywall page at `/app/billing/subscribe` — server component + 2 client components (pricing card with monthly/annual toggle, checkout button). Two variants (trial expired / welcome back). Uses `requireAuth()` only (no redirect loop).
+  - Spec 12: Onboarding drip — `processOnboardingDrips()` queries trialing shops, calculates trial day, applies completion gates (Stripe, services, policies, appointments), dedup via `messageDedup`, sends via Resend. Hooked into resolve-outcomes cron after advisory lock release.
+  - Modified files (16+): `session.ts`, 13 page files, 6 action files, `book/[slug]/page.tsx`, `resolve-outcomes/route.ts`
+  - New files (4): `billing/subscribe/page.tsx`, `pricing-card.tsx`, `checkout-button.tsx`, `onboarding-drips.ts`
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session. Waves 4–5 remain.
+
+---
+
+## [2026-07-21] implement | polar-subscription wave 2
+
+- **Picked up**: Phase 2 IMPLEMENT Wave 2 for polar-subscription (client plugin, webhook handler, trial initialization).
+- **Result**: All 3 slices implemented. `pnpm check` clean after each slice. 0 deviations.
+  - Spec 04: `polarClient()` added to `createAuthClient` plugins in `auth-client.ts`.
+  - Spec 05: 3 state-changing webhook callbacks with dedup (`processedPolarEvents`) + timestamp guard + dual shop lookup (by `polarCustomerId`, fallback to `ownerUserId` via `externalId`). 3 no-op info loggers unchanged.
+  - Spec 06: `subscriptionStatus: 'trialing'` and `trialEndsAt` (14 days) added to shop creation insert.
+  - Modified files (3): `auth-client.ts`, `auth.ts`, `queries/shops.ts`
+  - Friction: worktrees timed out on 8K+ file repo (known signal). Implemented directly — no file conflicts.
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session. Then DRIFT AUDIT + RETRO. Waves 3–5 remain.
+
+---
+
+## [2026-07-21] shape+implement | polar-subscription wave 1
+
+- **Picked up**: Full SHAPE + Phase 2 IMPLEMENT Wave 1 for polar-subscription feature (Polar Better Auth subscription lifecycle — 14 specs, 5 waves).
+- **Result**: Shape complete + Wave 1 implemented. `pnpm check` clean after each slice. 0 deviations.
+  - **Shape**: 14 specs pre-written with BUILD-ORDER and 4 UI + 11 email design prototypes. Spike resolved (createCustomerOnSignUp: true — Polar docs recommend proactive customer creation). Shape doc, slices doc, 3 wave-1 slice plans created. 5 waves defined.
+  - **Wave 1** (foundation, 3 slices): Spec 01 (subscriptionStatusEnum, 4 columns on shops, processedPolarEvents dedup table, migration 0041), Spec 02 (POLAR_ACCESS_TOKEN required + POLAR_WEBHOOK_SECRET optional/required-in-prod), Spec 03 (@polar-sh/better-auth + @polar-sh/sdk, polar plugin with createCustomerOnSignUp:true, checkout config, 6 webhook callback stubs). Slices 1a+1b parallel, 1c sequential after 1b.
+  - **Modified files (3)**: `schema.ts` (+enum, +4 columns, +table), `env.ts` (+2 vars, +checkEnv guards), `auth.ts` (+polar plugin with checkout + webhooks)
+  - **New files (2)**: `src/lib/polar.ts` (SDK client singleton), `drizzle/0041_polar_subscription.sql`
+  - Signals applied: foundation-first-slicing, spike-before-shape
+- **Unresolved**: Phase 3 (VERIFY) must run in a separate fresh session (NEVER self-verify). Then DRIFT AUDIT + RETRO. Waves 2–5 remain.
 ## [2026-07-19] implement | launch-truth-audit wave 1
 
 - **Picked up**: Phase 2 IMPLEMENT for launch-truth-audit (remove false claims, unverifiable metrics, vaporware from landing + booking pages). 6 specs, 1 wave, all parallel.
